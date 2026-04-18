@@ -1,4 +1,4 @@
-import test from "node:test";
+import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const originalFetch = globalThis.fetch;
@@ -8,7 +8,7 @@ async function loadFetchTimeoutModule(tag) {
   return import(`../../src/shared/utils/fetchTimeout.ts?case=${tag}-${Date.now()}`);
 }
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
   if (originalTimeoutEnv === undefined) {
     delete process.env.FETCH_TIMEOUT_MS;

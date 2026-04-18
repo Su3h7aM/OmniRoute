@@ -1,4 +1,4 @@
-import test from "node:test";
+import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -17,11 +17,11 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.afterEach(async () => {
+afterEach(async () => {
   await resetStorage();
 });
 
-test.after(() => {
+afterAll(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

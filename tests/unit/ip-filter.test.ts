@@ -1,4 +1,4 @@
-import test from "node:test";
+import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const {
@@ -15,7 +15,7 @@ const {
   resetIPFilter,
 } = await import("../../open-sse/services/ipFilter.ts");
 
-test.beforeEach(() => resetIPFilter());
+beforeEach(() => resetIPFilter());
 
 // ─── Disabled ───────────────────────────────────────────────────────────────
 

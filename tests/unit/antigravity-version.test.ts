@@ -1,4 +1,4 @@
-import test from "node:test";
+import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import {
@@ -12,7 +12,7 @@ import {
 
 const originalDateNow = Date.now;
 
-test.afterEach(() => {
+afterEach(() => {
   Date.now = originalDateNow;
   clearAntigravityVersionCache();
 });

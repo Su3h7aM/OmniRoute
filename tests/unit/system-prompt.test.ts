@@ -1,4 +1,4 @@
-import test from "node:test";
+import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { injectSystemPrompt, setSystemPromptConfig, getSystemPromptConfig } =
@@ -90,4 +90,4 @@ test("injectSystemPrompt: null body returns as-is", () => {
 });
 
 // Reset
-test.after(() => setSystemPromptConfig({ enabled: false, prompt: "" }));
+afterAll(() => setSystemPromptConfig({ enabled: false, prompt: "" }));

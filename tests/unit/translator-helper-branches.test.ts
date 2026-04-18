@@ -1,4 +1,4 @@
-import test from "node:test";
+import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const schemaCoercion = await import("../../open-sse/translator/helpers/schemaCoercion.ts");
@@ -9,7 +9,7 @@ const toolCallHelper = await import("../../open-sse/translator/helpers/toolCallH
 
 const originalMathRandom = Math.random;
 
-test.afterEach(() => {
+afterEach(() => {
   Math.random = originalMathRandom;
 });
 
