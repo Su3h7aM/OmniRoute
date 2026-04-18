@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -63,12 +63,12 @@ const executionContext = {
   requestId: "request-1",
 };
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
   await registerRuntimeSkills();
 });
 
-test.after(() => {
+afterAll(() => {
   resetRuntime();
   coreDb.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });

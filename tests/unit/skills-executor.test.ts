@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -40,11 +40,11 @@ async function registerEchoSkill(overrides = {}) {
   });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(() => {
+afterAll(() => {
   resetSkillsRuntime();
   coreDb.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
