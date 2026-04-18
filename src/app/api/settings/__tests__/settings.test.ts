@@ -1,17 +1,43 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { PATCH } from "../route";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 
-// Mock the localDb functions used in the route
-vi.mock("../../../../lib/localDb", () => {
-  const original = vi.importActual("../../../../lib/localDb");
-  return {
-    ...original,
-    getSettings: vi.fn(),
-    updateSettings: vi.fn(),
-  };
-});
+const getSettings = mock();
+const updateSettings = mock();
+const requireManagementAuth = mock(async () => null);
+const getConsistentMachineId = mock(async () => "test-machine-id");
+const validateProxyUrl = mock(() => ({ valid: true }));
+const upsertUpstreamProxyConfig = mock(async () => undefined);
+const ensurePersistentManagementPasswordHash = mock(async ({ settings }) => ({ settings }));
+const getStoredManagementPassword = mock(() => null);
+const hasManagementPasswordConfigured = mock(() => false);
+const hashManagementPassword = mock(async (value: string) => `hashed:${value}`);
+const verifyManagementPassword = mock(async () => true);
 
-import { getSettings, updateSettings } from "../../../../lib/localDb";
+mock.module("@/lib/localDb", () => ({
+  getSettings,
+  updateSettings,
+}));
+mock.module("@/lib/api/requireManagementAuth", () => ({
+  requireManagementAuth,
+}));
+mock.module("@/lib/runtime/ports", () => ({
+  getRuntimePorts: () => ({ apiPort: 20128, dashboardPort: 20128 }),
+}));
+mock.module("@/shared/utils/machineId", () => ({
+  getConsistentMachineId,
+}));
+mock.module("@/lib/db/upstreamProxy", () => ({
+  validateProxyUrl,
+  upsertUpstreamProxyConfig,
+}));
+mock.module("@/lib/auth/managementPassword", () => ({
+  ensurePersistentManagementPasswordHash,
+  getStoredManagementPassword,
+  hasManagementPasswordConfigured,
+  hashManagementPassword,
+  verifyManagementPassword,
+}));
+
+const { PATCH } = await import("../route");
 
 // Helper to create a Request with JSON body
 function createPatchRequest(body: unknown) {
@@ -24,15 +50,34 @@ function createPatchRequest(body: unknown) {
 
 describe("PATCH /api/settings", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    getSettings.mockReset();
+    updateSettings.mockReset();
+    requireManagementAuth.mockReset();
+    validateProxyUrl.mockReset();
+    upsertUpstreamProxyConfig.mockReset();
+    ensurePersistentManagementPasswordHash.mockReset();
+    getStoredManagementPassword.mockReset();
+    hasManagementPasswordConfigured.mockReset();
+    hashManagementPassword.mockReset();
+    verifyManagementPassword.mockReset();
+
+    requireManagementAuth.mockResolvedValue(null);
+    validateProxyUrl.mockReturnValue({ valid: true });
+    upsertUpstreamProxyConfig.mockResolvedValue(undefined);
+    ensurePersistentManagementPasswordHash.mockImplementation(async ({ settings }) => ({ settings }));
+    getStoredManagementPassword.mockReturnValue(null);
+    hasManagementPasswordConfigured.mockReturnValue(false);
+    hashManagementPassword.mockImplementation(async (value: string) => `hashed:${value}`);
+    verifyManagementPassword.mockResolvedValue(true);
+
     // Default settings before each test
-    (getSettings as any).mockResolvedValue({
+    getSettings.mockResolvedValue({
       debugMode: false,
       hiddenSidebarItems: [],
     });
     // Mock updateSettings to merge updates into the original
-    (updateSettings as any).mockImplementation(async (updates: Record<string, unknown>) => {
-      const current = await (getSettings as any)();
+    updateSettings.mockImplementation(async (updates: Record<string, unknown>) => {
+      const current = await getSettings();
       return { ...current, ...updates };
     });
   });
@@ -46,8 +91,8 @@ describe("PATCH /api/settings", () => {
     // Ensure password is not leaked
     expect(json).not.toHaveProperty("password");
     // Verify DB update called with correct payload
-    expect(updateSettings).toHaveBeenCalledOnce();
-    const calledWith = (updateSettings as any).mock.calls[0][0];
+    expect(updateSettings).toHaveBeenCalledTimes(1);
+    const calledWith = updateSettings.mock.calls[0][0];
     expect(calledWith.debugMode).toBe(true);
   });
 
@@ -57,8 +102,8 @@ describe("PATCH /api/settings", () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.hiddenSidebarItems).toEqual([]);
-    expect(updateSettings).toHaveBeenCalledOnce();
-    const calledWith = (updateSettings as any).mock.calls[0][0];
+    expect(updateSettings).toHaveBeenCalledTimes(1);
+    const calledWith = updateSettings.mock.calls[0][0];
     expect(calledWith.hiddenSidebarItems).toEqual([]);
   });
 });
