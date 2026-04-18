@@ -8,7 +8,7 @@
 
 import { homedir } from "os";
 import { join } from "path";
-import { createRequire } from "module";
+import { Database } from "bun:sqlite";
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const DB_KEY = "cursorupdate.lastUpdatedAndShown.version";
@@ -39,9 +39,7 @@ export function getCursorVersion(): string {
   }
 
   try {
-    const esmRequire = createRequire(import.meta.url);
-    const Database = esmRequire("better-sqlite3");
-    const db = new Database(getCursorDbPath(), { readonly: true, fileMustExist: true });
+    const db = new Database(getCursorDbPath(), { readonly: true, strict: true });
     try {
       const row = db.prepare("SELECT value FROM itemTable WHERE key = ?").get(DB_KEY) as
         | { value: string }

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 /**
  * OmniRoute — Prepublish Build Script
@@ -111,11 +111,7 @@ if (existsSync(APP_DIR)) {
   rmSync(APP_DIR, { recursive: true, force: true });
 }
 
-// ── Step 2: Install dependencies ───────────────────────────
-console.log("  📦 Installing dependencies...");
-execSync("npm install", { cwd: ROOT, stdio: "inherit" });
-
-// ── Step 2.5: Remove app/ directory before build ───────────
+// ── Step 2: Remove app/ directory before build ─────────────
 // CRITICAL: The postinstall script may create app/node_modules/@swc/helpers/,
 // which causes Next.js 16 to interpret app/ as an App Router directory
 // (competing with src/app/). This makes the build silently skip all real
@@ -128,7 +124,7 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
-execSync("npx next build", {
+execSync("bun scripts/build-next-isolated.mjs", {
   cwd: ROOT,
   stdio: "inherit",
   env: {

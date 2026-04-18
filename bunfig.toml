@@ -1,6 +1,7 @@
 [install]
 # Prefer Bun-only installs for the monorepo migration.
-linker = "isolated"
+# Use hoisted linker for broader Next.js/tooling compatibility during migration.
+linker = "hoisted"
 
 [test]
 root = "."

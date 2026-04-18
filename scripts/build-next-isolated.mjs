@@ -14,7 +14,11 @@ import { pathToFileURL } from "node:url";
  */
 
 const projectRoot = process.cwd();
-const backupRoot = path.join(os.tmpdir(), `omniroute-build-isolated-${process.pid}-${Date.now()}`);
+const backupRoot = path.join(
+  projectRoot,
+  ".omniroute-build-isolated",
+  `${process.pid}-${Date.now()}`
+);
 
 export function getTransientBuildPaths(rootDir = projectRoot, env = process.env) {
   const paths = [

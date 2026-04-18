@@ -173,10 +173,8 @@ async function getDb(): Promise<AuditDatabase | null> {
       return null;
     }
 
-    const Database = (await import("better-sqlite3")).default as unknown as new (
-      dbPath: string
-    ) => AuditDatabase;
-    const database = new Database(dbPath);
+    const { Database } = await import("bun:sqlite");
+    const database = new Database(dbPath, { create: true, strict: true }) as AuditDatabase;
     setCachedAuditDb(database);
     return database;
   } catch (err: unknown) {
@@ -195,7 +193,7 @@ export function closeAuditDb(): boolean {
   try {
     try {
       if (database.open !== false) {
-        database.pragma("wal_checkpoint(TRUNCATE)");
+        database.run("PRAGMA wal_checkpoint(TRUNCATE)");
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
