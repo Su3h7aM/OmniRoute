@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { adjustMaxTokens } from "../maxTokensHelper.ts";
 
 describe("adjustMaxTokens - negative values", () => {
