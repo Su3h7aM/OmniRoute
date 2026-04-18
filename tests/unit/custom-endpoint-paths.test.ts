@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // Inline buildUrl logic from DefaultExecutor for unit testing

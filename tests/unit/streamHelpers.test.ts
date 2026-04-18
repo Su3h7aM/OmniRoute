@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert";
 import { hasValuableContent, unwrapGeminiChunk } from "../../open-sse/utils/streamHelpers.ts";
 import { FORMATS } from "../../open-sse/translator/formats.ts";

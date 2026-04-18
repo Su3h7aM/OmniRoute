@@ -9,7 +9,7 @@
  * is present (e.g. from a raw API response), it adds cache tokens too.
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // ── Inline the fixed logic from tokenAccounting.ts ──────────────────────

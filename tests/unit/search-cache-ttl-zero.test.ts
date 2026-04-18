@@ -10,7 +10,7 @@
  * 6. ?? operator in route.ts: cacheTTLMs=0 is not treated as falsy
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 import {
   getOrCoalesce,

@@ -8,7 +8,7 @@
  * 4. Balance updates are correctly reflected in subsequent reads
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // ── Import credit cache helpers ───────────────────────────────────────────────

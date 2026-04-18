@@ -9,7 +9,7 @@
  * Also tests getLoggedInputTokens for each provider format.
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // ── Inline the logic from tokenAccounting.ts ────────────────────────────

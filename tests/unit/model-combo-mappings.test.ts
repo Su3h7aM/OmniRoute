@@ -2,7 +2,7 @@
  * Unit tests for Per-Model Combo Support (#563)
  * Tests glob pattern matching and priority ordering.
  */
-import { test, describe } from "node:test";
+import { test, describe } from "bun:test";
 import assert from "node:assert/strict";
 
 // ──────────────────────────────────────────────────────────

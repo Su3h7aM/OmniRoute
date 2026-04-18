@@ -7,7 +7,7 @@
  * `400: tool_choice.any may only be specified while providing tools` from Anthropic.
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // Inline the filter logic from chatCore.ts (after #397 fix + built-in tool type preservation)
