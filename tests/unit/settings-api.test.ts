@@ -1,4 +1,4 @@
-import { describe, test } from "node:test";
+import { describe, test } from "bun:test";
 import assert from "node:assert/strict";
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
 import { getSettings, updateSettings } from "../../src/lib/db/settings.ts";
