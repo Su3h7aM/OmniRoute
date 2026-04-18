@@ -26,7 +26,7 @@ export async function GET(request) {
       return NextResponse.json({ success: false, error: "Invalid file name" }, { status: 400 });
     }
 
-    const logsDir = path.join(process.cwd(), "logs", "translator");
+    const logsDir = path.join(/* turbopackIgnore: true */ process.cwd(), "logs", "translator");
     const filePath = path.join(logsDir, file);
 
     // Check if file exists

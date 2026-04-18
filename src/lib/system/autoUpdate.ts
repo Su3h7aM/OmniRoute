@@ -70,8 +70,9 @@ export function getAutoUpdateConfig(env: NodeJS.ProcessEnv = process.env): AutoU
 
   let mode = normalizeMode(env.AUTO_UPDATE_MODE);
   if (mode === "npm") {
-    const isGitRepo = existsSync(path.join(process.cwd(), ".git"));
-    const currentDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+    const isGitRepo = existsSync(path.join(/* turbopackIgnore: true */ process.cwd(), ".git"));
+    const currentDir =
+      typeof __dirname !== "undefined" ? __dirname : /* turbopackIgnore: true */ process.cwd();
     const isGlobalNodeModules = currentDir.includes("node_modules");
 
     // If we are not in a global node_modules directory, we are likely a local source install/build.
@@ -117,7 +118,7 @@ export async function validateAutoUpdateRuntime(
   existsImpl: (targetPath: string) => Promise<boolean> = pathExists
 ): Promise<AutoUpdateValidation> {
   if (config.mode === "source") {
-    const gitDir = path.join(process.cwd(), ".git");
+    const gitDir = path.join(/* turbopackIgnore: true */ process.cwd(), ".git");
     if (!(await existsImpl(gitDir))) {
       return {
         supported: false,
@@ -197,7 +198,7 @@ export async function validateAutoUpdateRuntime(
 export async function ensureGitTagExists(
   targetTag: string,
   execFileImpl: ExecFileLike = execFileAsync,
-  cwd = process.cwd()
+  cwd = /* turbopackIgnore: true */ process.cwd()
 ): Promise<void> {
   try {
     await execFileImpl("git", ["rev-parse", "-q", "--verify", `refs/tags/${targetTag}`], {

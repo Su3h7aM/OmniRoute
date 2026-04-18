@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid file name" }, { status: 400 });
     }
 
-    const logsDir = path.join(process.cwd(), "logs", "translator");
+    const logsDir = path.join(/* turbopackIgnore: true */ process.cwd(), "logs", "translator");
 
     // Create directory if not exists
     if (!fs.existsSync(logsDir)) {

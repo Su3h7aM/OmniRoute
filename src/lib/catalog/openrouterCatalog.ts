@@ -19,7 +19,8 @@ function getTTL(): number {
 }
 
 function getCacheFilePath(): string {
-  const dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
+  const dataDir =
+    process.env.DATA_DIR || path.join(/* turbopackIgnore: true */ process.cwd(), "data");
   const cacheDir = path.join(dataDir, "cache");
   if (!fs.existsSync(cacheDir)) {
     fs.mkdirSync(cacheDir, { recursive: true });

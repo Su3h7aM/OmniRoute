@@ -7,7 +7,12 @@ const DEFAULT_APP_LOG_MAX_FILES = 20;
 const DEFAULT_CALL_LOG_MAX_ENTRIES = 10000;
 const DEFAULT_CALL_LOGS_TABLE_MAX_ROWS = 100000;
 const DEFAULT_PROXY_LOGS_TABLE_MAX_ROWS = 100000;
-const DEFAULT_APP_LOG_PATH = path.join(process.cwd(), "logs", "application", "app.log");
+const DEFAULT_APP_LOG_PATH = path.join(
+  /* turbopackIgnore: true */ process.cwd(),
+  "logs",
+  "application",
+  "app.log"
+);
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value) return fallback;

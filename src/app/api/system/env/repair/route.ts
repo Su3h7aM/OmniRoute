@@ -11,21 +11,21 @@ import { pathToFileURL } from "node:url";
 import { NextResponse } from "next/server";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 
-const SYNC_HELPER_PATH = join(process.cwd(), "scripts/sync-env.mjs");
+const SYNC_HELPER_PATH = join(/* turbopackIgnore: true */ process.cwd(), "scripts/sync-env.mjs");
 
 async function loadSyncHelpers() {
   return import(pathToFileURL(SYNC_HELPER_PATH).href);
 }
 
 function createEnvBackup() {
-  const envPath = join(process.cwd(), ".env");
+  const envPath = join(/* turbopackIgnore: true */ process.cwd(), ".env");
 
   if (!existsSync(envPath)) {
     return null;
   }
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupPath = join(process.cwd(), `.env.backup-${timestamp}`);
+  const backupPath = join(/* turbopackIgnore: true */ process.cwd(), `.env.backup-${timestamp}`);
   copyFileSync(envPath, backupPath);
   return backupPath;
 }
