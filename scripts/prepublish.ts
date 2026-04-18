@@ -339,7 +339,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execSync("npx tsc -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
+    execSync("npx tsgo -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
   } catch (err: any) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);

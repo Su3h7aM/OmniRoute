@@ -10,8 +10,8 @@ npm install                    # Install deps (auto-generates .env from .env.exa
 npm run dev                    # Dev server at http://localhost:20128
 npm run build                  # Production build (Next.js 16 standalone)
 npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # TypeScript check (should be clean)
-npm run typecheck:noimplicit:core  # Strict check (no implicit any)
+npm run typecheck:core         # tsgo type check (should be clean)
+npm run typecheck:noimplicit:core  # tsgo strict check (no implicit any)
 npm run test:coverage          # Unit tests + coverage gate (60% min)
 npm run check                  # lint + test combined
 npm run check:cycles           # Detect circular dependencies

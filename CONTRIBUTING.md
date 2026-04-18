@@ -8,7 +8,7 @@ Thank you for your interest in contributing! This guide covers everything you ne
 
 ### Prerequisites
 
-- **Node.js** >= 18 < 24 (recommended: 22 LTS)
+- **Node.js** >= 20.20.2 < 21 || >= 22.22.2 < 23 || >= 24.0.0 < 25 (recommended: 24)
 - **npm** 10+
 - **Git**
 
@@ -137,6 +137,10 @@ npm run test:ecosystem
 npm run test:coverage
 npm run coverage:report
 
+# Type-checking
+npm run typecheck:core
+npm run typecheck:noimplicit:core
+
 # Lint + format check
 npm run lint
 npm run check
@@ -179,6 +183,7 @@ Current test status: **122 unit test files** covering:
 - **ESLint** — Run `npm run lint` before committing
 - **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
 - **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
+- **tsgo** — Project type-check scripts use `tsgo` (`@typescript/native-preview`) instead of `tsc`
 - **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
 - **Zod validation** — Use Zod v4 schemas for all API input validation
 - **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
