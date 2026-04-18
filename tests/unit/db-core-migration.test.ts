@@ -1,19 +1,25 @@
-import test from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-db-core-migration-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const JSON_DB_FILE = path.join(TEST_DATA_DIR, "db.json");
 
 const core = await import("../../src/lib/db/core.ts");
 
-test.after(async () => {
+afterAll(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
 });
 
 test("Test 1: migrateFromJson handles empty db.json and renames it", () => {
