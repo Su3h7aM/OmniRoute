@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { isPublicApiRoute } from "../../src/shared/constants/publicApiRoutes.ts";
