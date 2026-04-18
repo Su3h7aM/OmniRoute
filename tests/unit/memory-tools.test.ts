@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -19,11 +19,11 @@ function resetStorage() {
   core.getDbInstance();
 }
 
-test.beforeEach(() => {
+beforeEach(() => {
   resetStorage();
 });
 
-test.after(() => {
+afterAll(() => {
   core.resetDbInstance();
   process.env.DATA_DIR = originalDataDir;
   fs.rmSync(tmpDir, { recursive: true, force: true });

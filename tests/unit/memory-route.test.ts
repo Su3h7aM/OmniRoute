@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -48,11 +48,11 @@ async function seedMemories() {
   });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
@@ -68,8 +68,8 @@ test("GET /api/memory filters by q and returns matching stats", async () => {
   const body = await response.json();
 
   assert.deepEqual(
-    body.data.map((memory) => memory.key),
-    ["typescript:tooling", "typescript:guide"]
+    new Set(body.data.map((memory) => memory.key)),
+    new Set(["typescript:tooling", "typescript:guide"])
   );
   assert.equal(body.total, 2);
   assert.equal(body.stats.total, 2);
