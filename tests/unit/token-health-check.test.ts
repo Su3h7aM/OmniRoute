@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import http from "node:http";
@@ -9,6 +9,7 @@ import path from "node:path";
 process.env.NODE_ENV = "test";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-token-healthcheck-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -132,9 +133,18 @@ async function withPatchedProvider(providerId, config, fn) {
   }
 }
 
-test.after(async () => {
+beforeEach(async () => {
+  await resetStorage();
+});
+
+afterAll(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
 });
 
 test("extractResolvedProxyConfig unwraps proxy resolution metadata", () => {
