@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { memoryCache } = await import("../../src/lib/memory/cache.ts");
@@ -6,13 +6,13 @@ const { memoryCache } = await import("../../src/lib/memory/cache.ts");
 const originalDateNow = Date.now;
 const originalMaxSize = memoryCache.maxSize;
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await memoryCache.clear();
   memoryCache.maxSize = originalMaxSize;
   Date.now = originalDateNow;
 });
 
-test.after(async () => {
+afterAll(async () => {
   Date.now = originalDateNow;
   memoryCache.maxSize = originalMaxSize;
   await memoryCache.clear();
