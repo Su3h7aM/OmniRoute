@@ -272,7 +272,7 @@ test(
         db
           .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
           .get("rollback_broken"),
-        undefined
+        null
       );
       assert.equal(
         (
@@ -338,7 +338,7 @@ test("invalid file names are ignored while valid migrations still run", serial, 
       db
         .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
         .get("should_not_exist"),
-      undefined
+      null
     );
   } finally {
     db.close();
@@ -465,7 +465,7 @@ test(
         db
           .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
           .get("call_log_summary_shadow"),
-        undefined
+        null
       );
     } finally {
       db.close();
@@ -523,7 +523,7 @@ test(
         db
           .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
           .get("call_log_summary_shadow_dupe"),
-        undefined
+        null
       );
     } finally {
       db.close();
