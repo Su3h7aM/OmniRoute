@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 
 const serial = { concurrency: false };
 const originalEnv = {
@@ -407,9 +407,18 @@ test("local sqlite configuration enables WAL and sane pragmas", serial, async ()
       const core = await importFresh("src/lib/db/core.ts");
       const db = core.getDbInstance();
 
-      assert.equal(db.pragma("journal_mode", { simple: true }), "wal");
-      assert.equal(db.pragma("busy_timeout", { simple: true }), 5000);
-      assert.equal(db.pragma("synchronous", { simple: true }), 1);
+      assert.equal(
+        (db.query("PRAGMA journal_mode").get() as { journal_mode: string }).journal_mode,
+        "wal"
+      );
+      assert.equal(
+        (db.query("PRAGMA busy_timeout").get() as { timeout: number }).timeout,
+        5000
+      );
+      assert.equal(
+        (db.query("PRAGMA synchronous").get() as { synchronous: number }).synchronous,
+        1
+      );
       assert.equal(core.closeDbInstance({ checkpointMode: null }), true);
     });
   } finally {
@@ -484,7 +493,10 @@ test("build phase uses an in-memory database without creating sqlite files", ser
             .get("provider_connections")
         );
         assert.equal(fs.existsSync(path.join(dataDir, "storage.sqlite")), false);
-        assert.equal(db.pragma("journal_mode", { simple: true }), "memory");
+        assert.equal(
+          (db.query("PRAGMA journal_mode").get() as { journal_mode: string }).journal_mode,
+          "memory"
+        );
 
         core.resetDbInstance();
       }

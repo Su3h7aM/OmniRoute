@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 
 const fileTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-dbupc-test-"));
 const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-dbupc-module-"));
@@ -31,7 +31,7 @@ let testDbPath;
 
 beforeEach(() => {
   testDbPath = path.join(fileTmpDir, `test-${Date.now()}.db`);
-  testDb = new Database(testDbPath);
+  testDb = new Database(testDbPath, { create: true, strict: true });
   testDb.exec(SCHEMA);
 });
 

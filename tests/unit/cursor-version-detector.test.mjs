@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 
 const FALLBACK_VERSION = "3.1.15";
-const Database = (await import("better-sqlite3")).default;
+const { Database } = await import("bun:sqlite");
 
 const { getCursorVersion, resetCursorVersionCache } =
   await import("../../open-sse/utils/cursorVersionDetector.ts");

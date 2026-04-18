@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 
 const fileTmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-dbvm-test-"));
 const moduleDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omni-dbvm-module-"));
@@ -42,7 +42,7 @@ let testDbPath;
 
 beforeEach(() => {
   testDbPath = path.join(fileTmpDir, `test-${Date.now()}.db`);
-  testDb = new Database(testDbPath);
+  testDb = new Database(testDbPath, { create: true, strict: true });
   testDb.exec(SCHEMA);
 });
 
@@ -271,10 +271,7 @@ describe("db/versionManager (logic)", () => {
         testDb.prepare("DELETE FROM version_manager WHERE tool = ?").run("del").changes,
         1
       );
-      assert.equal(
-        testDb.prepare("SELECT * FROM version_manager WHERE tool = ?").get("del"),
-        undefined
-      );
+      assert.equal(testDb.prepare("SELECT * FROM version_manager WHERE tool = ?").get("del"), null);
     });
 
     it("should return 0 changes for non-existent", () => {

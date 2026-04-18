@@ -158,8 +158,8 @@ test("closeDbInstance checkpoints WAL changes into the primary SQLite file", asy
   const snapshotPath = path.join(TEST_DATA_DIR, "storage-snapshot.sqlite");
   fs.copyFileSync(core.SQLITE_FILE, snapshotPath);
 
-  const Database = (await import("better-sqlite3")).default;
-  const snapshotDb = new Database(snapshotPath, { readonly: true });
+  const { Database } = await import("bun:sqlite");
+  const snapshotDb = new Database(snapshotPath, { readonly: true, strict: true });
   try {
     const row = snapshotDb
       .prepare("SELECT name FROM provider_connections WHERE id = ?")
@@ -289,8 +289,8 @@ test('provider connection migration adds "group" column for existing databases',
   const sqlitePath = core.SQLITE_FILE;
   core.resetDbInstance();
 
-  const Database = (await import("better-sqlite3")).default;
-  const db = new Database(sqlitePath);
+  const { Database } = await import("bun:sqlite");
+  const db = new Database(sqlitePath, { create: true, strict: true });
   db.exec(`
     CREATE TABLE provider_connections (
       id TEXT PRIMARY KEY,
