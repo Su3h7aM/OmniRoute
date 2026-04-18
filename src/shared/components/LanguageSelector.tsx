@@ -20,9 +20,14 @@ export default function LanguageSelector() {
   const locale = useLocale();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const currentLang = LANGUAGES.find((l) => l.code === locale) || LANGUAGES[0];
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -54,7 +59,9 @@ export default function LanguageSelector() {
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-text-main hover:bg-surface-hover transition-all border border-transparent hover:border-border"
         title={currentLang.name}
       >
-        <span className="text-base leading-none">{currentLang.flag}</span>
+        <span className="text-base leading-none inline-flex w-[1.2em] justify-center" aria-hidden="true">
+          {mounted ? currentLang.flag : "\u00A0"}
+        </span>
         <span className="text-xs font-semibold tracking-wide">{currentLang.label}</span>
         <span
           className={`material-symbols-outlined text-[14px] text-text-muted transition-transform ${open ? "rotate-180" : ""}`}
