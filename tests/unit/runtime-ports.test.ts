@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from "node:test";
+import { afterEach, beforeEach, describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // We test the standalone (scripts/) version of port resolution since
