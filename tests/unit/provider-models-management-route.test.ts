@@ -7,10 +7,13 @@ import path from "node:path";
 const TEST_DATA_DIR = fs.mkdtempSync(
   path.join(os.tmpdir(), "omniroute-provider-model-management-route-")
 );
+const originalInitialPassword = process.env.INITIAL_PASSWORD;
 process.env.DATA_DIR = TEST_DATA_DIR;
+delete process.env.INITIAL_PASSWORD;
 
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const providerModelsRoute = await import("../../src/app/api/provider-models/route.ts");
 
 async function resetStorage() {
@@ -29,10 +32,16 @@ function buildPatchRequest(url, body) {
 
 test.beforeEach(async () => {
   await resetStorage();
+  await settingsDb.updateSettings({ requireLogin: false });
 });
 
 test.after(async () => {
   core.resetDbInstance();
+  if (originalInitialPassword === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = originalInitialPassword;
+  }
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 

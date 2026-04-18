@@ -80,29 +80,41 @@ test("CodexExecutor.buildUrl honors /responses subpaths and compact mode", () =>
   );
 });
 
-test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for compact responses", () => {
+test("CodexExecutor.buildHeaders binds workspace ids and disables SSE accept for compact responses", async () => {
   const executor = new CodexExecutor();
-  const standardHeaders = executor.buildHeaders(
-    {
-      accessToken: "codex-token",
-      providerSpecificData: { workspaceId: "workspace-1" },
-    },
-    true
-  );
-  const compactHeaders = executor.buildHeaders(
-    {
-      accessToken: "codex-token",
-      requestEndpointPath: "/responses/compact",
-    },
-    true
-  );
 
-  assert.equal(standardHeaders.Authorization, "Bearer codex-token");
-  assert.equal(standardHeaders.Accept, "text/event-stream");
-  assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
-  assert.equal(standardHeaders.Version, "0.120.0");
-  assert.equal(standardHeaders["User-Agent"], "codex-cli/0.120.0 (Windows 10.0.26100; x64)");
-  assert.equal(compactHeaders.Accept, "application/json");
+  await withEnv(
+    {
+      CODEX_CLIENT_VERSION: undefined,
+      CODEX_USER_AGENT: undefined,
+    },
+    () => {
+      const standardHeaders = executor.buildHeaders(
+        {
+          accessToken: "codex-token",
+          providerSpecificData: { workspaceId: "workspace-1" },
+        },
+        true
+      );
+      const compactHeaders = executor.buildHeaders(
+        {
+          accessToken: "codex-token",
+          requestEndpointPath: "/responses/compact",
+        },
+        true
+      );
+
+      assert.equal(standardHeaders.Authorization, "Bearer codex-token");
+      assert.equal(standardHeaders.Accept, "text/event-stream");
+      assert.equal(standardHeaders["chatgpt-account-id"], "workspace-1");
+      assert.equal(standardHeaders.Version, "0.120.0");
+      assert.equal(
+        standardHeaders["User-Agent"],
+        "codex-cli/0.120.0 (Windows 10.0.26100; x64)"
+      );
+      assert.equal(compactHeaders.Accept, "application/json");
+    }
+  );
 });
 
 test("CodexExecutor.buildHeaders honors safe env overrides for Version and User-Agent", async () => {

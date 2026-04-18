@@ -147,16 +147,7 @@ const testServerEnv = {
   OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK: process.env.OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK || "true",
   OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK: process.env.OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK || "true",
   OMNIROUTE_HIDE_HEALTHCHECK_LOGS: process.env.OMNIROUTE_HIDE_HEALTHCHECK_LOGS || "true",
-  ...(process.env.OMNIROUTE_USE_TURBOPACK
-    ? {
-        OMNIROUTE_USE_TURBOPACK: process.env.OMNIROUTE_USE_TURBOPACK,
-      }
-    : {}),
 };
-
-export function shouldUseWebpackForPlaywrightDev({ mode, env }) {
-  return mode === "dev" && env.OMNIROUTE_USE_TURBOPACK !== "1";
-}
 
 function runChild(command, args, env) {
   return new Promise((resolve) => {
@@ -249,10 +240,6 @@ export async function main() {
     "--port",
     String(runtimePorts.dashboardPort),
   ];
-
-  if (shouldUseWebpackForPlaywrightDev({ mode, env: testServerEnv })) {
-    args.splice(2, 0, "--webpack");
-  }
 
   spawnWithForwardedSignals(process.execPath, args, {
     stdio: "inherit",

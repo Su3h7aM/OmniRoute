@@ -34,7 +34,7 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 
 const { dashboardPort } = runtimePorts;
 const hostname = process.env.HOST || "0.0.0.0";
-const useTurbopack = dev && mergedEnv.OMNIROUTE_USE_TURBOPACK === "1";
+const useTurbopack = dev;
 
 const nextApp = next({
   dev,
@@ -42,7 +42,6 @@ const nextApp = next({
   hostname,
   port: dashboardPort,
   turbopack: useTurbopack,
-  webpack: dev && !useTurbopack,
 });
 
 async function start() {
@@ -88,7 +87,7 @@ async function start() {
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
   server.listen(dashboardPort, hostname, () => {
-    const bundler = dev ? (useTurbopack ? "turbopack" : "webpack") : "production";
+    const bundler = dev ? "turbopack" : "production";
     console.log(
       `[Next] ${mode} server listening on http://${hostname}:${dashboardPort} (${bundler})`
     );

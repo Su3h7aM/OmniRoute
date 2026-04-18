@@ -6,9 +6,12 @@ import path from "node:path";
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-skillssh-"));
 const originalDataDir = process.env.DATA_DIR;
+const originalInitialPassword = process.env.INITIAL_PASSWORD;
 process.env.DATA_DIR = tmpDir;
+delete process.env.INITIAL_PASSWORD;
 
 const core = await import("../../src/lib/db/core.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { searchSkillsSh, fetchSkillMd, SkillsShSearchResponseSchema, SkillsShSkillSchema } =
   await import("../../src/lib/skills/skillssh.ts");
@@ -30,8 +33,9 @@ function resetStorage() {
 
 const originalFetch = globalThis.fetch;
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   resetStorage();
+  await settingsDb.updateSettings({ requireLogin: false });
   globalThis.fetch = originalFetch;
 });
 
@@ -40,6 +44,11 @@ test.after(() => {
   clearSkillRegistry();
   globalThis.fetch = originalFetch;
   process.env.DATA_DIR = originalDataDir;
+  if (originalInitialPassword === undefined) {
+    delete process.env.INITIAL_PASSWORD;
+  } else {
+    process.env.INITIAL_PASSWORD = originalInitialPassword;
+  }
   fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
