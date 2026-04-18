@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { ROUTING_STRATEGIES } from "@/shared/constants/routingStrategies";
 import { updateSettingsSchema as settingsRouteSchema } from "@/shared/validation/settingsSchemas";

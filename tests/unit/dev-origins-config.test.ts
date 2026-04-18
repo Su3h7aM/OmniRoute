@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 test("next config allows loopback dev origins alongside LAN access", async () => {

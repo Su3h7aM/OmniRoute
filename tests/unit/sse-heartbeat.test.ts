@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { createSseHeartbeatTransform } = await import("../../open-sse/utils/sseHeartbeat.ts");

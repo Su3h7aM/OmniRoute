@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 test("chatCore integration: compressContext called proactively when context exceeds 85% threshold", async () => {

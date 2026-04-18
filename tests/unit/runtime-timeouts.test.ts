@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 const runtimeTimeouts = await import("../../src/shared/utils/runtimeTimeouts.ts");

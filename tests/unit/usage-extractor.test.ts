@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { extractUsageFromResponse } = await import("../../open-sse/handlers/usageExtractor.ts");

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { GET } = await import("../../src/app/api/openapi/spec/route.ts");

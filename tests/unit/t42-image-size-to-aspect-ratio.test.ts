@@ -1,4 +1,4 @@
-import test from "node:test";
+import { test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { mapImageSize } = await import("../../open-sse/translator/image/sizeMapper.ts");
