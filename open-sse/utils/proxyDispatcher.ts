@@ -1,6 +1,7 @@
-import { Agent, ProxyAgent, type Dispatcher } from "undici";
-import { socksDispatcher } from "fetch-socks";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+
+type Dispatcher = unknown;
+const isBunRuntime = typeof Bun !== "undefined";
 
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
@@ -59,12 +60,15 @@ function getDispatcherOptions() {
   };
 }
 
-export function getDefaultDispatcher(): Dispatcher {
+export async function getDefaultDispatcher(): Promise<Dispatcher | null> {
+  if (isBunRuntime) return null;
+
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions());
+    const { Agent } = await import("undici");
+    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions()) as Dispatcher;
   }
-  return globalWithCache[DEFAULT_DISPATCHER_KEY];
+  return globalWithCache[DEFAULT_DISPATCHER_KEY] ?? null;
 }
 
 /**
@@ -212,7 +216,9 @@ export function proxyConfigToUrl(
   return normalizeProxyUrl(proxyUrlStr, "context proxy", { allowSocks5 });
 }
 
-export function createProxyDispatcher(proxyUrl: string): Dispatcher {
+export async function createProxyDispatcher(proxyUrl: string): Promise<Dispatcher | null> {
+  if (isBunRuntime) return null;
+
   const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
   const dispatcherCache = getDispatcherCache();
   const dispatcherOptions = getDispatcherOptions();
@@ -225,6 +231,7 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
   const port = explicitPort || normalizePort(parsed.port, parsed.protocol);
 
   if (parsed.protocol === "socks5:") {
+    const { socksDispatcher } = await import("fetch-socks");
     const socksOptions: SocksDispatcherOptions = {
       type: 5,
       host: parsed.hostname,
@@ -237,10 +244,11 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
       dispatcherOptions
     ) as Dispatcher;
   } else {
+    const { ProxyAgent } = await import("undici");
     dispatcher = new ProxyAgent({
       uri: normalizedUrl,
       ...dispatcherOptions,
-    });
+    }) as Dispatcher;
   }
 
   dispatcherCache.set(normalizedUrl, dispatcher);

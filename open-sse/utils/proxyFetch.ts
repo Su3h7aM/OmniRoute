@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { AsyncLocalStorage } from "node:async_hooks";
-import { fetch as undiciFetch } from "undici";
 import {
   createProxyDispatcher,
   getDefaultDispatcher,
@@ -202,12 +201,14 @@ export async function runWithProxyContext(proxyConfig, fn) {
   });
 }
 
+async function callUndiciFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
+  const { fetch: undiciFetch } = await import("undici");
+  return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
+}
+
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
   if (options?.dispatcher) {
-    // When a dispatcher is present, we MUST use the undici library fetch
-    // to ensure version compatibility. Node 22 built-in fetch (undici v6)
-    // is incompatible with undici v8 dispatchers (missing onRequestStart, etc.)
-    return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
+    return callUndiciFetch(input, options);
   }
 
   const targetUrl = getTargetUrl(input);
@@ -244,9 +245,13 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
     // Direct connection (no proxy) — use undici with custom dispatcher for timeout control.
     // Falls back to original native fetch if dispatcher initialization fails (#1054).
     try {
-      return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
+      const defaultDispatcher = await getDefaultDispatcher();
+      if (!defaultDispatcher) {
+        return originalFetchWithDispatcher(input, options);
+      }
+      return await callUndiciFetch(input, {
         ...options,
-        dispatcher: getDefaultDispatcher(),
+        dispatcher: defaultDispatcher,
       });
     } catch (dispatcherError) {
       const msg =
@@ -269,8 +274,11 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
   }
 
   try {
-    const dispatcher = createProxyDispatcher(proxyUrl);
-    return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
+    const dispatcher = await createProxyDispatcher(proxyUrl);
+    if (!dispatcher) {
+      return originalFetchWithDispatcher(input, options);
+    }
+    return await callUndiciFetch(input, {
       ...options,
       dispatcher,
     });
