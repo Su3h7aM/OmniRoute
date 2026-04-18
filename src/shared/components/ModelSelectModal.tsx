@@ -18,13 +18,6 @@ import {
   isAnthropicCompatibleProvider,
 } from "@/shared/constants/providers";
 
-// Provider order: OAuth first, then Free, then API Key (matches dashboard/providers)
-const PROVIDER_ORDER = [
-  ...Object.keys(OAUTH_PROVIDERS),
-  ...Object.keys(FREE_PROVIDERS),
-  ...Object.keys(APIKEY_PROVIDERS),
-];
-
 export default function ModelSelectModal({
   isOpen,
   onClose,
@@ -95,6 +88,11 @@ export default function ModelSelectModal({
     []
   );
 
+  const providerOrder = useMemo(
+    () => [...Object.keys(OAUTH_PROVIDERS), ...Object.keys(FREE_PROVIDERS), ...Object.keys(APIKEY_PROVIDERS)],
+    []
+  );
+
   // Group models by provider with priority order
   const groupedModels = useMemo(() => {
     const groups: Record<string, any> = {};
@@ -107,10 +105,10 @@ export default function ModelSelectModal({
       ...activeConnectionIds, // Only connected providers
     ]);
 
-    // Sort by PROVIDER_ORDER
+    // Sort by provider order
     const sortedProviderIds = [...providerIdsToShow].sort((a, b) => {
-      const indexA = PROVIDER_ORDER.indexOf(a);
-      const indexB = PROVIDER_ORDER.indexOf(b);
+      const indexA = providerOrder.indexOf(a);
+      const indexB = providerOrder.indexOf(b);
       return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
     });
 
@@ -245,7 +243,7 @@ export default function ModelSelectModal({
     });
 
     return groups;
-  }, [activeProviders, modelAliases, allProviders, providerNodes, customModels]);
+  }, [activeProviders, modelAliases, allProviders, providerNodes, customModels, providerOrder]);
 
   // Filter combos by search query
   const filteredCombos = useMemo(() => {
