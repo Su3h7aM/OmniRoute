@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -30,12 +30,12 @@ function buildPatchRequest(url, body) {
   });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
   await settingsDb.updateSettings({ requireLogin: false });
 });
 
-test.after(async () => {
+afterAll(async () => {
   core.resetDbInstance();
   if (originalInitialPassword === undefined) {
     delete process.env.INITIAL_PASSWORD;
