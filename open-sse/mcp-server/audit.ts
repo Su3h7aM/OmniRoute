@@ -7,6 +7,7 @@
  */
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
+import { resolveDataDir } from "@/lib/dataPaths";
 
 // ============ Database Connection ============
 
@@ -159,14 +160,10 @@ async function getDb(): Promise<AuditDatabase | null> {
   if (cachedDb) return cachedDb;
 
   try {
-    // Try importing the db module from the main app
-    const { homedir } = await import("node:os");
     const { join } = await import("node:path");
     const { existsSync } = await import("node:fs");
 
-    const dbPath = process.env.DATA_DIR
-      ? join(process.env.DATA_DIR, "storage.sqlite")
-      : join(homedir(), ".omniroute", "storage.sqlite");
+    const dbPath = join(resolveDataDir(), "storage.sqlite");
 
     if (!existsSync(dbPath)) {
       console.error(`[MCP Audit] Database not found at ${dbPath} — audit logging disabled`);
