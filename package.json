@@ -127,6 +127,7 @@
     "test:bun:auth-terminal-status": "bun test tests/unit/auth-terminal-status.test.ts",
     "test:bun:db-crud-core": "bun test tests/unit/db-apikeys-crud.test.ts tests/unit/db-combos-crud.test.ts tests/unit/db-providers-crud.test.ts tests/unit/db-settings-crud.test.ts",
     "test:bun:db-crud-extended": "bun test tests/unit/db-models-crud.test.ts tests/unit/db-proxies-crud.test.ts tests/unit/db-quota-snapshots.test.ts tests/unit/db-read-cache.test.ts",
+    "test:bun:db-crud-support": "bun test tests/unit/db-backup-extended.test.ts tests/unit/db-registered-keys.test.ts tests/unit/db-secrets.test.ts tests/unit/db-webhooks.test.ts",
     "test:vitest": "vitest run --config vitest.mcp.config.ts",
     "test:ecosystem": "bun scripts/run-ecosystem-tests.mjs",
     "test:coverage": "c8 --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov --check-coverage --statements 60 --lines 60 --functions 60 --branches 60 node --import tsx/esm --test --test-concurrency=1 tests/unit/*.test.ts",
