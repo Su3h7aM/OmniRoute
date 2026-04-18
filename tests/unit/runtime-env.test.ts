@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { EventEmitter } from "node:events";
@@ -18,7 +18,7 @@ async function loadRuntimeEnv(label) {
   return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}`);
 }
 
-test.afterEach(() => {
+afterEach(() => {
   childProcess.spawn = originalSpawn;
   process.on = originalProcessOn;
   process.exit = originalProcessExit;
