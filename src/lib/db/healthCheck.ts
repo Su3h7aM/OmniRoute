@@ -1,6 +1,6 @@
 import { normalizeComboStep } from "@/lib/combos/steps";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = import("bun:sqlite").Database;
 type JsonRecord = Record<string, unknown>;
 
 export type DbHealthIssueType =
@@ -406,7 +406,9 @@ export function runDbHealthCheck(
     backupCreated = options.createBackupBeforeRepair();
   };
 
-  const integrityCheck = db.pragma("integrity_check") as Array<{ integrity_check?: string }>;
+  const integrityCheck = db.query("PRAGMA integrity_check").all() as Array<{
+    integrity_check?: string;
+  }>;
   if (integrityCheck[0]?.integrity_check !== "ok") {
     issues.push({
       type: "integrity_check_failed",

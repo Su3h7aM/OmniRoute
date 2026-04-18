@@ -20,11 +20,9 @@
 
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { Database } from "bun:sqlite";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-
-const require = createRequire(import.meta.url);
 
 // ── OAuth secrets that are optional but warn if missing ─────────────────────
 const OPTIONAL_OAUTH_SECRETS = [
@@ -72,8 +70,7 @@ function hasEncryptedCredentials(dataDir) {
   if (!existsSync(dbPath)) return false;
 
   try {
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    const db = new Database(dbPath, { readonly: true, strict: true });
     try {
       const row = db
         .prepare(

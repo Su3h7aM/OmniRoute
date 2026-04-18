@@ -17,7 +17,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 
 /**
  * Resolve the migrations directory path safely across platforms.

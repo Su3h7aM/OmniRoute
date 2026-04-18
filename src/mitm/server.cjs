@@ -120,18 +120,18 @@ function extractModel(body) {
 
 /**
  * Get a lazy SQLite connection for reading MITM aliases.
- * Falls back to null if better-sqlite3 is unavailable.
+ * Falls back to null if bun:sqlite is unavailable in this process.
  */
 function getSqliteDb() {
   if (_sqliteDb) return _sqliteDb;
   try {
-    const Database = require("better-sqlite3");
+    const { Database } = require("bun:sqlite");
     if (fs.existsSync(SQLITE_FILE)) {
-      _sqliteDb = new Database(SQLITE_FILE, { readonly: true });
+      _sqliteDb = new Database(SQLITE_FILE, { readonly: true, strict: true });
       return _sqliteDb;
     }
   } catch {
-    // better-sqlite3 not available in this process
+    // bun:sqlite not available in this process
   }
   return null;
 }

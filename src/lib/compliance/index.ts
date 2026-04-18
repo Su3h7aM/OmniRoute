@@ -20,7 +20,7 @@ import {
 import { generateRequestId, getRequestId } from "@/shared/utils/requestId";
 import { deleteCallLogsBefore, trimCallLogsToMaxRows } from "../usage/callLogs";
 
-/** @returns {import("better-sqlite3").Database | null} */
+/** @returns {import("bun:sqlite").Database | null} */
 function getDb() {
   try {
     return getDbInstance();
@@ -145,7 +145,7 @@ function parseAuditValue(value: unknown): unknown {
   }
 }
 
-function ensureAuditLogSchema(db: import("better-sqlite3").Database) {
+function ensureAuditLogSchema(db: import("bun:sqlite").Database) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -410,7 +410,7 @@ export function setNoLog(apiKeyId: string, noLog: boolean) {
   noLogDbCache.set(apiKeyId, { value: noLog, timestamp: Date.now() });
 }
 
-function ensureNoLogColumn(db: import("better-sqlite3").Database) {
+function ensureNoLogColumn(db: import("bun:sqlite").Database) {
   if (noLogColumnVerified) {
     return hasNoLogColumn;
   }

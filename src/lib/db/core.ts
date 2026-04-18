@@ -4,7 +4,7 @@
  * All domain modules import `getDbInstance` and helpers from here.
  */
 
-import Database from "better-sqlite3";
+import { Database, constants as sqliteConstants } from "bun:sqlite";
 import path from "path";
 import fs from "fs";
 import { resolveDataDir, getLegacyDotDataDir } from "../dataPaths";
@@ -17,7 +17,7 @@ import {
   type CallLogArtifact,
 } from "../usage/callLogArtifacts";
 
-type SqliteDatabase = import("better-sqlite3").Database;
+type SqliteDatabase = Database;
 type JsonRecord = Record<string, unknown>;
 type CheckpointMode = "PASSIVE" | "FULL" | "RESTART" | "TRUNCATE";
 type PreservedTableSnapshot = {
@@ -400,7 +400,7 @@ export function cleanNulls(obj: unknown): JsonRecord {
 // Module-level `let` resets on every webpack recompile, causing connection leaks.
 
 declare global {
-  var __omnirouteDb: import("better-sqlite3").Database | undefined;
+  var __omnirouteDb: Database | undefined;
 }
 
 function getDb(): SqliteDatabase | null {
@@ -417,7 +417,7 @@ function setDb(db: SqliteDatabase | null): void {
 
 function checkpointDb(db: SqliteDatabase, mode: CheckpointMode = "TRUNCATE"): boolean {
   if (isCloud || isBuildPhase || !SQLITE_FILE) return false;
-  db.pragma(`wal_checkpoint(${mode})`);
+  db.run(`PRAGMA wal_checkpoint(${mode})`);
   return true;
 }
 
@@ -980,8 +980,8 @@ export function getDbInstance(): SqliteDatabase {
     if (isBuildPhase) {
       console.log("[DB] Build phase detected — using in-memory SQLite (read-only)");
     }
-    const memoryDb = new Database(":memory:");
-    memoryDb.pragma("journal_mode = WAL");
+    const memoryDb = new Database(":memory:", { strict: true });
+    memoryDb.run("PRAGMA journal_mode = WAL");
     memoryDb.exec(SCHEMA_SQL);
     ensureUsageHistoryColumns(memoryDb);
     ensureCallLogsColumns(memoryDb);
@@ -1067,10 +1067,10 @@ export function getDbInstance(): SqliteDatabase {
           console.log(
             `[DB] Old schema_migrations table found but data exists — preserving data (#146)`
           );
-          const fixDb = new Database(sqliteFile);
+          const fixDb = new Database(sqliteFile, { strict: true });
           try {
             fixDb.exec("DROP TABLE IF EXISTS schema_migrations");
-            fixDb.pragma("wal_checkpoint(TRUNCATE)");
+            fixDb.run("PRAGMA wal_checkpoint(TRUNCATE)");
           } catch (e: unknown) {
             const message = e instanceof Error ? e.message : String(e);
             console.warn("[DB] Could not clean up old schema table:", message);
@@ -1138,10 +1138,10 @@ export function getDbInstance(): SqliteDatabase {
     }
   }
 
-  const db = new Database(sqliteFile);
-  db.pragma("journal_mode = WAL");
-  db.pragma("busy_timeout = 5000");
-  db.pragma("synchronous = NORMAL");
+  const db = new Database(sqliteFile, { create: true, strict: true });
+  db.run("PRAGMA journal_mode = WAL");
+  db.run("PRAGMA busy_timeout = 5000");
+  db.run("PRAGMA synchronous = NORMAL");
   db.exec(SCHEMA_SQL);
   ensureProviderConnectionsColumns(db);
   ensureUsageHistoryColumns(db);
@@ -1306,6 +1306,9 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
     }
   } finally {
     try {
+      if (!isCloud && !isBuildPhase && SQLITE_FILE) {
+        db.fileControl(sqliteConstants.SQLITE_FCNTL_PERSIST_WAL, 0);
+      }
       if (db.open) db.close();
     } finally {
       setDb(null);

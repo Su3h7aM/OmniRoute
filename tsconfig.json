@@ -16,6 +16,7 @@
     "jsx": "react-jsx",
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
+    "types": ["bun-types"],
     "paths": {
       "@/*": ["./src/*"],
       "@omniroute/open-sse": ["./open-sse"],

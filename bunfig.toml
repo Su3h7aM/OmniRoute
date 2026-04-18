@@ -1,0 +1,6 @@
+[install]
+# Prefer Bun-only installs for the monorepo migration.
+linker = "isolated"
+
+[test]
+root = "."

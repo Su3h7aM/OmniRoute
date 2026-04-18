@@ -2,7 +2,7 @@
  * Node.js-only instrumentation logic.
  *
  * Separated from instrumentation.ts so that Turbopack's Edge bundler
- * does not trace into Node.js-only modules (fs, path, os, better-sqlite3, etc.)
+ * does not trace into Node.js-only modules (fs, path, os, bun:sqlite, etc.)
  * and emit spurious "not supported in Edge Runtime" warnings.
  */
 

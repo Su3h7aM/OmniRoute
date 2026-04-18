@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import path from "path";
 import fs from "fs";
 import os from "os";
@@ -84,10 +84,10 @@ export async function POST(request: Request) {
     fs.writeFileSync(tmpPath, fileBuffer!);
 
     // Validate SQLite integrity
-    let testDb: InstanceType<typeof Database> | null = null;
+    let testDb: Database | null = null;
     try {
-      testDb = new Database(tmpPath, { readonly: true });
-      const result = testDb.pragma("integrity_check") as any[];
+      testDb = new Database(tmpPath, { readonly: true, strict: true });
+      const result = testDb.query("PRAGMA integrity_check").all() as any[];
       if (result[0]?.integrity_check !== "ok") {
         return NextResponse.json(
           { error: "Database integrity check failed. The file may be corrupted." },

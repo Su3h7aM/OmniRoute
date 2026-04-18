@@ -297,23 +297,7 @@ export async function POST(req: NextRequest) {
         );
         send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
 
-        // Step 2: Rebuild native modules (critical for better-sqlite3)
-        send({
-          step: "rebuild",
-          status: "running",
-          message: "Rebuilding native modules (better-sqlite3)...",
-        });
-        const globalRoot = (
-          await execFileAsync("npm", ["root", "-g"], { timeout: 10000 })
-        ).stdout.trim();
-        const omniPath = `${globalRoot}/omniroute/app`;
-        await execFileAsync("npm", ["rebuild", "better-sqlite3"], {
-          cwd: omniPath,
-          timeout: 120000,
-        });
-        send({ step: "rebuild", status: "done", message: "Native modules rebuilt" });
-
-        // Step 3: Restart PM2
+        // Step 2: Restart PM2
         send({ step: "restart", status: "running", message: "Restarting service via PM2..." });
         try {
           await execFileAsync("pm2", ["restart", "omniroute", "--update-env"], { timeout: 30000 });

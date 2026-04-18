@@ -2,7 +2,7 @@
  * db/backup.js — Database backup/restore operations.
  */
 
-import Database from "better-sqlite3";
+import { Database, constants as sqliteConstants } from "bun:sqlite";
 import path from "path";
 import fs from "fs";
 import {
@@ -242,18 +242,16 @@ export function backupDbFile(reason = "auto") {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupFile = path.join(backupDir, `db_${timestamp}_${reason}.sqlite`);
 
-    // Use native SQLite backup API for consistency
-    const db = getDbInstance();
-    db.backup(backupFile)
-      .then(() => {
-        console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
-        cleanupDbBackups();
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error("[DB] Backup failed:", message);
-      });
+    fs.copyFileSync(SQLITE_FILE, backupFile);
+    for (const ext of ["-wal", "-shm"]) {
+      const sidecar = `${SQLITE_FILE}${ext}`;
+      if (fs.existsSync(sidecar)) {
+        fs.copyFileSync(sidecar, `${backupFile}${ext}`);
+      }
+    }
 
+    console.log(`[DB] Backup created: ${backupFile} (${stat.size} bytes)`);
+    cleanupDbBackups();
     return { filename: path.basename(backupFile), size: stat.size };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
@@ -283,7 +281,7 @@ export async function listDbBackups() {
 
       let connectionCount = 0;
       try {
-        const backupDb = new Database(filePath, { readonly: true });
+        const backupDb = new Database(filePath, { readonly: true, strict: true });
         const row = backupDb.prepare("SELECT COUNT(*) as cnt FROM provider_connections").get() as
           | CountRow
           | undefined;
@@ -337,8 +335,10 @@ export async function restoreDbBackup(backupId: string) {
 
   // Validate backup integrity
   try {
-    const testDb = new Database(backupPath, { readonly: true });
-    const result = testDb.pragma("integrity_check") as Array<{ integrity_check?: string }>;
+    const testDb = new Database(backupPath, { readonly: true, strict: true });
+    const result = testDb.query("PRAGMA integrity_check").all() as Array<{
+      integrity_check?: string;
+    }>;
     testDb.close();
     if (result[0]?.integrity_check !== "ok") {
       throw new Error("Backup integrity check failed");
@@ -362,7 +362,9 @@ export async function restoreDbBackup(backupId: string) {
           `db_${new Date().toISOString().replace(/[:.]/g, "-")}_pre-restore.sqlite`
         );
         const dbForBackup = getDbInstance();
-        await dbForBackup.backup(preBackupPath);
+        dbForBackup.fileControl(sqliteConstants.SQLITE_FCNTL_PERSIST_WAL, 0);
+        dbForBackup.run("PRAGMA wal_checkpoint(TRUNCATE)");
+        fs.copyFileSync(SQLITE_FILE, preBackupPath);
         _lastBackupAt = Date.now();
       }
     }

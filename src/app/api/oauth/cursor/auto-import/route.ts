@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { homedir } from "os";
 import { join } from "path";
 import { readFile } from "fs/promises";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
 
 /**
@@ -53,7 +53,7 @@ function tryIdeAuth(): {
 
   let db;
   try {
-    db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    db = new Database(dbPath, { readonly: true, strict: true });
   } catch {
     return { found: false, error: "Cursor IDE database not found" };
   }

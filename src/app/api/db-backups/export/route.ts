@@ -29,9 +29,10 @@ export async function GET(request: Request) {
     const tmpDir = os.tmpdir();
     const tmpPath = path.join(tmpDir, exportFilename);
 
-    // Use native SQLite backup API for a consistent snapshot
+    // Use checkpoint + file copy for a consistent Bun SQLite snapshot
     const db = getDbInstance();
-    await db.backup(tmpPath);
+    db.run("PRAGMA wal_checkpoint(TRUNCATE)");
+    fs.copyFileSync(SQLITE_FILE, tmpPath);
 
     const fileBuffer = fs.readFileSync(tmpPath);
 

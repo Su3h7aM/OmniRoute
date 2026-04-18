@@ -11,9 +11,9 @@
  * here, so this function never touches authentication configuration.
  */
 
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 
-type SqliteDatabase = InstanceType<typeof Database>;
+type SqliteDatabase = Database;
 
 export interface LegacyJsonData {
   providerConnections?: Record<string, unknown>[];

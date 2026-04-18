@@ -34,9 +34,10 @@ export async function GET(request: NextRequest) {
       // Create temp directory
       fs.mkdirSync(tempDir, { recursive: true });
 
-      // 1. Export database using native backup API
+      // 1. Export database using checkpoint + file copy
       const dbBackupPath = path.join(tempDir, "storage.sqlite");
-      await db.backup(dbBackupPath);
+      db.run("PRAGMA wal_checkpoint(TRUNCATE)");
+      fs.copyFileSync(SQLITE_FILE, dbBackupPath);
 
       // 2. Export settings as JSON
       const settings: Record<string, string> = {};
