@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
  * Supports level filtering, text search, auto-scroll, and copy-to-clipboard.
  */
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { copyToClipboard } from "@/shared/utils/clipboard";
 
 interface LogEntry {
@@ -53,7 +53,7 @@ export default function ConsoleLogViewer() {
 	const [searchText, setSearchText] = useState("");
 	const [autoScroll, setAutoScroll] = useState(true);
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-	const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+	const [copiedKey, setCopiedKey] = useState<string | null>(null);
 	const scrollRef = useRef<HTMLDivElement>(null);
 
 	const fetchLogs = useCallback(async () => {
@@ -90,7 +90,7 @@ export default function ConsoleLogViewer() {
 		}
 	}, [autoScroll]);
 
-	const handleCopy = async (entry: LogEntry, idx: number) => {
+	const handleCopy = async (entry: LogEntry, key: string) => {
 		const text = JSON.stringify(entry, null, 2);
 		const success = await copyToClipboard(text);
 		if (!success) {
@@ -99,8 +99,8 @@ export default function ConsoleLogViewer() {
 		}
 
 		setError(null);
-		setCopiedIdx(idx);
-		setTimeout(() => setCopiedIdx(null), 2000);
+		setCopiedKey(key);
+		setTimeout(() => setCopiedKey(null), 2000);
 	};
 
 	const formatTime = (ts: string) => {
@@ -118,8 +118,22 @@ export default function ConsoleLogViewer() {
 		}
 	};
 
-	const getText = (entry: LogEntry) => entry.msg || entry.message || "";
-	const getComponent = (entry: LogEntry) => entry.component || entry.module || "";
+	const getText = useCallback((entry: LogEntry) => {
+		const value = entry.msg ?? entry.message ?? "";
+		if (typeof value === "string") return value;
+		if (typeof value === "number" || typeof value === "boolean") return String(value);
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
+		}
+	}, []);
+	const getComponent = useCallback((entry: LogEntry) => {
+		const value = entry.component ?? entry.module ?? "";
+		if (typeof value === "string") return value;
+		if (typeof value === "number" || typeof value === "boolean") return String(value);
+		return "";
+	}, []);
 
 	// Apply text search filter
 	const filteredLogs = searchText
@@ -128,6 +142,24 @@ export default function ConsoleLogViewer() {
 				return full.includes(searchText.toLowerCase());
 			})
 		: logs;
+
+	const keyedLogs = useMemo(() => {
+		const seenKeys = new Map<string, number>();
+		return filteredLogs.map((entry) => {
+			const baseKey = [
+				entry.timestamp || "",
+				entry.level || "",
+				getComponent(entry),
+				getText(entry),
+			].join("::");
+			const count = (seenKeys.get(baseKey) || 0) + 1;
+			seenKeys.set(baseKey, count);
+			return {
+				entry,
+				key: count === 1 ? baseKey : `${baseKey}::${count}`,
+			};
+		});
+	}, [filteredLogs, getComponent, getText]);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -249,7 +281,7 @@ export default function ConsoleLogViewer() {
 							</p>
 						</div>
 					) : (
-						filteredLogs.map((entry, idx) => {
+						keyedLogs.map(({ entry, key }) => {
 							const level = (entry.level || "info").toLowerCase();
 							const colorClass = LEVEL_COLORS[level] || LEVEL_COLORS.info;
 							const bgClass = LEVEL_BG[level] || "";
@@ -258,7 +290,7 @@ export default function ConsoleLogViewer() {
 
 							return (
 								<div
-									key={idx}
+									key={key}
 									className={`group flex items-start gap-2 px-2 py-1 rounded hover:bg-white/5 transition-colors ${
 										level === "error" || level === "fatal" ? "bg-red-500/5" : ""
 									}`}
@@ -296,12 +328,12 @@ export default function ConsoleLogViewer() {
 									{/* Copy button */}
 									<button
 										type="button"
-										onClick={() => handleCopy(entry, idx)}
+										onClick={() => handleCopy(entry, key)}
 										title="Copy log entry"
 										className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-[#8b949e] hover:text-white"
 									>
 										<span className="material-symbols-outlined text-[14px]">
-											{copiedIdx === idx ? "check" : "content_copy"}
+											{copiedKey === key ? "check" : "content_copy"}
 										</span>
 									</button>
 								</div>
