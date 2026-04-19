@@ -6,18 +6,19 @@
  * the actual registered handler (not mockFetch directly).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { MCP_ESSENTIAL_TOOLS } from "../schemas/tools";
 import { createMcpServer } from "../server";
 
-// Mock fetch globally
+const originalFetch = globalThis.fetch;
 const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+globalThis.fetch = mockFetch as typeof globalThis.fetch;
 
 describe("MCP Essential Tools", () => {
   beforeEach(() => {
+    globalThis.fetch = mockFetch as typeof globalThis.fetch;
     mockFetch.mockReset();
   });
 
@@ -155,6 +156,7 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
   let client: Client;
 
   beforeEach(async () => {
+    globalThis.fetch = mockFetch as typeof globalThis.fetch;
     mockFetch.mockReset();
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -166,6 +168,7 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
 
   afterEach(async () => {
     await client.close();
+    globalThis.fetch = originalFetch;
   });
 
   it("should appear in tools/list after registration", async () => {
@@ -201,6 +204,7 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
       arguments: { query: "typescript best practices" },
     });
 
+    expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(result.isError).toBeFalsy();
     const content = result.content[0] as { type: string; text: string };
     const data = JSON.parse(content.text);
@@ -232,6 +236,7 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
       },
     });
 
+    expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/v1/search"),
       expect.objectContaining({ method: "POST" })
@@ -262,6 +267,7 @@ describe("omniroute_web_search handler (via MCP dispatch)", () => {
       arguments: { query: "test query" },
     });
 
+    expect(mockFetch).toHaveBeenCalledTimes(1);
     const [, options] = mockFetch.mock.calls[0];
     const body = JSON.parse(options.body as string);
     expect(body).not.toHaveProperty("provider");

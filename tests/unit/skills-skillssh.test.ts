@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -33,13 +33,13 @@ function resetStorage() {
 
 const originalFetch = globalThis.fetch;
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   resetStorage();
   await settingsDb.updateSettings({ requireLogin: false });
   globalThis.fetch = originalFetch;
 });
 
-test.after(() => {
+afterAll(() => {
   core.resetDbInstance();
   clearSkillRegistry();
   globalThis.fetch = originalFetch;

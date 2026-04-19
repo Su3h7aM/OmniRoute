@@ -5,7 +5,7 @@
  * errorCodes, requestId, fetchTimeout
  */
 
-import { describe, it, before, after } from "node:test";
+import { describe, it, beforeAll as before, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 
 // ──────────────── T-19: Model Availability ────────────────

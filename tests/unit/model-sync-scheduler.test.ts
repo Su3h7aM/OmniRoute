@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -100,12 +100,12 @@ async function loadScheduler(label) {
   return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}`);
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   delete process.env.MODEL_SYNC_INTERVAL_HOURS;
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   coreDb.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

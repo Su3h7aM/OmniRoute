@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, after } from "node:test";
+import { describe, it, beforeEach, afterEach, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs";

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { render, screen, waitFor, cleanup, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom/vitest";
+import "@testing-library/jest-dom";
 import React from "react";
 import CachePage from "../page";
 

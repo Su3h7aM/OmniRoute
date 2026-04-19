@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "bun:test";
 import { retrieveMemories } from "../../memory/retrieval";
 import { createMemory } from "../../memory/store";
 import { skillRegistry } from "../registry";
@@ -10,7 +10,7 @@ vi.mock("../../db/settings", () => ({
 }));
 
 import { getSettings } from "../../db/settings";
-const mockedGetSettings = vi.mocked(getSettings);
+const mockedGetSettings = getSettings as ReturnType<typeof vi.fn>;
 
 describe("Memory + Skills Integration", () => {
   const apiKeyId = "test-api-key";

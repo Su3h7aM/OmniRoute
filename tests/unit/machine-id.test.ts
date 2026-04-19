@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { createRequire, syncBuiltinESMExports } from "node:module";
@@ -29,7 +29,7 @@ async function loadMachineIdModule(label) {
   return import(`${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}`);
 }
 
-test.afterEach(() => {
+afterEach(() => {
   childProcess.execSync = originalExecSync;
   childProcess.execFileSync = originalExecFileSync;
   fs.existsSync = originalExistsSync;

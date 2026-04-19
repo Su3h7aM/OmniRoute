@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 Object.assign(process.env, {
@@ -23,7 +23,7 @@ const { CLAUDE_CONFIG } = await import("../../src/lib/oauth/constants/oauth.ts")
 
 const originalFetch = globalThis.fetch;
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 

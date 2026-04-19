@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -427,17 +427,17 @@ async function getResponsesCallLogs() {
   return rows.filter((row) => row.path === "/v1/responses");
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = originalRetryDelayMs;
   globalThis.fetch = originalFetch;
   clearInflight();

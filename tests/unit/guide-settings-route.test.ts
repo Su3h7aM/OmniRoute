@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -19,13 +19,13 @@ function buildRequest(body: any) {
   });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   // Mock os.homedir to return our dummy path
   os.homedir = () => DUMMY_HOME;
   await fs.mkdir(path.dirname(QWEN_CONFIG_PATH), { recursive: true }).catch(() => {});
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await fs.rm(DUMMY_HOME, { recursive: true, force: true }).catch(() => {});
 });
 

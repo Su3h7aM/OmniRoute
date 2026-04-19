@@ -126,15 +126,19 @@ function defaultPortForScheme(protocol: string): string {
 
 function tcpCheck(host: string, port: number, timeoutMs: number): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
-    const socket = createConnection({ host, port }, () => {
+    let settled = false;
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
       socket.destroy();
-      resolve(true);
-    });
-    socket.setTimeout(timeoutMs);
-    socket.on("error", () => resolve(false));
-    socket.on("timeout", () => {
-      socket.destroy();
-      resolve(false);
-    });
+      resolve(value);
+    };
+
+    const socket = createConnection({ host, port }, () => finish(true));
+    const timer = globalThis.setTimeout(() => finish(false), timeoutMs);
+
+    socket.on("error", () => finish(false));
+    socket.on("timeout", () => finish(false));
   });
 }

@@ -741,6 +741,13 @@ function parseLegacyError(value: unknown): unknown {
 function offloadLegacyCallLogDetails(db: SqliteDatabase) {
   if (!hasTable(db, "call_logs_v1_legacy")) return;
 
+  const legacyColumns = getTableColumns(db, "call_logs_v1_legacy");
+  if (!legacyColumns.includes("id")) return;
+  if (!legacyColumns.includes("timestamp")) {
+    db.exec("DROP TABLE IF EXISTS call_logs_v1_legacy");
+    return;
+  }
+
   type LegacyCallLogRow = {
     id: string;
     timestamp: string | null;

@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createMcpServer } from "../server.ts";
 import { MCP_TOOL_MAP, dbHealthCheckInput } from "../schemas/tools.ts";
 
+const originalFetch = globalThis.fetch;
 const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+globalThis.fetch = mockFetch as typeof globalThis.fetch;
 
 vi.mock("../audit.ts", () => ({
   logToolCall: vi.fn().mockResolvedValue(undefined),
@@ -25,6 +26,8 @@ describe("omniroute_db_health_check MCP tool", () => {
 
   afterEach(async () => {
     await client.close();
+    globalThis.fetch = originalFetch;
+    globalThis.fetch = mockFetch as typeof globalThis.fetch;
   });
 
   it("is registered in the MCP tool map", () => {

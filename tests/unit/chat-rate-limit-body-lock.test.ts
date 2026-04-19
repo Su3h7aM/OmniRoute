@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
@@ -9,7 +9,7 @@ const { BaseExecutor, buildRequest, handleChat, resetStorage, seedConnection, se
 
 const rateLimitManager = await import("../../open-sse/services/rateLimitManager.ts");
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await rateLimitManager.__resetRateLimitManagerForTests();
   await resetStorage();
@@ -19,12 +19,12 @@ test.beforeEach(async () => {
   });
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await rateLimitManager.__resetRateLimitManagerForTests();
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await rateLimitManager.__resetRateLimitManagerForTests();
   await harness.cleanup();
 });

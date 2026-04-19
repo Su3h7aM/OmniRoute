@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -140,7 +140,7 @@ async function invokeChatCore({
   }
 }
 
-test.after(() => {
+afterAll(() => {
   try {
     const db = core.getDbInstance();
     db.close();

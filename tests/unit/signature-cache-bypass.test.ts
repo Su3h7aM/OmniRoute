@@ -1,4 +1,4 @@
-import test from "node:test";
+import { beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import {
@@ -19,7 +19,7 @@ const BASIC_VALID_SIGNATURE = makeSignature([0x12, 0x00]);
 const STRICT_VALID_SIGNATURE = makeSignature([0x12, 0x02, 0x0a, 0x00]);
 const INVALID_SIGNATURE = makeSignature([0x13, 0x00]);
 
-test.beforeEach(() => {
+beforeEach(() => {
   clearGeminiThoughtSignatures();
 });
 

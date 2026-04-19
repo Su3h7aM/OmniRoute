@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -10,7 +10,7 @@ const { applyPayloadRules, getPayloadRulesConfig, resetPayloadRulesConfigForTest
 const ORIGINAL_PAYLOAD_RULES_PATH = process.env.OMNIROUTE_PAYLOAD_RULES_PATH;
 const ORIGINAL_PAYLOAD_RULES_RELOAD_MS = process.env.OMNIROUTE_PAYLOAD_RULES_RELOAD_MS;
 
-test.afterEach(() => {
+afterEach(() => {
   resetPayloadRulesConfigForTests();
 
   if (ORIGINAL_PAYLOAD_RULES_PATH === undefined) {

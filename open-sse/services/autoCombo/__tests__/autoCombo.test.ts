@@ -2,7 +2,7 @@
  * Unit tests for Auto-Combo Engine (Phase 5)
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "bun:test";
 import { calculateFactors, calculateScore, DEFAULT_WEIGHTS, validateWeights } from "../scoring";
 import type { ProviderCandidate, ScoringWeights } from "../scoring";
 import { getTaskFitness, getTaskTypes } from "../taskFitness";

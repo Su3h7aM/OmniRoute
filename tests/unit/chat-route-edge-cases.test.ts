@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
@@ -21,16 +21,16 @@ const { getBackgroundDegradationConfig } =
   await import("../../open-sse/services/backgroundTaskDetector.ts");
 const { setCustomAliases } = await import("../../open-sse/services/modelDeprecation.ts");
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await harness.cleanup();
 });
 

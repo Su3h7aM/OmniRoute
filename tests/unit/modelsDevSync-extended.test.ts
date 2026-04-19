@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -124,11 +124,11 @@ function mockFetchWith(body, status = 200, statusText = "OK") {
     });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   for (const mod of loadedModules) {
     if (typeof mod.stopPeriodicSync === "function") {
       mod.stopPeriodicSync();
@@ -140,7 +140,7 @@ test.afterEach(async () => {
   core.resetDbInstance();
 });
 
-test.after(async () => {
+afterAll(async () => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

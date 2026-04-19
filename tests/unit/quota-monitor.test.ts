@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const quotaMonitor = await import("../../open-sse/services/quotaMonitor.ts");
@@ -104,7 +104,7 @@ test("isQuotaMonitorEnabled reads the provider flag strictly", () => {
   assert.equal(isQuotaMonitorEnabled(createConnection()), false);
 });
 
-test.afterEach(() => {
+afterEach(() => {
   clearQuotaMonitors();
   clearSessions();
 });

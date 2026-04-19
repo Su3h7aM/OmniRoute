@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -12,7 +12,7 @@ process.env.APP_LOG_FILE_PATH = TEST_LOG_PATH;
 
 const route = await import("../../src/app/api/logs/console/route.ts");
 
-test.after(() => {
+afterAll(() => {
   if (originalLogFilePath === undefined) {
     delete process.env.APP_LOG_FILE_PATH;
   } else {

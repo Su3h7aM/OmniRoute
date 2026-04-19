@@ -1,6 +1,21 @@
-import { describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it, vi } from "bun:test";
 import assert from "node:assert/strict";
-import { detectVolumeSignals, recommendStrategyOverride } from "../volumeDetector";
+
+const getSettingsMock = vi.fn();
+vi.mock("@/lib/localDb", () => ({
+  getSettings: getSettingsMock,
+}));
+
+const { detectVolumeSignals, recommendStrategyOverride } = await import("../volumeDetector");
+
+beforeEach(() => {
+  getSettingsMock.mockReset();
+  getSettingsMock.mockResolvedValue({ adaptiveVolumeRouting: true });
+});
+
+afterEach(() => {
+  getSettingsMock.mockReset();
+});
 
 describe("volumeDetector", async () => {
   describe("detectVolumeSignals", async () => {

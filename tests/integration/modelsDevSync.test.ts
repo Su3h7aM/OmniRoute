@@ -4,7 +4,7 @@
  * Uses a test DB file in /tmp to avoid touching production data.
  */
 
-import { describe, it, before, after } from "node:test";
+import { describe, it, beforeAll as before, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 import { unlinkSync, existsSync } from "node:fs";
 

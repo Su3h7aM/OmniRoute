@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
@@ -76,11 +76,11 @@ function buildQuotaResponse(usedPercent, resetAfterSeconds = 3600) {
   );
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await harness.cleanup();
 });
 

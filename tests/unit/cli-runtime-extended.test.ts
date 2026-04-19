@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -43,7 +43,7 @@ function writeScript(dir, name, content, executable = true) {
   return filePath;
 }
 
-test.afterEach(() => {
+afterEach(() => {
   childProcess.spawn = originalSpawn;
   childProcess.execFileSync = originalExecFileSync;
   syncBuiltinESMExports();

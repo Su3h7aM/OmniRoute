@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const usageService = await import("../../open-sse/services/usage.ts");
@@ -6,7 +6,7 @@ const { __testing } = usageService;
 
 const originalFetch = globalThis.fetch;
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 

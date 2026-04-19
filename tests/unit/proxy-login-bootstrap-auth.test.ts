@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -39,13 +39,13 @@ function makeRequest(pathname, method = "GET", headers) {
   };
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   delete process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE;
   delete process.env.INITIAL_PASSWORD;
   await resetStorage();
 });
 
-test.after(() => {
+afterAll(() => {
   delete process.env.NEXT_PUBLIC_OMNIROUTE_E2E_MODE;
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();

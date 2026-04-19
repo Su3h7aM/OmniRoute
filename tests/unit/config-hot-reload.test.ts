@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -58,11 +58,11 @@ async function waitFor(check: () => Promise<boolean> | boolean, timeoutMs = 3000
   assert.fail("Timed out waiting for hot-reload condition");
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await resetStorage();
 });
 

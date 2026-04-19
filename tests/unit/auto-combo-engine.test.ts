@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { selectProvider } from "../../open-sse/services/autoCombo/engine.ts";
@@ -22,12 +22,12 @@ const baseConfig = {
   explorationRate: 0,
 };
 
-test.beforeEach(() => {
+beforeEach(() => {
   resetHealer();
   Math.random = originalRandom;
 });
 
-test.afterEach(() => {
+afterEach(() => {
   resetHealer();
   Math.random = originalRandom;
 });

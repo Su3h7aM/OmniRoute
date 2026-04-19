@@ -1,11 +1,11 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { handleModeration } = await import("../../open-sse/handlers/moderations.ts");
 
 const originalFetch = globalThis.fetch;
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 

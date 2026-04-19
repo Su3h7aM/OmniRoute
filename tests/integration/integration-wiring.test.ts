@@ -5,7 +5,7 @@
  * OmniRoute architecture (TypeScript + App Router route.ts files).
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";

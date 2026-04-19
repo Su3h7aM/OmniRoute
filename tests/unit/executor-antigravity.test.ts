@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { AntigravityExecutor } from "../../open-sse/executors/antigravity.ts";
@@ -26,7 +26,7 @@ async function withEnv(name, value, fn) {
   }
 }
 
-test.afterEach(() => {
+afterEach(() => {
   clearAntigravityVersionCache();
 });
 

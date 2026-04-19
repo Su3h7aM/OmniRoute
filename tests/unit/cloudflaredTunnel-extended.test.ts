@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import fsSync from "node:fs";
@@ -93,7 +93,7 @@ function createFakeChild(pid) {
   return child;
 }
 
-test.afterEach(async () => {
+afterEach(async () => {
   childProcess.spawn = originalSpawn;
   childProcess.execFile = originalExecFile;
   process.kill = originalProcessKill;

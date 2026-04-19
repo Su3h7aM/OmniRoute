@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -57,7 +57,7 @@ function seedLegacyRequestTargets() {
   fs.writeFileSync(CURRENT_REQUEST_SUMMARY_FILE, "legacy summary\n");
 }
 
-test.beforeEach(() => {
+beforeEach(() => {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
   removePath(LEGACY_DATA_DIR);
   removePath(USAGE_JSON_FILE);
@@ -71,7 +71,7 @@ test.beforeEach(() => {
   resetDbTables();
 });
 
-test.after(() => {
+afterAll(() => {
   try {
     const db = getDbInstance();
     if (db?.open) db.close();

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const signatureStore = await import("../../open-sse/services/geminiThoughtSignatureStore.ts");
@@ -19,7 +19,7 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-test.afterEach(() => {
+afterEach(() => {
   Date.now = originalDateNow;
   console.warn = originalConsoleWarn;
   if (originalSyntheticAlias === undefined) {

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -343,13 +343,13 @@ async function invokeChatCore({
   }
 }
 
-test.afterEach(async () => {
+afterEach(async () => {
   globalThis.fetch = originalFetch;
   await waitForAsyncSideEffects();
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   globalThis.fetch = originalFetch;
   await waitForAsyncSideEffects();
   await resetStorage();

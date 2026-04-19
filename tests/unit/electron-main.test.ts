@@ -11,7 +11,7 @@
  * - Platform-conditional window options
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 function raceDelays(firstMs, secondMs) {

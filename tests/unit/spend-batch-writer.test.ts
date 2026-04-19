@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -52,11 +52,11 @@ async function waitFor(fn: () => boolean, timeoutMs = 1_000) {
   throw new Error("Timed out waiting for condition");
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   resetSpendBatchWriterForTests();
   costRules.resetCostData();
   core.resetDbInstance();

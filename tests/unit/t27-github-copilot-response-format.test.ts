@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 const { GithubExecutor } = await import("../../open-sse/executors/github.ts");
 const { BaseExecutor } = await import("../../open-sse/executors/base.ts");
@@ -17,11 +17,11 @@ function streamFromChunks(chunks) {
 
 const originalFetch = globalThis.fetch;
 
-test.afterEach(async () => {
+afterEach(async () => {
   globalThis.fetch = originalFetch;
 });
 
-test.after(() => {
+afterAll(() => {
   globalThis.fetch = originalFetch;
 });
 

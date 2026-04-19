@@ -4,13 +4,15 @@
  * Tests all 8 advanced tool handlers.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "bun:test";
 
+const originalFetch = globalThis.fetch;
 const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+globalThis.fetch = mockFetch as typeof globalThis.fetch;
 
 describe("MCP Advanced Tools", () => {
   beforeEach(() => {
+    globalThis.fetch = mockFetch as typeof globalThis.fetch;
     mockFetch.mockReset();
   });
 

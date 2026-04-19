@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -51,7 +51,7 @@ function cleanup() {
   }
 }
 
-test.after(() => {
+afterAll(() => {
   cleanup();
 });
 

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { checkFallbackError } = await import("../../open-sse/services/accountFallback.ts");
@@ -6,7 +6,7 @@ const { handleComboChat, shouldFallbackComboBadRequest } =
   await import("../../open-sse/services/combo.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-test.beforeEach(() => {
+beforeEach(() => {
   resetAllCircuitBreakers();
 });
 

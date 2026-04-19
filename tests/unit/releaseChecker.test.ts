@@ -1,4 +1,4 @@
-import { describe, it, afterEach } from "node:test";
+import { describe, it, afterEach } from "bun:test";
 import assert from "node:assert/strict";
 
 const originalFetch = globalThis.fetch;

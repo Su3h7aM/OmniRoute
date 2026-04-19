@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { A2ATaskManager } from "../../src/lib/a2a/taskManager.ts";
@@ -12,7 +12,7 @@ function createManager(ttlMinutes = 5) {
   return manager;
 }
 
-test.afterEach(() => {
+afterEach(() => {
   while (managers.length > 0) {
     managers.pop()?.destroy();
   }

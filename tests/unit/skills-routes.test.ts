@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -52,11 +52,11 @@ async function registerSkill(overrides = {}) {
   });
 }
 
-test.beforeEach(() => {
+beforeEach(() => {
   resetStorage();
 });
 
-test.after(() => {
+afterAll(() => {
   core.resetDbInstance();
   clearSkillRegistry();
   process.env.DATA_DIR = originalDataDir;

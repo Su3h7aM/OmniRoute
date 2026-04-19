@@ -1,4 +1,4 @@
-import { describe, it, after } from "node:test";
+import { describe, it, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 
 // The orchestrator imports chain triggers getDbInstance() which runs migrations.

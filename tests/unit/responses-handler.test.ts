@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -111,12 +111,12 @@ async function invokeResponsesCore({
   }
 }
 
-test.afterEach(async () => {
+afterEach(async () => {
   globalThis.fetch = originalFetch;
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   globalThis.fetch = originalFetch;
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });

@@ -7,7 +7,7 @@
  * Run: node --import tsx/esm --test tests/integration/performance-regression.test.ts
  */
 
-import { describe, it, before, after } from "node:test";
+import { describe, it, beforeAll as before, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";

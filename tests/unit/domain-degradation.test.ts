@@ -1,13 +1,13 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const degradation = await import("../../src/domain/degradation.ts");
 
-test.beforeEach(() => {
+beforeEach(() => {
   degradation.resetDegradationRegistry();
 });
 
-test.after(() => {
+afterAll(() => {
   degradation.resetDegradationRegistry();
 });
 

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { SafeOutboundFetchError, safeOutboundFetch } =
@@ -6,7 +6,7 @@ const { SafeOutboundFetchError, safeOutboundFetch } =
 
 const originalFetch = globalThis.fetch;
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 

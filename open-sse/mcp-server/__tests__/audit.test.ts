@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 
 type MockAuditDb = {
   prepare: ReturnType<typeof vi.fn>;
@@ -24,7 +24,6 @@ describe("MCP audit shutdown", () => {
   let dbFile: string;
 
   beforeEach(() => {
-    vi.resetModules();
     globalThis.__omnirouteMcpAuditDb = undefined;
     dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-mcp-audit-"));
     dbFile = path.join(dataDir, "storage.sqlite");
@@ -35,6 +34,7 @@ describe("MCP audit shutdown", () => {
   afterEach(() => {
     delete process.env.DATA_DIR;
     globalThis.__omnirouteMcpAuditDb = undefined;
+    delete (globalThis as any).mockDbFactory;
     vi.restoreAllMocks();
   });
 
@@ -46,15 +46,9 @@ describe("MCP audit shutdown", () => {
       close: vi.fn(),
       open: true,
     };
-    const MockDatabase = vi.fn(function MockDatabase() {
-      return mockDb;
-    });
+    (globalThis as any).mockDbFactory = vi.fn(() => mockDb);
 
-    vi.doMock("bun:sqlite", () => ({
-      Database: MockDatabase,
-    }));
-
-    const audit = await import("../audit.ts");
+    const audit = await import("file:///tmp/omniroute-audit-test-close.ts?case=close");
 
     await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 12, true);
     expect(mockDb.prepare).toHaveBeenCalledTimes(1);
@@ -75,15 +69,9 @@ describe("MCP audit shutdown", () => {
       close: vi.fn(),
       open: true,
     };
-    const MockDatabase = vi.fn(function MockDatabase() {
-      return mockDb;
-    });
+    (globalThis as any).mockDbFactory = vi.fn(() => mockDb);
 
-    vi.doMock("bun:sqlite", () => ({
-      Database: MockDatabase,
-    }));
-
-    const audit = await import("../audit.ts");
+    const audit = await import("file:///tmp/omniroute-audit-test-busy.ts?case=busy");
 
     await audit.logToolCall("omniroute_get_health", {}, {}, 5, true);
     expect(audit.closeAuditDb()).toBe(true);

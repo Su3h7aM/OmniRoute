@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -18,16 +18,16 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   delete process.env.INITIAL_PASSWORD;
   await resetStorage();
 });
 
-test.afterEach(() => {
+afterEach(() => {
   bcrypt.hash = originalHash;
 });
 
-test.after(() => {
+afterAll(() => {
   delete process.env.INITIAL_PASSWORD;
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });

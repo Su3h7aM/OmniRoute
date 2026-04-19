@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { GET } from "../../src/app/api/telemetry/summary/route.ts";
@@ -6,7 +6,7 @@ import { RequestTelemetry, recordTelemetry } from "../../src/shared/utils/reques
 import { clearQuotaMonitors, startQuotaMonitor } from "../../open-sse/services/quotaMonitor.ts";
 import { clearSessions, touchSession } from "../../open-sse/services/sessionManager.ts";
 
-test.afterEach(() => {
+afterEach(() => {
   clearQuotaMonitors();
   clearSessions();
 });

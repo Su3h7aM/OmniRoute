@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -69,15 +69,15 @@ function insertCallLog(row) {
   );
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetTestDataDir();
 });
 
-test.afterEach(() => {
+afterEach(() => {
   core.resetDbInstance();
 });
 
-test.after(async () => {
+afterAll(async () => {
   core.resetDbInstance();
   if (ORIGINAL_DATA_DIR === undefined) {
     delete process.env.DATA_DIR;

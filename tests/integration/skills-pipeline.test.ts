@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "../../open-sse/services/webSearchFallback.ts";
 
@@ -26,17 +26,17 @@ const {
 const { registerBuiltinSkills } = builtinsModule;
 const { sandboxRunner } = sandboxModule;
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = harness.originalRetryDelayMs;
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await harness.cleanup();
 });
 

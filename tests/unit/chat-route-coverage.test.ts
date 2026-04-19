@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
@@ -50,7 +50,7 @@ function resetEnv() {
   delete process.env.PII_REDACTION_ENABLED;
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   resetEnv();
   setTaskRoutingConfig({
@@ -62,7 +62,7 @@ test.beforeEach(async () => {
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   resetEnv();
   setTaskRoutingConfig({
     enabled: false,
@@ -73,7 +73,7 @@ test.afterEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await harness.cleanup();
 });
 

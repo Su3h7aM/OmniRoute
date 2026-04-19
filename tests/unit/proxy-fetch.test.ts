@@ -1,6 +1,7 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import net from "node:net";
 
 import proxyFetch, {
   runWithProxyContext,
@@ -9,6 +10,8 @@ import proxyFetch, {
 } from "../../open-sse/utils/proxyFetch.ts";
 import { getDefaultDispatcher } from "../../open-sse/utils/proxyDispatcher.ts";
 import tlsClient from "../../open-sse/utils/tlsClient.ts";
+
+const isBunRuntime = typeof Bun !== "undefined";
 
 async function withEnv(overrides, fn) {
   const previous = new Map();
@@ -35,6 +38,23 @@ async function withEnv(overrides, fn) {
   }
 }
 
+async function waitForServerReady(port, host = "127.0.0.1") {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const ready = await new Promise((resolve) => {
+      const socket = net.connect({ port, host }, () => {
+        socket.end();
+        resolve(true);
+      });
+      socket.once("error", () => resolve(false));
+    });
+
+    if (ready) return;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+
+  throw new Error(`Server did not become ready on ${host}:${port}`);
+}
+
 async function withHttpServer(handler, fn) {
   const server = http.createServer(handler);
 
@@ -45,6 +65,7 @@ async function withHttpServer(handler, fn) {
 
   const address = server.address();
   assert.ok(address && typeof address === "object");
+  await waitForServerReady(address.port);
 
   try {
     return await fn(`http://127.0.0.1:${address.port}`);
@@ -61,12 +82,12 @@ async function withHttpServer(handler, fn) {
 const originalTlsAvailable = tlsClient.available;
 const originalTlsFetch = tlsClient.fetch.bind(tlsClient);
 
-test.afterEach(() => {
+afterEach(() => {
   tlsClient.available = originalTlsAvailable;
   tlsClient.fetch = originalTlsFetch;
 });
 
-test("proxy fetch bypasses invalid environment proxies for local addresses", async () => {
+test.if(!isBunRuntime)("proxy fetch bypasses invalid environment proxies for local addresses", async () => {
   await withHttpServer(
     (_req, res) => {
       res.writeHead(200, { "Content-Type": "text/plain" });
@@ -81,6 +102,10 @@ test("proxy fetch bypasses invalid environment proxies for local addresses", asy
           NO_PROXY: undefined,
         },
         async () => {
+          const directResponse = await fetch(url);
+          assert.equal(directResponse.status, 200);
+          assert.equal(await directResponse.text(), "local-bypass-ok");
+
           const response = await proxyFetch(url);
 
           assert.equal(response.status, 200);

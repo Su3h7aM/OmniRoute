@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import { createChatPipelineHarness } from "../integration/_chatPipelineHarness.ts";
@@ -30,19 +30,19 @@ function buildRequestWithSignal(body, signal) {
   });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   BaseExecutor.RETRY_CONFIG.maxAttempts = originalRetryConfig.maxAttempts;
   BaseExecutor.RETRY_CONFIG.delayMs = 0;
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   BaseExecutor.RETRY_CONFIG.maxAttempts = originalRetryConfig.maxAttempts;
   BaseExecutor.RETRY_CONFIG.delayMs = originalRetryConfig.delayMs;
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await harness.cleanup();
 });
 

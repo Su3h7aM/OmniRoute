@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -76,7 +76,7 @@ async function waitFor(fn, timeoutMs = 1500) {
   return null;
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   resetAllComboMetrics();
   resetAllCircuitBreakers();
   resetAllSemaphores();
@@ -86,13 +86,13 @@ test.beforeEach(async () => {
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   globalThis.fetch = originalFetch;
   clearSessions();
   await new Promise((resolve) => setTimeout(resolve, 50));
 });
 
-test.after(async () => {
+afterAll(async () => {
   resetAllComboMetrics();
   resetAllCircuitBreakers();
   resetAllSemaphores();

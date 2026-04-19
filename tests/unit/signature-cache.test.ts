@@ -1,10 +1,10 @@
-import test from "node:test";
+import { beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const { getSignatures, addSignature, detectAndLearn, getModelFamily, getCacheStats, clearCache } =
   await import("../../open-sse/services/signatureCache.ts");
 
-test.beforeEach(() => clearCache());
+beforeEach(() => clearCache());
 
 // ─── getSignatures ──────────────────────────────────────────────────────────
 

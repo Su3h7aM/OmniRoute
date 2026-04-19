@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -39,15 +39,15 @@ function makeRequest(pathname) {
   };
 }
 
-test.beforeEach(() => {
+beforeEach(() => {
   restoreEnv();
 });
 
-test.afterEach(() => {
+afterEach(() => {
   restoreEnv();
 });
 
-test.after(() => {
+afterAll(() => {
   restoreEnv();
 });
 

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const {
@@ -17,7 +17,7 @@ const {
 } = await import("../../open-sse/services/sessionManager.ts");
 
 // Reset between tests
-test.beforeEach(() => clearSessions());
+beforeEach(() => clearSessions());
 
 // ─── Session ID Generation ──────────────────────────────────────────────────
 

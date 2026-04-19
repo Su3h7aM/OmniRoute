@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import CachePerformance from "../components/CachePerformance";

@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -242,11 +242,11 @@ async function flushAsyncTurns(count = 3) {
   }
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.afterEach(() => {
+afterEach(() => {
   healthMonitor.stopMonitoring("cliproxyapi");
   childProcess.spawn = originalSpawn;
   process.kill = originalProcessKill;
@@ -258,7 +258,7 @@ test.afterEach(() => {
   syncBuiltinESMExports();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

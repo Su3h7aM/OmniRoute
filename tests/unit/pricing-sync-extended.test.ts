@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -37,14 +37,14 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
   globalThis.fetch = originalFetch;
   console.warn = originalWarn;
   delete process.env.PRICING_SYNC_ENABLED;
 });
 
-test.after(async () => {
+afterAll(async () => {
   pricingSync.stopPeriodicSync();
   globalThis.fetch = originalFetch;
   console.warn = originalWarn;

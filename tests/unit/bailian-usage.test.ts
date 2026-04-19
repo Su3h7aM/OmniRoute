@@ -1,11 +1,11 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import { getUsageForProvider } from "../../open-sse/services/usage.ts";
 
 // Save original fetch
 const originalFetch = globalThis.fetch;
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 

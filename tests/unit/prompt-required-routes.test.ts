@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -11,7 +11,7 @@ const core = await import("../../src/lib/db/core.ts");
 const musicRoute = await import("../../src/app/api/v1/music/generations/route.ts");
 const videoRoute = await import("../../src/app/api/v1/videos/generations/route.ts");
 
-test.after(() => {
+afterAll(() => {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });

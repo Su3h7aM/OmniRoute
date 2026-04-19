@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import {
@@ -17,7 +17,7 @@ import { clearSessions, touchSession } from "../../open-sse/services/sessionMana
 
 const originalFetch = globalThis.fetch;
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
   clearQuotaMonitors();
   clearSessions();

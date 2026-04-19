@@ -119,7 +119,9 @@ Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, 
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.ts
+bun test ./tests/unit/your-file.test.ts
+# or use repo wrapper (skips deprecated desktop/CLI suites)
+node scripts/run-bun-tests.mjs ./tests/unit/your-file.test.ts
 
 # Vitest (MCP server, autoCombo, cache)
 npm run test:vitest

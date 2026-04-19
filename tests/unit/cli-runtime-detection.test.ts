@@ -3,7 +3,7 @@
  * npm prefix deduplication, and env var overrides.
  */
 
-import { describe, it, before, after } from "node:test";
+import { describe, it, beforeAll as before, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";

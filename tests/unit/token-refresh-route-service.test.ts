@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -46,11 +46,11 @@ async function withMockedNow(now, fn) {
   }
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   delete PROVIDERS["custom-oauth-local-608"];
   await resetStorage();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });

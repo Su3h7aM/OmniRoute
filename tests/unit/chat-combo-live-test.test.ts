@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -71,19 +71,19 @@ function makeRequest(extraHeaders = {}) {
   });
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   globalThis.fetch = originalFetch;
   await resetStorage();
 });
 
-test.afterEach(async () => {
+afterEach(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
   resetAllAvailability();
   resetAllCircuitBreakers();
 });
 
-test.after(async () => {
+afterAll(async () => {
   await flushBackgroundWork();
   globalThis.fetch = originalFetch;
   resetAllAvailability();

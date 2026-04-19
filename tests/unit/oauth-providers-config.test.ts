@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const originalEnv = { ...process.env };
@@ -155,11 +155,11 @@ function useFetchSequence(sequence) {
   };
 }
 
-test.afterEach(() => {
+afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-test.after(() => {
+afterAll(() => {
   globalThis.fetch = originalFetch;
   for (const key of Object.keys(process.env)) {
     if (!(key in originalEnv)) {

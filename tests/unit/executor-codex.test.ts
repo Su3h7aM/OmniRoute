@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 import {
@@ -14,7 +14,7 @@ import {
   ThinkingMode,
 } from "../../open-sse/services/thinkingBudget.ts";
 
-test.afterEach(() => {
+afterEach(() => {
   setThinkingBudgetConfig(DEFAULT_THINKING_CONFIG);
 });
 

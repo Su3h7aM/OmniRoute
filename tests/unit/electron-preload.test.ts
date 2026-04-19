@@ -8,7 +8,7 @@
  * - Disposer pattern for listeners (Fix #6)
  */
 
-import { describe, it } from "node:test";
+import { describe, it } from "bun:test";
 import assert from "node:assert/strict";
 
 // ─── Channel Whitelist Tests ─────────────────────────────────

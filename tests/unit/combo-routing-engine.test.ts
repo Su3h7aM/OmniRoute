@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -115,7 +115,7 @@ async function resetStorage() {
   clearModelsDevCapabilities();
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   resetAllComboMetrics();
   resetAllCircuitBreakers();
   resetAllSemaphores();
@@ -123,7 +123,7 @@ test.beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   resetAllComboMetrics();
   resetAllCircuitBreakers();
   resetAllSemaphores();

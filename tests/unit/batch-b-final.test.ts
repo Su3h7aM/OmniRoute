@@ -4,7 +4,7 @@
  * Tests for: evalRunner, a11yAudit, responsiveSpecs, compliance (noLog)
  */
 
-import { describe, it, before, after } from "node:test";
+import { describe, it, beforeAll as before, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
 
 // ──────────────── T-42: Eval Runner ────────────────

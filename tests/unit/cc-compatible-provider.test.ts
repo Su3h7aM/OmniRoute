@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -36,7 +36,7 @@ async function resetStorage() {
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
-test.afterEach(async () => {
+afterEach(async () => {
   globalThis.fetch = originalFetch;
   if (originalFlag === undefined) {
     delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
@@ -51,7 +51,7 @@ test.afterEach(async () => {
   await resetStorage();
 });
 
-test.after(() => {
+afterAll(() => {
   globalThis.fetch = originalFetch;
   if (originalFlag === undefined) {
     delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;

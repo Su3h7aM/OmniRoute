@@ -1,5 +1,5 @@
+import { describe, expect, test } from "bun:test";
 import { MemoryConfigSchema, MemoryCreateInputSchema, MemoryUpdateInputSchema } from "../schemas";
-import { z } from "zod";
 
 describe("Memory Schemas", () => {
   const validConfig = {
@@ -38,7 +38,8 @@ describe("Memory Schemas", () => {
 
   test("MemoryUpdateInputSchema validation", () => {
     expect(MemoryUpdateInputSchema.parse(validUpdateInput)).toBeDefined();
-    const invalidUpdate = { key: "test" };
-    expect(() => MemoryUpdateInputSchema.parse(invalidUpdate)).toThrow();
+    expect(MemoryUpdateInputSchema.parse({ key: "test" })).toEqual({ key: "test" });
+    expect(() => MemoryUpdateInputSchema.parse({ extra: true })).toThrow();
+    expect(() => MemoryUpdateInputSchema.parse({ key: "" })).toThrow();
   });
 });
