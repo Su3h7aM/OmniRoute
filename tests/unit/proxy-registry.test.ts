@@ -12,15 +12,25 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const proxiesDb = await import("../../src/lib/db/proxies.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 
+function getActiveDataDir() {
+	const activeSqliteFile = typeof core.SQLITE_FILE === "string" ? core.SQLITE_FILE : null;
+	return activeSqliteFile ? path.dirname(activeSqliteFile) : TEST_DATA_DIR;
+}
+
 async function resetStorage() {
 	core.resetDbInstance();
-	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	const activeDataDir = getActiveDataDir();
+	fs.rmSync(activeDataDir, { recursive: true, force: true });
+	fs.mkdirSync(activeDataDir, { recursive: true });
+	process.env.DATA_DIR = activeDataDir;
 }
 
 afterAll(async () => {
 	core.resetDbInstance();
-	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.rmSync(getActiveDataDir(), { recursive: true, force: true });
+	if (getActiveDataDir() !== TEST_DATA_DIR) {
+		fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	}
 });
 
 test("proxy registry blocks delete when proxy is still assigned", async () => {
