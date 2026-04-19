@@ -251,10 +251,14 @@ export default function LoginPage() {
 
 						<form onSubmit={handleLogin} className="space-y-5">
 							<div className="space-y-2">
-								<label className="text-sm font-medium text-text-main">
+								<label
+									htmlFor="login-password"
+									className="text-sm font-medium text-text-main"
+								>
 									{t("password")}
 								</label>
 								<Input
+									id="login-password"
 									type="password"
 									placeholder={t("enterPassword")}
 									value={password}

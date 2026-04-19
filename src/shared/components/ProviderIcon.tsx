@@ -114,7 +114,14 @@ class LobehubErrorBoundary extends Component<
 
 function GenericProviderIcon({ size }: { size: number }) {
 	return (
-		<svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flex: "none" }}>
+		<svg
+			width={size}
+			height={size}
+			viewBox="0 0 24 24"
+			fill="none"
+			style={{ flex: "none" }}
+			aria-hidden="true"
+		>
 			<circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
 			<path
 				d="M8 12h8M12 8v8"

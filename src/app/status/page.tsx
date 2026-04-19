@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Spinner } from "@/shared/components/Loading";
 
@@ -32,7 +32,7 @@ export default function StatusPage() {
 	const [health, setHealth] = useState<HealthPayload | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
-	async function loadHealth() {
+	const loadHealth = useCallback(async () => {
 		setLoading(true);
 		setError(null);
 		try {
@@ -50,7 +50,7 @@ export default function StatusPage() {
 		} finally {
 			setLoading(false);
 		}
-	}
+	}, []);
 
 	useEffect(() => {
 		void loadHealth();

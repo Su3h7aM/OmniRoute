@@ -425,59 +425,62 @@ export default function EvalsTab() {
 								key={suite.id}
 								className="border border-border/30 rounded-lg overflow-hidden"
 							>
-								<button
-									type="button"
-									className="flex w-full items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface/30 transition-colors text-left"
-									onClick={() => setExpanded(isExpanded ? null : suite.id)}
-									aria-expanded={isExpanded}
-								>
-									<div className="flex items-center gap-3">
-										<span className="material-symbols-outlined text-[16px] text-text-muted">
-											{isExpanded ? "expand_more" : "chevron_right"}
-										</span>
-										<div>
-											<div className="flex items-center gap-2">
-												<p className="text-sm font-medium text-text-main">
-													{suite.name || suite.id}
+								<div className="flex items-center justify-between px-4 py-3 hover:bg-surface/30 transition-colors">
+									<button
+										type="button"
+										className="flex min-w-0 flex-1 items-center gap-3 text-left"
+										onClick={() => setExpanded(isExpanded ? null : suite.id)}
+										aria-expanded={isExpanded}
+									>
+										<div className="flex items-center gap-3">
+											<span className="material-symbols-outlined text-[16px] text-text-muted">
+												{isExpanded ? "expand_more" : "chevron_right"}
+											</span>
+											<div>
+												<div className="flex items-center gap-2">
+													<p className="text-sm font-medium text-text-main">
+														{suite.name || suite.id}
+													</p>
+													{suiteResult?.summary && (
+														<span
+															className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+																suiteResult.summary.passRate === 100
+																	? "bg-emerald-500/10 text-emerald-400"
+																	: suiteResult.summary
+																				.passRate >= 80
+																		? "bg-amber-500/10 text-amber-400"
+																		: "bg-red-500/10 text-red-400"
+															}`}
+														>
+															{suiteResult.summary.passRate}%{" "}
+															{t("passSuffix")}
+														</span>
+													)}
+												</div>
+												<p className="text-xs text-text-muted">
+													{t("casesCount", { count: caseCount })}
+													{suite.description && (
+														<span className="ml-1">
+															— {suite.description}
+														</span>
+													)}
 												</p>
-												{suiteResult?.summary && (
-													<span
-														className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-															suiteResult.summary.passRate === 100
-																? "bg-emerald-500/10 text-emerald-400"
-																: suiteResult.summary.passRate >= 80
-																	? "bg-amber-500/10 text-amber-400"
-																	: "bg-red-500/10 text-red-400"
-														}`}
-													>
-														{suiteResult.summary.passRate}%{" "}
-														{t("passSuffix")}
-													</span>
+												{suiteModels.length > 0 && (
+													<div className="flex flex-wrap gap-1 mt-1">
+														{suiteModels.map((m) => (
+															<span
+																key={m}
+																className="px-1.5 py-0.5 rounded text-[10px] font-mono text-text-muted bg-black/5 dark:bg-white/5"
+															>
+																{m}
+															</span>
+														))}
+													</div>
 												)}
 											</div>
-											<p className="text-xs text-text-muted">
-												{t("casesCount", { count: caseCount })}
-												{suite.description && (
-													<span className="ml-1">
-														— {suite.description}
-													</span>
-												)}
-											</p>
-											{suiteModels.length > 0 && (
-												<div className="flex flex-wrap gap-1 mt-1">
-													{suiteModels.map((m) => (
-														<span
-															key={m}
-															className="px-1.5 py-0.5 rounded text-[10px] font-mono text-text-muted bg-black/5 dark:bg-white/5"
-														>
-															{m}
-														</span>
-													))}
-												</div>
-											)}
 										</div>
-									</div>
-									<div className="flex items-center gap-3">
+									</button>
+									<div className="ml-3 flex items-center gap-3">
 										{isRunning && progress.total > 0 && (
 											<div className="flex items-center gap-2">
 												<div className="w-24 h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
@@ -511,7 +514,7 @@ export default function EvalsTab() {
 												: t("runEval")}
 										</Button>
 									</div>
-								</button>
+								</div>
 
 								{isExpanded && (
 									<div className="border-t border-border/20 p-4">

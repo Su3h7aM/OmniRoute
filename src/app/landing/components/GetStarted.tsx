@@ -82,8 +82,9 @@ export default function GetStarted() {
 
 							{/* Terminal content */}
 							<div className="p-6 font-mono text-sm leading-relaxed overflow-x-hidden">
-								<div
-									className="flex items-center gap-2 mb-4 group cursor-pointer min-w-0"
+								<button
+									type="button"
+									className="flex w-full items-center gap-2 mb-4 group cursor-pointer min-w-0 text-left"
 									onClick={() => handleCopy(command)}
 								>
 									<span className="text-green-400">$</span>
@@ -91,7 +92,7 @@ export default function GetStarted() {
 									<span className="ml-auto text-gray-500 text-xs opacity-0 group-hover:opacity-100">
 										{copied ? t("copied") : t("copy")}
 									</span>
-								</div>
+								</button>
 
 								<div className="text-gray-400 mb-6">
 									<span className="text-[#E54D5E]">&gt;</span>{" "}

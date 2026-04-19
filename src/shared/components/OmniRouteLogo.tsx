@@ -13,6 +13,7 @@ export default function OmniRouteLogo({ size = 20, className = "" }) {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			className={className}
+			aria-hidden="true"
 		>
 			{/* Central node */}
 			<circle cx="16" cy="16" r="3" fill="currentColor" />

@@ -107,7 +107,9 @@ class SkillRegistry {
 							skill.name === name && (!apiKeyId || skill.apiKeyId === apiKeyId)
 					)
 					.map(([key]) => key);
-				keysToDelete.forEach((k) => this.registeredSkills.delete(k));
+				keysToDelete.forEach((k) => {
+					this.registeredSkills.delete(k);
+				});
 				this.rebuildVersionCache(name);
 				this.invalidateCache();
 				return true;
@@ -128,8 +130,12 @@ class SkillRegistry {
 					affectedNames.add(skill.name);
 					return key;
 				});
-			keysToDelete.forEach((k) => this.registeredSkills.delete(k));
-			affectedNames.forEach((name) => this.rebuildVersionCache(name));
+			keysToDelete.forEach((k) => {
+				this.registeredSkills.delete(k);
+			});
+			affectedNames.forEach((name) => {
+				this.rebuildVersionCache(name);
+			});
 			this.invalidateCache();
 			return true;
 		}

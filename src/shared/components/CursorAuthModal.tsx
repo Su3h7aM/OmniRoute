@@ -134,11 +134,15 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
 
 						{/* Access Token Input */}
 						<div>
-							<label className="block text-sm font-medium mb-2">
+							<label
+								htmlFor="cursor-access-token"
+								className="block text-sm font-medium mb-2"
+							>
 								{t("accessToken")}{" "}
 								<span className="text-red-500">{t("required")}</span>
 							</label>
 							<textarea
+								id="cursor-access-token"
 								value={accessToken}
 								onChange={(e) => setAccessToken(e.target.value)}
 								placeholder={t("accessTokenPlaceholder")}
@@ -149,11 +153,15 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
 
 						{/* Machine ID Input (optional — not needed for cursor-agent imports) */}
 						<div>
-							<label className="block text-sm font-medium mb-2">
+							<label
+								htmlFor="cursor-machine-id"
+								className="block text-sm font-medium mb-2"
+							>
 								{t("machineId")}{" "}
 								<span className="text-text-muted text-xs">{t("optional")}</span>
 							</label>
 							<Input
+								id="cursor-machine-id"
 								value={machineId}
 								onChange={(e) => setMachineId(e.target.value)}
 								placeholder={t("machineIdPlaceholder")}

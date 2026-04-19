@@ -213,10 +213,14 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 				{selectedMethod === "idc" && (
 					<div className="space-y-4">
 						<div>
-							<label className="block text-sm font-medium mb-2">
+							<label
+								htmlFor="kiro-idc-start-url"
+								className="block text-sm font-medium mb-2"
+							>
 								IDC Start URL <span className="text-red-500">*</span>
 							</label>
 							<Input
+								id="kiro-idc-start-url"
 								value={idcStartUrl}
 								onChange={(e) => setIdcStartUrl(e.target.value)}
 								placeholder="https://your-org.awsapps.com/start"
@@ -228,8 +232,14 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 						</div>
 
 						<div>
-							<label className="block text-sm font-medium mb-2">AWS Region</label>
+							<label
+								htmlFor="kiro-idc-region"
+								className="block text-sm font-medium mb-2"
+							>
+								AWS Region
+							</label>
 							<Input
+								id="kiro-idc-region"
 								value={idcRegion}
 								onChange={(e) => setIdcRegion(e.target.value)}
 								placeholder="us-east-1"
@@ -368,10 +378,14 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 								)}
 
 								<div>
-									<label className="block text-sm font-medium mb-2">
+									<label
+										htmlFor="kiro-refresh-token"
+										className="block text-sm font-medium mb-2"
+									>
 										Refresh Token <span className="text-red-500">*</span>
 									</label>
 									<Input
+										id="kiro-refresh-token"
 										value={refreshToken}
 										onChange={(e) => setRefreshToken(e.target.value)}
 										placeholder="Token will be auto-filled..."

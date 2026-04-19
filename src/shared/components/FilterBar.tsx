@@ -35,7 +35,9 @@ export default function FilterBar({
 
 	const handleClear = useCallback(() => {
 		onSearchChange("");
-		filters.forEach((f) => onFilterChange(f.key, ""));
+		filters.forEach((f) => {
+			onFilterChange(f.key, "");
+		});
 		setExpandedFilter(null);
 	}, [onSearchChange, filters, onFilterChange]);
 
