@@ -6,9 +6,6 @@ const distDir = process.env.NEXT_DIST_DIR || ".next";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	distDir,
-	eslint: {
-		ignoreDuringBuilds: true,
-	},
 	// Turbopack config: redirect native modules to stubs at build time
 	turbopack: {
 		resolveAlias: {
