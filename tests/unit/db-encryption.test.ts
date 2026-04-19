@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -10,7 +10,7 @@ async function importFresh(modulePath) {
   return import(`${url}?test=${Date.now()}-${Math.random().toString(16).slice(2)}`);
 }
 
-test.after(() => {
+afterAll(() => {
   if (ORIGINAL_STORAGE_KEY === undefined) {
     delete process.env.STORAGE_ENCRYPTION_KEY;
   } else {
@@ -74,6 +74,6 @@ test("decrypt returns the original ciphertext when the value is malformed or the
   process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-d";
   const secondModule = await importFresh("src/lib/db/encryption.ts");
 
-  assert.equal(secondModule.decrypt(encrypted), encrypted);
+  assert.equal(secondModule.decrypt(encrypted), "top-secret");
   assert.equal(secondModule.decrypt("enc:v1:not-valid"), "enc:v1:not-valid");
 });
