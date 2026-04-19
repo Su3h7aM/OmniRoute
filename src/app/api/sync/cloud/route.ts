@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getApiKeys, createApiKey, updateSettings } from "@/lib/localDb";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
-import { syncToCloud, fetchWithTimeout, CLOUD_URL } from "@/lib/cloudSync";
+import { syncToCloud, fetchWithTimeout, getCloudUrl } from "@/lib/cloudSync";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
@@ -21,18 +21,20 @@ export async function GET() {
       return NextResponse.json({ enabled: false });
     }
 
+    const cloudBaseUrl = getCloudUrl();
+
     // Cloud is enabled — try to verify connection
     const machineId = await getConsistentMachineId();
     const keys = await getApiKeys();
     const apiKey = keys[0]?.key;
 
-    if (!apiKey || !CLOUD_URL) {
+    if (!apiKey || !cloudBaseUrl) {
       return NextResponse.json({ enabled: true, connected: false });
     }
 
     try {
       const pingRes = await fetchWithTimeout(
-        `${CLOUD_URL}/${machineId}/v1/verify`,
+        `${cloudBaseUrl}/${machineId}/v1/verify`,
         {
           method: "GET",
           headers: {
@@ -65,7 +67,12 @@ export async function POST(request: any) {
     rawBody = await request.json();
   } catch {
     return NextResponse.json(
-      { error: { message: "Invalid request", details: [{ field: "body", message: "Invalid JSON body" }] } },
+      {
+        error: {
+          message: "Invalid request",
+          details: [{ field: "body", message: "Invalid JSON body" }],
+        },
+      },
       { status: 400 }
     );
   }
@@ -82,16 +89,13 @@ export async function POST(request: any) {
 
     switch (action) {
       case "enable": {
-        // Auto create key if none exists (before sync, so it's included in sync data)
         const keys = await getApiKeys();
         let createdKey = null;
         if (keys.length === 0) {
           createdKey = await createApiKey("Default Key", machineId);
         }
-        // Sync first — only enable if sync succeeds
         const enableResult = await syncAndVerify(machineId, createdKey?.key, keys);
         const enableBody = await enableResult.clone().json().catch(() => ({}));
-        // Only persist cloudEnabled if sync succeeded (body.success exists)
         if (enableBody.success) {
           await updateSettings({ cloudEnabled: true });
         }
@@ -120,30 +124,27 @@ export async function POST(request: any) {
  * Sync and verify connection with ping (retry on verify)
  */
 async function syncAndVerify(machineId: string, createdKey: any, existingKeys: any[]) {
+  const cloudBaseUrl = getCloudUrl();
+
   // Step 1: Sync data to cloud
   const syncResult: any = await syncToCloud(machineId, createdKey);
   if (syncResult.error) {
-    return NextResponse.json(
-      { error: `Cloud sync failed: ${syncResult.error}` },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: `Cloud sync failed: ${syncResult.error}` }, { status: 502 });
   }
 
-  // Build the cloud URL for the frontend to use
-  const cloudUrl = CLOUD_URL ? `${CLOUD_URL}/${machineId}` : null;
+  const cloudUrl = cloudBaseUrl ? `${cloudBaseUrl}/${machineId}` : null;
 
   // Step 2: Verify connection by pinging the cloud (with retry)
   const apiKey = createdKey || existingKeys[0]?.key;
-  if (!apiKey) {
+  if (!apiKey || !cloudBaseUrl) {
     return NextResponse.json({
       ...syncResult,
       cloudUrl,
       verified: false,
-      verifyError: "No API key available",
+      verifyError: !cloudBaseUrl ? "Cloud URL not configured" : "No API key available",
     });
   }
 
-  // Retry verify up to 2 times with a delay (cloud may need a moment after sync)
   const MAX_VERIFY_ATTEMPTS = 2;
   const VERIFY_RETRY_DELAY_MS = 1500;
   let lastVerifyError = null;
@@ -151,7 +152,7 @@ async function syncAndVerify(machineId: string, createdKey: any, existingKeys: a
   for (let attempt = 1; attempt <= MAX_VERIFY_ATTEMPTS; attempt++) {
     try {
       const pingResponse = await fetchWithTimeout(
-        `${CLOUD_URL}/${machineId}/v1/verify`,
+        `${cloudBaseUrl}/${machineId}/v1/verify`,
         {
           method: "GET",
           headers: {
@@ -174,13 +175,11 @@ async function syncAndVerify(machineId: string, createdKey: any, existingKeys: a
       lastVerifyError = error?.name === "AbortError" ? "Verify timeout" : error.message;
     }
 
-    // Wait before retry (except on last attempt)
     if (attempt < MAX_VERIFY_ATTEMPTS) {
       await new Promise((r) => setTimeout(r, VERIFY_RETRY_DELAY_MS));
     }
   }
 
-  // Sync succeeded but verify failed — still return success with warning
   return NextResponse.json({
     ...syncResult,
     cloudUrl,
@@ -193,13 +192,14 @@ async function syncAndVerify(machineId: string, createdKey: any, existingKeys: a
  * Disable Cloud - delete cache and update Claude CLI settings
  */
 async function handleDisable(machineId: string, request: any) {
-  if (!CLOUD_URL) {
+  const cloudUrl = getCloudUrl();
+  if (!cloudUrl) {
     return NextResponse.json({ error: "NEXT_PUBLIC_CLOUD_URL is not configured" }, { status: 500 });
   }
 
   let response;
   try {
-    response = await fetchWithTimeout(`${CLOUD_URL}/sync/${machineId}`, {
+    response = await fetchWithTimeout(`${cloudUrl}/sync/${machineId}`, {
       method: "DELETE",
     });
   } catch (error: any) {
@@ -218,48 +218,26 @@ async function handleDisable(machineId: string, request: any) {
     return NextResponse.json({ error: "Failed to disable cloud" }, { status: 502 });
   }
 
-  // Update Claude CLI settings to use local endpoint
-  const host = request.headers.get("host") || "localhost:20128";
-  await updateClaudeSettingsToLocal(machineId, host);
-
-  return NextResponse.json({
-    success: true,
-    message: "Cloud disabled",
-  });
-}
-
-/**
- * Update Claude CLI settings to use local endpoint (only if currently using cloud)
- */
-async function updateClaudeSettingsToLocal(machineId: string, host: string) {
   try {
-    const settingsPath = path.join(os.homedir(), ".claude", "settings.json");
-    const cloudUrl = `${CLOUD_URL}/${machineId}`;
-    const localUrl = `http://${host}`;
+    const configDir = path.join(os.homedir(), ".claude");
+    const configPath = path.join(configDir, "settings.json");
 
-    // Read current settings
-    let settings;
+    let config = {};
     try {
-      const content = await fs.readFile(settingsPath, "utf-8");
-      settings = JSON.parse(content);
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
-        return; // No settings file, nothing to update
-      }
-      throw error;
+      const configContent = await fs.readFile(configPath, "utf-8");
+      config = JSON.parse(configContent);
+    } catch {
+      // Ignore missing or invalid config files.
     }
 
-    // Check if ANTHROPIC_BASE_URL matches cloud URL
-    const currentUrl = settings.env?.ANTHROPIC_BASE_URL;
-    if (!currentUrl || currentUrl !== cloudUrl) {
-      return; // Not using cloud URL, don't modify
+    if (config && typeof config === "object" && "omnirouteCloudUrl" in config) {
+      delete config.omnirouteCloudUrl;
+      await fs.mkdir(configDir, { recursive: true });
+      await fs.writeFile(configPath, JSON.stringify(config, null, 2));
     }
-
-    // Update to local URL
-    settings.env.ANTHROPIC_BASE_URL = localUrl;
-    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
-    console.log(`Updated Claude CLI settings: ${cloudUrl} → ${localUrl}`);
-  } catch (error: any) {
-    console.log("Failed to update Claude CLI settings:", error.message);
+  } catch (error) {
+    console.log("Failed to update Claude settings after cloud disable:", error);
   }
+
+  return NextResponse.json({ success: true });
 }
