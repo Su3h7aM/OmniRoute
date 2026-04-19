@@ -17,70 +17,70 @@ const settingsRoute = await import("../../src/app/api/settings/route.ts");
 const managementPassword = await import("../../src/lib/auth/managementPassword.ts");
 
 async function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  delete process.env.INITIAL_PASSWORD;
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	delete process.env.INITIAL_PASSWORD;
 }
 
 beforeEach(async () => {
-  await resetStorage();
+	await resetStorage();
 });
 
 afterAll(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
-    delete process.env.INITIAL_PASSWORD;
-  } else {
-    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
-  }
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+		delete process.env.INITIAL_PASSWORD;
+	} else {
+		process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+	}
+	if (ORIGINAL_DATA_DIR === undefined) {
+		delete process.env.DATA_DIR;
+	} else {
+		process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+	}
 });
 
 test("settings route password update requires the current INITIAL_PASSWORD after lazy hash migration", async () => {
-  process.env.INITIAL_PASSWORD = "bootstrap-secret";
+	process.env.INITIAL_PASSWORD = "bootstrap-secret";
 
-  const response = await settingsRoute.PATCH(
-    await makeManagementSessionRequest("http://localhost/api/settings", {
-      method: "PATCH",
-      body: {
-        currentPassword: "bootstrap-secret",
-        newPassword: "rotated-secret",
-      },
-    })
-  );
-  const settings = await settingsDb.getSettings();
+	const response = await settingsRoute.PATCH(
+		await makeManagementSessionRequest("http://localhost/api/settings", {
+			method: "PATCH",
+			body: {
+				currentPassword: "bootstrap-secret",
+				newPassword: "rotated-secret",
+			},
+		})
+	);
+	const settings = await settingsDb.getSettings();
 
-  assert.equal(response.status, 200);
-  assert.equal(managementPassword.isBcryptHash(settings.password), true);
-  assert.equal(
-    await managementPassword.verifyManagementPassword("rotated-secret", settings.password),
-    true
-  );
-  assert.equal(
-    await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
-    false
-  );
+	assert.equal(response.status, 200);
+	assert.equal(managementPassword.isBcryptHash(settings.password), true);
+	assert.equal(
+		await managementPassword.verifyManagementPassword("rotated-secret", settings.password),
+		true
+	);
+	assert.equal(
+		await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
+		false
+	);
 });
 
 test("settings route password update rejects the wrong current password after migrating INITIAL_PASSWORD", async () => {
-  process.env.INITIAL_PASSWORD = "bootstrap-secret";
+	process.env.INITIAL_PASSWORD = "bootstrap-secret";
 
-  const response = await settingsRoute.PATCH(
-    await makeManagementSessionRequest("http://localhost/api/settings", {
-      method: "PATCH",
-      body: {
-        currentPassword: "wrong-secret",
-        newPassword: "rotated-secret",
-      },
-    })
-  );
+	const response = await settingsRoute.PATCH(
+		await makeManagementSessionRequest("http://localhost/api/settings", {
+			method: "PATCH",
+			body: {
+				currentPassword: "wrong-secret",
+				newPassword: "rotated-secret",
+			},
+		})
+	);
 
-  assert.equal(response.status, 401);
-  assert.deepEqual(await response.json(), { error: "Invalid current password" });
+	assert.equal(response.status, 401);
+	assert.deepEqual(await response.json(), { error: "Invalid current password" });
 });

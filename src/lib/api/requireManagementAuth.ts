@@ -2,21 +2,21 @@ import { isAuthRequired, isDashboardSessionAuthenticated } from "@/shared/utils/
 import { createErrorResponse } from "@/lib/api/errorResponse";
 
 export async function requireManagementAuth(request: Request): Promise<Response | null> {
-  if (!(await isAuthRequired())) {
-    return null;
-  }
+	if (!(await isAuthRequired())) {
+		return null;
+	}
 
-  if (await isDashboardSessionAuthenticated(request)) {
-    return null;
-  }
+	if (await isDashboardSessionAuthenticated(request)) {
+		return null;
+	}
 
-  const authHeader = request.headers.get("authorization");
-  const hasBearerToken =
-    typeof authHeader === "string" && authHeader.trim().toLowerCase().startsWith("bearer ");
+	const authHeader = request.headers.get("authorization");
+	const hasBearerToken =
+		typeof authHeader === "string" && authHeader.trim().toLowerCase().startsWith("bearer ");
 
-  return createErrorResponse({
-    status: hasBearerToken ? 403 : 401,
-    message: hasBearerToken ? "Invalid management token" : "Authentication required",
-    type: "invalid_request",
-  });
+	return createErrorResponse({
+		status: hasBearerToken ? 403 : 401,
+		message: hasBearerToken ? "Invalid management token" : "Authentication required",
+		type: "invalid_request",
+	});
 }

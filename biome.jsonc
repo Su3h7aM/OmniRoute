@@ -1,0 +1,132 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!.next",
+			"!src/.next",
+			"!out",
+			"!build",
+			"!coverage",
+			"!next-env.d.ts",
+			"!scripts",
+			"!bin",
+			"!node_modules",
+			"!vscode-extension",
+			"!_references",
+			"!_mono_repo",
+			"!electron",
+			"!docs/i18n",
+			"!open-sse/mcp-server/dist",
+			"!playwright-report",
+			"!test-results",
+			"!app",
+			"!app.__qa_backup",
+			"!clipr"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"useEditorconfig": true,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineEnding": "lf",
+		"lineWidth": 100,
+		"attributePosition": "auto",
+		"bracketSameLine": false,
+		"bracketSpacing": true,
+		"expand": "auto"
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"noUnusedFunctionParameters": "warn",
+				"noUnusedImports": "warn",
+				"noUnusedVariables": "warn"
+			},
+			"security": {
+				"noGlobalEval": "error"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"useNodejsImportProtocol": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "off",
+				"noControlCharactersInRegex": "off",
+				"noImplicitAnyLet": "off",
+				"noShadowRestrictedNames": "off"
+			}
+		}
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "es5",
+			"semicolons": "always",
+			"arrowParentheses": "always",
+			"bracketSameLine": false,
+			"attributePosition": "auto",
+			"bracketSpacing": true
+		}
+	},
+	"json": {
+		"formatter": {
+			"trailingCommas": "none"
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"html": {
+		"formatter": {
+			"indentScriptAndStyle": false,
+			"selfCloseVoidElements": "always"
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["open-sse/**/*.ts", "open-sse/**/*.js"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"useHookAtTopLevel": "off"
+					},
+					"suspicious": {
+						"noExplicitAny": "warn"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["tests/**/*.ts", "tests/**/*.mjs", "open-sse/**/__tests__/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					}
+				}
+			}
+		}
+	]
+}

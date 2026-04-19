@@ -11,17 +11,17 @@
  * @returns {string}
  */
 export function formatTime(isoString) {
-  try {
-    const d = new Date(isoString);
-    return d.toLocaleTimeString("en-US", {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  } catch {
-    return "-";
-  }
+	try {
+		const d = new Date(isoString);
+		return d.toLocaleTimeString("en-US", {
+			hour12: false,
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+		});
+	} catch {
+		return "-";
+	}
 }
 
 /**
@@ -30,9 +30,9 @@ export function formatTime(isoString) {
  * @returns {string} e.g., "42ms", "1.2s", "-"
  */
 export function formatDuration(ms) {
-  if (!ms) return "-";
-  if (ms < 1000) return `${ms}ms`;
-  return `${(ms / 1000).toFixed(1)}s`;
+	if (!ms) return "-";
+	if (ms < 1000) return `${ms}ms`;
+	return `${(ms / 1000).toFixed(1)}s`;
 }
 
 /**
@@ -41,12 +41,14 @@ export function formatDuration(ms) {
  * @returns {string}
  */
 export function formatDateTime(iso) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false });
-  } catch {
-    return iso;
-  }
+	try {
+		const d = new Date(iso);
+		return (
+			d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false })
+		);
+	} catch {
+		return iso;
+	}
 }
 
 /**
@@ -57,9 +59,9 @@ export function formatDateTime(iso) {
  * @returns {string}
  */
 export function maskSegment(value, start = 2, end = 2) {
-  if (!value) return "";
-  if (value.length <= start + end) return `${value.slice(0, 1)}***`;
-  return `${value.slice(0, start)}***${value.slice(-end)}`;
+	if (!value) return "";
+	if (value.length <= start + end) return `${value.slice(0, 1)}***`;
+	return `${value.slice(0, start)}***${value.slice(-end)}`;
 }
 
 /**
@@ -68,15 +70,15 @@ export function maskSegment(value, start = 2, end = 2) {
  * @returns {string}
  */
 export function maskAccount(account) {
-  if (!account || account === "-") return "-";
-  const atIdx = account.indexOf("@");
-  if (atIdx > 3) {
-    return account.slice(0, 3) + "***" + account.slice(atIdx);
-  }
-  if (account.length > 8) {
-    return account.slice(0, 5) + "***";
-  }
-  return account;
+	if (!account || account === "-") return "-";
+	const atIdx = account.indexOf("@");
+	if (atIdx > 3) {
+		return account.slice(0, 3) + "***" + account.slice(atIdx);
+	}
+	if (account.length > 8) {
+		return account.slice(0, 5) + "***";
+	}
+	return account;
 }
 
 /**
@@ -86,10 +88,10 @@ export function maskAccount(account) {
  * @returns {string}
  */
 export function formatApiKeyLabel(apiKeyName, apiKeyId) {
-  if (!apiKeyName && !apiKeyId) return "—";
-  const displayName = apiKeyName || "key";
-  if (!apiKeyId) return displayName;
-  return `${displayName} (${maskSegment(apiKeyId, 4, 4)})`;
+	if (!apiKeyName && !apiKeyId) return "—";
+	const displayName = apiKeyName || "key";
+	if (!apiKeyId) return displayName;
+	return `${displayName} (${maskSegment(apiKeyId, 4, 4)})`;
 }
 
 /**
@@ -98,8 +100,8 @@ export function formatApiKeyLabel(apiKeyName, apiKeyId) {
  * @returns {string}
  */
 export function maskKey(key) {
-  if (!key || key.length < 8) return "***";
-  return `${key.slice(0, 4)}...${key.slice(-4)}`;
+	if (!key || key.length < 8) return "***";
+	return `${key.slice(0, 4)}...${key.slice(-4)}`;
 }
 
 /**
@@ -108,10 +110,10 @@ export function maskKey(key) {
  * @returns {string}
  */
 export function fmtCompact(n) {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return new Intl.NumberFormat().format(n || 0);
+	if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
+	if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+	if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+	return new Intl.NumberFormat().format(n || 0);
 }
 
 /**
@@ -120,7 +122,7 @@ export function fmtCompact(n) {
  * @returns {string}
  */
 export function fmtFull(n) {
-  return new Intl.NumberFormat().format(n || 0);
+	return new Intl.NumberFormat().format(n || 0);
 }
 
 /**
@@ -129,7 +131,7 @@ export function fmtFull(n) {
  * @returns {string}
  */
 export function fmtCost(n) {
-  return `$${(n || 0).toFixed(2)}`;
+	return `$${(n || 0).toFixed(2)}`;
 }
 
 /**
@@ -139,14 +141,14 @@ export function fmtCost(n) {
  * @returns {string}
  */
 export function truncateUrl(url, max = 50) {
-  if (!url) return "-";
-  try {
-    const parsed = new URL(url);
-    const display = parsed.hostname + parsed.pathname;
-    return display.length > max ? display.slice(0, max) + "…" : display;
-  } catch {
-    return url.length > max ? url.slice(0, max) + "…" : url;
-  }
+	if (!url) return "-";
+	try {
+		const parsed = new URL(url);
+		const display = parsed.hostname + parsed.pathname;
+		return display.length > max ? display.slice(0, max) + "…" : display;
+	} catch {
+		return url.length > max ? url.slice(0, max) + "…" : url;
+	}
 }
 
 /**
@@ -154,5 +156,5 @@ export function truncateUrl(url, max = 50) {
  * Used by quota normalization in both backend (quotaCache) and frontend (ProviderLimits).
  */
 export function safePercentage(value: unknown): number | undefined {
-  return typeof value === "number" && isFinite(value) ? value : undefined;
+	return typeof value === "number" && isFinite(value) ? value : undefined;
 }

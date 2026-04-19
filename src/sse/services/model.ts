@@ -3,9 +3,9 @@ import { getModelAliases, getComboByName, getProviderNodes, getCustomModels } fr
 import { getSettings } from "@/lib/localDb";
 import { getComboStepTarget } from "@/lib/combos/steps";
 import {
-  parseModel,
-  resolveModelAliasFromMap,
-  getModelInfoCore,
+	parseModel,
+	resolveModelAliasFromMap,
+	getModelInfoCore,
 } from "@omniroute/open-sse/services/model.ts";
 
 export { parseModel };
@@ -14,8 +14,8 @@ export { parseModel };
  * Resolve model alias from localDb
  */
 export async function resolveModelAlias(alias) {
-  const aliases = await getModelAliases();
-  return resolveModelAliasFromMap(alias, aliases);
+	const aliases = await getModelAliases();
+	return resolveModelAliasFromMap(alias, aliases);
 }
 
 /**
@@ -23,81 +23,81 @@ export async function resolveModelAlias(alias) {
  * Returns "responses" if the model is configured for the Responses API, otherwise undefined.
  */
 async function lookupCustomModelApiFormat(
-  providerId: string,
-  modelId: string
+	providerId: string,
+	modelId: string
 ): Promise<string | undefined> {
-  try {
-    const models = await getCustomModels(providerId);
-    if (!Array.isArray(models)) return undefined;
-    const match = models.find((m: any) => m.id === modelId);
-    return match?.apiFormat === "responses" ? "responses" : undefined;
-  } catch {
-    return undefined;
-  }
+	try {
+		const models = await getCustomModels(providerId);
+		if (!Array.isArray(models)) return undefined;
+		const match = models.find((m: any) => m.id === modelId);
+		return match?.apiFormat === "responses" ? "responses" : undefined;
+	} catch {
+		return undefined;
+	}
 }
 
 /**
  * Get full model info (parse or resolve)
  */
 export async function getModelInfo(modelStr) {
-  const parsed = parseModel(modelStr);
-  const { extendedContext } = parsed;
+	const parsed = parseModel(modelStr);
+	const { extendedContext } = parsed;
 
-  // Check custom provider nodes first (for both alias and non-alias formats)
-  if (parsed.providerAlias || parsed.provider) {
-    // Ensure prefixToCheck is always a concise identifier, not a full model string
-    const prefixToCheck = parsed.providerAlias || parsed.provider;
+	// Check custom provider nodes first (for both alias and non-alias formats)
+	if (parsed.providerAlias || parsed.provider) {
+		// Ensure prefixToCheck is always a concise identifier, not a full model string
+		const prefixToCheck = parsed.providerAlias || parsed.provider;
 
-    // Check OpenAI Compatible nodes
-    const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
-    const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
-    if (matchedOpenAI) {
-      const apiFormat = await lookupCustomModelApiFormat(
-        matchedOpenAI.id as string,
-        parsed.model as string
-      );
-      return {
-        provider: matchedOpenAI.id,
-        model: parsed.model,
-        extendedContext,
-        ...(apiFormat && { apiFormat }),
-      };
-    }
+		// Check OpenAI Compatible nodes
+		const openaiNodes = await getProviderNodes({ type: "openai-compatible" });
+		const matchedOpenAI = openaiNodes.find((node) => node.prefix === prefixToCheck);
+		if (matchedOpenAI) {
+			const apiFormat = await lookupCustomModelApiFormat(
+				matchedOpenAI.id as string,
+				parsed.model as string
+			);
+			return {
+				provider: matchedOpenAI.id,
+				model: parsed.model,
+				extendedContext,
+				...(apiFormat && { apiFormat }),
+			};
+		}
 
-    // Check Anthropic Compatible nodes
-    const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
-    const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
-    if (matchedAnthropic) {
-      const apiFormat = await lookupCustomModelApiFormat(
-        matchedAnthropic.id as string,
-        parsed.model as string
-      );
-      return {
-        provider: matchedAnthropic.id,
-        model: parsed.model,
-        extendedContext,
-        ...(apiFormat && { apiFormat }),
-      };
-    }
+		// Check Anthropic Compatible nodes
+		const anthropicNodes = await getProviderNodes({ type: "anthropic-compatible" });
+		const matchedAnthropic = anthropicNodes.find((node) => node.prefix === prefixToCheck);
+		if (matchedAnthropic) {
+			const apiFormat = await lookupCustomModelApiFormat(
+				matchedAnthropic.id as string,
+				parsed.model as string
+			);
+			return {
+				provider: matchedAnthropic.id,
+				model: parsed.model,
+				extendedContext,
+				...(apiFormat && { apiFormat }),
+			};
+		}
 
-    // stripModelPrefix: if enabled, strip provider prefix and re-resolve
-    // the bare model name using existing heuristics (claude-* → anthropic, etc.)
-    try {
-      const settings = await getSettings();
-      if (settings.stripModelPrefix === true) {
-        const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
-        return { ...strippedResult, extendedContext };
-      }
-    } catch {
-      // If settings read fails, fall through to normal resolution
-    }
-  }
+		// stripModelPrefix: if enabled, strip provider prefix and re-resolve
+		// the bare model name using existing heuristics (claude-* → anthropic, etc.)
+		try {
+			const settings = await getSettings();
+			if (settings.stripModelPrefix === true) {
+				const strippedResult = await getModelInfoCore(parsed.model, getModelAliases);
+				return { ...strippedResult, extendedContext };
+			}
+		} catch {
+			// If settings read fails, fall through to normal resolution
+		}
+	}
 
-  if (!parsed.isAlias) {
-    return getModelInfoCore(modelStr, null);
-  }
+	if (!parsed.isAlias) {
+		return getModelInfoCore(modelStr, null);
+	}
 
-  return getModelInfoCore(modelStr, getModelAliases);
+	return getModelInfoCore(modelStr, getModelAliases);
 }
 
 /**
@@ -105,12 +105,12 @@ export async function getModelInfo(modelStr) {
  * @returns {Promise<Object|null>} Full combo object or null if not a combo
  */
 export async function getCombo(modelStr) {
-  // Check combo DB first (supports names with /)
-  const combo = await getComboByName(modelStr);
-  if (combo && combo.models && combo.models.length > 0) {
-    return combo;
-  }
-  return null;
+	// Check combo DB first (supports names with /)
+	const combo = await getComboByName(modelStr);
+	if (combo && combo.models && combo.models.length > 0) {
+		return combo;
+	}
+	return null;
 }
 
 /**
@@ -123,22 +123,22 @@ export async function getCombo(modelStr) {
  * 3. null (no combo — single-model request)
  */
 export async function getComboForModel(modelStr) {
-  // 1. Existing behavior — exact combo name match
-  const combo = await getCombo(modelStr);
-  if (combo) return combo;
+	// 1. Existing behavior — exact combo name match
+	const combo = await getCombo(modelStr);
+	if (combo) return combo;
 
-  // 2. NEW — check model-combo mappings table (pattern match)
-  try {
-    const { resolveComboForModel } = await import("@/lib/localDb");
-    const mapped = await resolveComboForModel(modelStr);
-    if (mapped && (mapped as any).models?.length > 0) {
-      return mapped;
-    }
-  } catch {
-    // If the mappings table doesn't exist yet (pre-migration), continue gracefully
-  }
+	// 2. NEW — check model-combo mappings table (pattern match)
+	try {
+		const { resolveComboForModel } = await import("@/lib/localDb");
+		const mapped = await resolveComboForModel(modelStr);
+		if (mapped && (mapped as any).models?.length > 0) {
+			return mapped;
+		}
+	} catch {
+		// If the mappings table doesn't exist yet (pre-migration), continue gracefully
+	}
 
-  return null;
+	return null;
 }
 
 /**
@@ -146,9 +146,9 @@ export async function getComboForModel(modelStr) {
  * @returns {Promise<string[]|null>}
  */
 export async function getComboModels(modelStr) {
-  const combo = await getCombo(modelStr);
-  if (!combo) return null;
-  return (combo.models || [])
-    .map((entry) => getComboStepTarget(entry))
-    .filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
+	const combo = await getCombo(modelStr);
+	if (!combo) return null;
+	return (combo.models || [])
+		.map((entry) => getComboStepTarget(entry))
+		.filter((entry): entry is string => typeof entry === "string" && entry.length > 0);
 }

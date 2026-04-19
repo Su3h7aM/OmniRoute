@@ -5,7 +5,7 @@ import { getUnifiedModelsResponse } from "./models/catalog";
  * Handle CORS preflight
  */
 export async function OPTIONS() {
-  return new Response(null, { headers: CORS_HEADERS });
+	return new Response(null, { headers: CORS_HEADERS });
 }
 
 /**
@@ -13,8 +13,8 @@ export async function OPTIONS() {
  * Delegates to the same catalog builder as `/api/v1/models` (T09).
  */
 export async function GET(request: Request) {
-  return getUnifiedModelsResponse(request, {
-    "Content-Type": "application/json",
-    ...CORS_HEADERS,
-  });
+	return getUnifiedModelsResponse(request, {
+		"Content-Type": "application/json",
+		...CORS_HEADERS,
+	});
 }

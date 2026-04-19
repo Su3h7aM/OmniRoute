@@ -10,47 +10,47 @@ import { logger } from "../../../open-sse/utils/logger.ts";
 const log = logger("MEMORY_VERIFY");
 
 export async function verifyExtractionPipeline(
-  apiKeyId: string
+	apiKeyId: string
 ): Promise<{ working: boolean; latencyMs: number; error?: string }> {
-  const start = Date.now();
-  log.info("memory.verify.start", { apiKeyId });
+	const start = Date.now();
+	log.info("memory.verify.start", { apiKeyId });
 
-  let createdMemory: { id: string } | null = null;
+	let createdMemory: { id: string } | null = null;
 
-  try {
-    createdMemory = await createMemory({
-      key: "__extraction_test__",
-      content: "pipeline verification test",
-      type: MemoryType.FACTUAL,
-      apiKeyId,
-      sessionId: "",
-      metadata: {},
-      expiresAt: null,
-    });
+	try {
+		createdMemory = await createMemory({
+			key: "__extraction_test__",
+			content: "pipeline verification test",
+			type: MemoryType.FACTUAL,
+			apiKeyId,
+			sessionId: "",
+			metadata: {},
+			expiresAt: null,
+		});
 
-    const result = await listMemories({ apiKeyId, page: 1, limit: 100 });
-    const found = result.data.some((m) => m.key === "__extraction_test__");
+		const result = await listMemories({ apiKeyId, page: 1, limit: 100 });
+		const found = result.data.some((m) => m.key === "__extraction_test__");
 
-    const latencyMs = Date.now() - start;
-    const working = found;
+		const latencyMs = Date.now() - start;
+		const working = found;
 
-    log.info("memory.verify.complete", { working, latencyMs });
+		log.info("memory.verify.complete", { working, latencyMs });
 
-    return { working, latencyMs };
-  } catch (err: unknown) {
-    const latencyMs = Date.now() - start;
-    const error = String(err);
+		return { working, latencyMs };
+	} catch (err: unknown) {
+		const latencyMs = Date.now() - start;
+		const error = String(err);
 
-    log.info("memory.verify.complete", { working: false, latencyMs });
+		log.info("memory.verify.complete", { working: false, latencyMs });
 
-    return { working: false, latencyMs, error };
-  } finally {
-    if (createdMemory) {
-      try {
-        await deleteMemory(createdMemory.id);
-      } catch {
-        // Cleanup best-effort — don't mask original error
-      }
-    }
-  }
+		return { working: false, latencyMs, error };
+	} finally {
+		if (createdMemory) {
+			try {
+				await deleteMemory(createdMemory.id);
+			} catch {
+				// Cleanup best-effort — don't mask original error
+			}
+		}
+	}
 }

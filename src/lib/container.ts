@@ -18,10 +18,10 @@
 import { evaluateFirstAllowed, evaluateRequest, PolicyEngine } from "../domain/policyEngine.ts";
 import { getDbInstance } from "./db/core.ts";
 import {
-  decrypt,
-  decryptConnectionFields,
-  encrypt,
-  encryptConnectionFields,
+	decrypt,
+	decryptConnectionFields,
+	encrypt,
+	encryptConnectionFields,
 } from "./db/encryption.ts";
 import { getSettings } from "./localDb.ts";
 import { getCircuitBreaker } from "../shared/utils/circuitBreaker.ts";
@@ -30,58 +30,58 @@ import { recordTelemetry, RequestTelemetry } from "../shared/utils/requestTeleme
 type Factory<T = any> = () => T;
 
 class Container {
-  private _factories = new Map<string, Factory>();
-  private _instances = new Map<string, any>();
+	private _factories = new Map<string, Factory>();
+	private _instances = new Map<string, any>();
 
-  /**
-   * Register a factory for a service. Does NOT instantiate until resolve().
-   */
-  register<T>(name: string, factory: Factory<T>): void {
-    this._factories.set(name, factory);
-    // Clear cached instance if re-registering (useful for testing)
-    this._instances.delete(name);
-  }
+	/**
+	 * Register a factory for a service. Does NOT instantiate until resolve().
+	 */
+	register<T>(name: string, factory: Factory<T>): void {
+		this._factories.set(name, factory);
+		// Clear cached instance if re-registering (useful for testing)
+		this._instances.delete(name);
+	}
 
-  /**
-   * Resolve a service by name. Lazy-creates via factory on first call,
-   * then returns the cached singleton.
-   */
-  resolve<T = any>(name: string): T {
-    if (this._instances.has(name)) {
-      return this._instances.get(name) as T;
-    }
+	/**
+	 * Resolve a service by name. Lazy-creates via factory on first call,
+	 * then returns the cached singleton.
+	 */
+	resolve<T = any>(name: string): T {
+		if (this._instances.has(name)) {
+			return this._instances.get(name) as T;
+		}
 
-    const factory = this._factories.get(name);
-    if (!factory) {
-      throw new Error(`[Container] No factory registered for "${name}"`);
-    }
+		const factory = this._factories.get(name);
+		if (!factory) {
+			throw new Error(`[Container] No factory registered for "${name}"`);
+		}
 
-    const instance = factory();
-    this._instances.set(name, instance);
-    return instance as T;
-  }
+		const instance = factory();
+		this._instances.set(name, instance);
+		return instance as T;
+	}
 
-  /**
-   * Check if a service is registered (factory exists).
-   */
-  has(name: string): boolean {
-    return this._factories.has(name);
-  }
+	/**
+	 * Check if a service is registered (factory exists).
+	 */
+	has(name: string): boolean {
+		return this._factories.has(name);
+	}
 
-  /**
-   * List all registered service names.
-   */
-  list(): string[] {
-    return Array.from(this._factories.keys());
-  }
+	/**
+	 * List all registered service names.
+	 */
+	list(): string[] {
+		return Array.from(this._factories.keys());
+	}
 
-  /**
-   * Reset all factories and instances (for testing).
-   */
-  reset(): void {
-    this._factories.clear();
-    this._instances.clear();
-  }
+	/**
+	 * Reset all factories and instances (for testing).
+	 */
+	reset(): void {
+		this._factories.clear();
+		this._instances.clear();
+	}
 }
 
 // ── Singleton container instance ──
@@ -91,32 +91,32 @@ export const container = new Container();
 // Services are still lazily instantiated on first resolve().
 
 container.register("settings", () => {
-  return { get: getSettings };
+	return { get: getSettings };
 });
 
 container.register("db", () => {
-  return getDbInstance();
+	return getDbInstance();
 });
 
 container.register("encryption", () => {
-  return {
-    encrypt,
-    decrypt,
-    encryptConnectionFields,
-    decryptConnectionFields,
-  };
+	return {
+		encrypt,
+		decrypt,
+		encryptConnectionFields,
+		decryptConnectionFields,
+	};
 });
 
 container.register("policyEngine", () => {
-  return { evaluateRequest, evaluateFirstAllowed, PolicyEngine };
+	return { evaluateRequest, evaluateFirstAllowed, PolicyEngine };
 });
 
 container.register("circuitBreaker", () => {
-  return { get: getCircuitBreaker };
+	return { get: getCircuitBreaker };
 });
 
 container.register("telemetry", () => {
-  return { RequestTelemetry, recordTelemetry };
+	return { RequestTelemetry, recordTelemetry };
 });
 
 export default container;

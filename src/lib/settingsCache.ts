@@ -12,9 +12,9 @@ import { getSettings } from "@/lib/localDb";
 
 /** @type {{ data: object|null, lastFetch: number, ttl: number }} */
 const cache = {
-  data: null,
-  lastFetch: 0,
-  ttl: 5000, // 5 seconds TTL
+	data: null,
+	lastFetch: 0,
+	ttl: 5000, // 5 seconds TTL
 };
 
 /**
@@ -24,33 +24,33 @@ const cache = {
  * @returns {Promise<object>} Settings object
  */
 export async function getCachedSettings() {
-  const now = Date.now();
+	const now = Date.now();
 
-  if (cache.data && now - cache.lastFetch < cache.ttl) {
-    return cache.data;
-  }
+	if (cache.data && now - cache.lastFetch < cache.ttl) {
+		return cache.data;
+	}
 
-  try {
-    const settings = await getSettings();
-    cache.data = settings;
-    cache.lastFetch = now;
-    return settings;
-  } catch (err) {
-    // If fetch fails but we have stale data, return it
-    if (cache.data) {
-      console.error("[SettingsCache] Failed to refresh, using stale data:", err.message);
-      return cache.data;
-    }
-    throw err;
-  }
+	try {
+		const settings = await getSettings();
+		cache.data = settings;
+		cache.lastFetch = now;
+		return settings;
+	} catch (err) {
+		// If fetch fails but we have stale data, return it
+		if (cache.data) {
+			console.error("[SettingsCache] Failed to refresh, using stale data:", err.message);
+			return cache.data;
+		}
+		throw err;
+	}
 }
 
 /**
  * Invalidate the cache (e.g. after settings update).
  */
 export function invalidateSettingsCache() {
-  cache.data = null;
-  cache.lastFetch = 0;
+	cache.data = null;
+	cache.lastFetch = 0;
 }
 
 /**
@@ -58,5 +58,5 @@ export function invalidateSettingsCache() {
  * @param {number} ms
  */
 export function setSettingsCacheTTL(ms) {
-  cache.ttl = ms;
+	cache.ttl = ms;
 }

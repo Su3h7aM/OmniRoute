@@ -25,47 +25,47 @@ import { errorResponse } from "../utils/error.ts";
  * Return a CORS error response from an upstream fetch failure
  */
 function upstreamErrorResponse(res, errText) {
-  // Always return JSON so the client can detect 401/credential errors reliably
-  let errorMessage: string;
-  try {
-    const parsed = JSON.parse(errText);
-    // Extract a human-readable message from various error response shapes.
-    // Guard against `parsed.error` being an object (e.g. ElevenLabs returns
-    // { error: { message: "...", status_code: 401 } } or { detail: { ... } })
-    const raw =
-      parsed?.err_msg ||
-      parsed?.error?.message ||
-      (typeof parsed?.error === "string" ? parsed.error : null) ||
-      parsed?.message ||
-      (typeof parsed?.detail === "string" ? parsed.detail : parsed?.detail?.message) ||
-      null;
-    errorMessage = raw ? String(raw) : errText || `Upstream error (${res.status})`;
-  } catch {
-    errorMessage = errText || `Upstream error (${res.status})`;
-  }
+	// Always return JSON so the client can detect 401/credential errors reliably
+	let errorMessage: string;
+	try {
+		const parsed = JSON.parse(errText);
+		// Extract a human-readable message from various error response shapes.
+		// Guard against `parsed.error` being an object (e.g. ElevenLabs returns
+		// { error: { message: "...", status_code: 401 } } or { detail: { ... } })
+		const raw =
+			parsed?.err_msg ||
+			parsed?.error?.message ||
+			(typeof parsed?.error === "string" ? parsed.error : null) ||
+			parsed?.message ||
+			(typeof parsed?.detail === "string" ? parsed.detail : parsed?.detail?.message) ||
+			null;
+		errorMessage = raw ? String(raw) : errText || `Upstream error (${res.status})`;
+	} catch {
+		errorMessage = errText || `Upstream error (${res.status})`;
+	}
 
-  return Response.json(
-    { error: { message: errorMessage, code: res.status } },
-    {
-      status: res.status,
-      headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
-    }
-  );
+	return Response.json(
+		{ error: { message: errorMessage, code: res.status } },
+		{
+			status: res.status,
+			headers: { "Access-Control-Allow-Origin": getCorsOrigin() },
+		}
+	);
 }
 
 /**
  * Return a CORS audio stream response
  */
 function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
-  const contentType = res.headers.get("content-type") || defaultContentType;
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-      "Transfer-Encoding": "chunked",
-    },
-  });
+	const contentType = res.headers.get("content-type") || defaultContentType;
+	return new Response(res.body, {
+		status: 200,
+		headers: {
+			"Content-Type": contentType,
+			"Access-Control-Allow-Origin": getCorsOrigin(),
+			"Transfer-Encoding": "chunked",
+		},
+	});
 }
 
 /**
@@ -73,60 +73,60 @@ function audioStreamResponse(res, defaultContentType = "audio/mpeg") {
  * Returns true if safe, false if it contains traversal sequences.
  */
 function isValidPathSegment(segment: string): boolean {
-  return !segment.includes("..") && !segment.includes("//");
+	return !segment.includes("..") && !segment.includes("//");
 }
 
 /**
  * Handle Hyperbolic TTS (returns base64 audio in JSON)
  */
 async function handleHyperbolicSpeech(providerConfig, body, token) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...buildAuthHeaders(providerConfig, token),
-    },
-    body: JSON.stringify({ text: body.input }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...buildAuthHeaders(providerConfig, token),
+		},
+		body: JSON.stringify({ text: body.input }),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  const data = await res.json();
-  // Hyperbolic returns { audio: "<base64>" }, decode to binary
-  const audioBuffer = Uint8Array.from(atob(data.audio), (c) => c.charCodeAt(0));
+	const data = await res.json();
+	// Hyperbolic returns { audio: "<base64>" }, decode to binary
+	const audioBuffer = Uint8Array.from(atob(data.audio), (c) => c.charCodeAt(0));
 
-  return new Response(audioBuffer, {
-    status: 200,
-    headers: {
-      "Content-Type": "audio/mpeg",
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-    },
-  });
+	return new Response(audioBuffer, {
+		status: 200,
+		headers: {
+			"Content-Type": "audio/mpeg",
+			"Access-Control-Allow-Origin": getCorsOrigin(),
+		},
+	});
 }
 
 /**
  * Handle Deepgram TTS (model via query param, Token auth, returns binary audio)
  */
 async function handleDeepgramSpeech(providerConfig, body, modelId, token) {
-  const url = new URL(providerConfig.baseUrl);
-  url.searchParams.set("model", modelId);
+	const url = new URL(providerConfig.baseUrl);
+	url.searchParams.set("model", modelId);
 
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...buildAuthHeaders(providerConfig, token),
-    },
-    body: JSON.stringify({ text: body.input }),
-  });
+	const res = await fetch(url.toString(), {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...buildAuthHeaders(providerConfig, token),
+		},
+		body: JSON.stringify({ text: body.input }),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  return audioStreamResponse(res);
+	return audioStreamResponse(res);
 }
 
 /**
@@ -135,30 +135,30 @@ async function handleDeepgramSpeech(providerConfig, body, modelId, token) {
  * voice_id is mapped from the OpenAI `voice` parameter
  */
 async function handleElevenLabsSpeech(providerConfig, body, modelId, token) {
-  // ElevenLabs uses voice_id in URL path; default to "21m00Tcm4TlvDq8ikWAM" (Rachel)
-  const voiceId = body.voice || "21m00Tcm4TlvDq8ikWAM";
-  if (!isValidPathSegment(voiceId)) {
-    return errorResponse(400, "Invalid voice ID");
-  }
-  const url = `${providerConfig.baseUrl}/${voiceId}`;
+	// ElevenLabs uses voice_id in URL path; default to "21m00Tcm4TlvDq8ikWAM" (Rachel)
+	const voiceId = body.voice || "21m00Tcm4TlvDq8ikWAM";
+	if (!isValidPathSegment(voiceId)) {
+		return errorResponse(400, "Invalid voice ID");
+	}
+	const url = `${providerConfig.baseUrl}/${voiceId}`;
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...buildAuthHeaders(providerConfig, token),
-    },
-    body: JSON.stringify({
-      text: body.input,
-      model_id: modelId,
-    }),
-  });
+	const res = await fetch(url, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...buildAuthHeaders(providerConfig, token),
+		},
+		body: JSON.stringify({
+			text: body.input,
+			model_id: modelId,
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  return audioStreamResponse(res);
+	return audioStreamResponse(res);
 }
 
 /**
@@ -166,24 +166,24 @@ async function handleElevenLabsSpeech(providerConfig, body, modelId, token) {
  * POST with { input: { text }, voice, model } → audio binary
  */
 async function handleNvidiaTtsSpeech(providerConfig, body, modelId, token) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...buildAuthHeaders(providerConfig, token),
-    },
-    body: JSON.stringify({
-      input: { text: body.input },
-      voice: body.voice || "default",
-      model: modelId,
-    }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...buildAuthHeaders(providerConfig, token),
+		},
+		body: JSON.stringify({
+			input: { text: body.input },
+			voice: body.voice || "default",
+			model: modelId,
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  return audioStreamResponse(res, "audio/wav");
+	return audioStreamResponse(res, "audio/wav");
 }
 
 /**
@@ -191,25 +191,25 @@ async function handleNvidiaTtsSpeech(providerConfig, body, modelId, token) {
  * POST {baseUrl}/{model_id} with { inputs: text } → audio binary
  */
 async function handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token) {
-  if (!isValidPathSegment(modelId)) {
-    return errorResponse(400, "Invalid model ID");
-  }
-  const url = `${providerConfig.baseUrl}/${modelId}`;
+	if (!isValidPathSegment(modelId)) {
+		return errorResponse(400, "Invalid model ID");
+	}
+	const url = `${providerConfig.baseUrl}/${modelId}`;
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...buildAuthHeaders(providerConfig, token),
-    },
-    body: JSON.stringify({ inputs: body.input }),
-  });
+	const res = await fetch(url, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...buildAuthHeaders(providerConfig, token),
+		},
+		body: JSON.stringify({ inputs: body.input }),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  return audioStreamResponse(res, "audio/wav");
+	return audioStreamResponse(res, "audio/wav");
 }
 
 /**
@@ -218,38 +218,38 @@ async function handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token) 
  * Docs: https://docs.inworld.ai/api-reference/ttsAPI/texttospeech/synthesize-speech
  */
 async function handleInworldSpeech(providerConfig, body, modelId, token) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Basic ${token}`,
-    },
-    body: JSON.stringify({
-      text: body.input,
-      voiceId: body.voice || undefined,
-      modelId,
-      audioConfig: {
-        audioEncoding: body.response_format === "wav" ? "LINEAR16" : "MP3",
-      },
-    }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Basic ${token}`,
+		},
+		body: JSON.stringify({
+			text: body.input,
+			voiceId: body.voice || undefined,
+			modelId,
+			audioConfig: {
+				audioEncoding: body.response_format === "wav" ? "LINEAR16" : "MP3",
+			},
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  const data = await res.json();
-  // Decode base64 audioContent to binary
-  const audioBuffer = Uint8Array.from(atob(data.audioContent ?? ""), (c) => c.charCodeAt(0));
-  const mimeType = body.response_format === "wav" ? "audio/wav" : "audio/mpeg";
+	const data = await res.json();
+	// Decode base64 audioContent to binary
+	const audioBuffer = Uint8Array.from(atob(data.audioContent ?? ""), (c) => c.charCodeAt(0));
+	const mimeType = body.response_format === "wav" ? "audio/wav" : "audio/mpeg";
 
-  return new Response(audioBuffer, {
-    status: 200,
-    headers: {
-      "Content-Type": mimeType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-    },
-  });
+	return new Response(audioBuffer, {
+		status: 200,
+		headers: {
+			"Content-Type": mimeType,
+			"Access-Control-Allow-Origin": getCorsOrigin(),
+		},
+	});
 }
 
 /**
@@ -258,31 +258,31 @@ async function handleInworldSpeech(providerConfig, body, modelId, token) {
  * Docs: https://docs.cartesia.ai/api-reference/tts/bytes
  */
 async function handleCartesiaSpeech(providerConfig, body, modelId, token) {
-  const outputFormat =
-    body.response_format === "wav"
-      ? { container: "wav", sample_rate: 44100 }
-      : { container: "mp3", bit_rate: 128000, sample_rate: 44100 };
+	const outputFormat =
+		body.response_format === "wav"
+			? { container: "wav", sample_rate: 44100 }
+			: { container: "mp3", bit_rate: 128000, sample_rate: 44100 };
 
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": token,
-      "Cartesia-Version": "2024-06-10",
-    },
-    body: JSON.stringify({
-      model_id: modelId,
-      transcript: body.input,
-      ...(body.voice ? { voice: { mode: "id", id: body.voice } } : {}),
-      output_format: outputFormat,
-    }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			"X-API-Key": token,
+			"Cartesia-Version": "2024-06-10",
+		},
+		body: JSON.stringify({
+			model_id: modelId,
+			transcript: body.input,
+			...(body.voice ? { voice: { mode: "id", id: body.voice } } : {}),
+			output_format: outputFormat,
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  return audioStreamResponse(res);
+	return audioStreamResponse(res);
 }
 
 /**
@@ -292,33 +292,33 @@ async function handleCartesiaSpeech(providerConfig, body, modelId, token) {
  * Docs: https://docs.play.ht/reference/api-generate-tts-audio-stream
  */
 async function handlePlayHtSpeech(providerConfig, body, modelId, token) {
-  // PlayHT tokens are stored as "userId:apiKey"
-  const [userId, apiKey] = (token || ":").split(":");
+	// PlayHT tokens are stored as "userId:apiKey"
+	const [userId, apiKey] = (token || ":").split(":");
 
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "audio/mpeg",
-      "X-USER-ID": userId || "",
-      Authorization: `Bearer ${apiKey || token}`,
-    },
-    body: JSON.stringify({
-      text: body.input,
-      voice:
-        body.voice ||
-        "s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json",
-      voice_engine: modelId || "PlayDialog",
-      output_format: body.response_format || "mp3",
-      speed: body.speed || 1,
-    }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Accept: "audio/mpeg",
+			"X-USER-ID": userId || "",
+			Authorization: `Bearer ${apiKey || token}`,
+		},
+		body: JSON.stringify({
+			text: body.input,
+			voice:
+				body.voice ||
+				"s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json",
+			voice_engine: modelId || "PlayDialog",
+			output_format: body.response_format || "mp3",
+			speed: body.speed || 1,
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  return audioStreamResponse(res);
+	return audioStreamResponse(res);
 }
 
 /**
@@ -326,27 +326,27 @@ async function handlePlayHtSpeech(providerConfig, body, modelId, token) {
  * POST {baseUrl} with { text, speaker_id } → WAV audio
  */
 async function handleCoquiSpeech(providerConfig, body) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      text: body.input,
-      speaker_id: body.voice || undefined,
-    }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			text: body.input,
+			speaker_id: body.voice || undefined,
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  const contentType = res.headers.get("content-type") || "audio/wav";
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-    },
-  });
+	const contentType = res.headers.get("content-type") || "audio/wav";
+	return new Response(res.body, {
+		status: 200,
+		headers: {
+			"Content-Type": contentType,
+			"Access-Control-Allow-Origin": getCorsOrigin(),
+		},
+	});
 }
 
 /**
@@ -354,27 +354,27 @@ async function handleCoquiSpeech(providerConfig, body) {
  * POST {baseUrl} with { text, voice } → audio binary
  */
 async function handleTortoiseSpeech(providerConfig, body) {
-  const res = await fetch(providerConfig.baseUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      text: body.input,
-      voice: body.voice || "random",
-    }),
-  });
+	const res = await fetch(providerConfig.baseUrl, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			text: body.input,
+			voice: body.voice || "random",
+		}),
+	});
 
-  if (!res.ok) {
-    return upstreamErrorResponse(res, await res.text());
-  }
+	if (!res.ok) {
+		return upstreamErrorResponse(res, await res.text());
+	}
 
-  const contentType = res.headers.get("content-type") || "audio/wav";
-  return new Response(res.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Access-Control-Allow-Origin": getCorsOrigin(),
-    },
-  });
+	const contentType = res.headers.get("content-type") || "audio/wav";
+	return new Response(res.body, {
+		status: 200,
+		headers: {
+			"Content-Type": contentType,
+			"Access-Control-Allow-Origin": getCorsOrigin(),
+		},
+	});
 }
 
 /**
@@ -387,106 +387,106 @@ async function handleTortoiseSpeech(providerConfig, body) {
  */
 /** @returns {Promise<unknown>} */
 export async function handleAudioSpeech({
-  body,
-  credentials,
-  resolvedProvider = null,
-  resolvedModel = null,
+	body,
+	credentials,
+	resolvedProvider = null,
+	resolvedModel = null,
 }) {
-  if (!body.model) {
-    return errorResponse(400, "model is required");
-  }
-  if (!body.input) {
-    return errorResponse(400, "input is required");
-  }
+	if (!body.model) {
+		return errorResponse(400, "model is required");
+	}
+	if (!body.input) {
+		return errorResponse(400, "input is required");
+	}
 
-  // Use pre-resolved provider/model from route handler if available (supports dynamic provider_nodes).
-  // Falls back to hardcoded registry lookup for backward compatibility.
-  let providerConfig = resolvedProvider;
-  let modelId = resolvedModel;
-  if (!providerConfig) {
-    const parsed = parseSpeechModel(body.model);
-    providerConfig = parsed.provider ? getSpeechProvider(parsed.provider) : null;
-    modelId = parsed.model;
-  }
+	// Use pre-resolved provider/model from route handler if available (supports dynamic provider_nodes).
+	// Falls back to hardcoded registry lookup for backward compatibility.
+	let providerConfig = resolvedProvider;
+	let modelId = resolvedModel;
+	if (!providerConfig) {
+		const parsed = parseSpeechModel(body.model);
+		providerConfig = parsed.provider ? getSpeechProvider(parsed.provider) : null;
+		modelId = parsed.model;
+	}
 
-  if (!providerConfig) {
-    return errorResponse(
-      400,
-      `No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, coqui, tortoise, qwen`
-    );
-  }
+	if (!providerConfig) {
+		return errorResponse(
+			400,
+			`No speech provider found for model "${body.model}". Use format provider/model. Available: openai, hyperbolic, deepgram, nvidia, elevenlabs, huggingface, inworld, cartesia, playht, coqui, tortoise, qwen`
+		);
+	}
 
-  // Skip credential check for local providers (authType: "none")
-  const token =
-    providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
-  if (providerConfig.authType !== "none" && !token) {
-    return errorResponse(401, `No credentials for speech provider: ${providerConfig.id}`);
-  }
+	// Skip credential check for local providers (authType: "none")
+	const token =
+		providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
+	if (providerConfig.authType !== "none" && !token) {
+		return errorResponse(401, `No credentials for speech provider: ${providerConfig.id}`);
+	}
 
-  try {
-    // Route to provider-specific handler
-    if (providerConfig.format === "hyperbolic") {
-      return handleHyperbolicSpeech(providerConfig, body, token);
-    }
+	try {
+		// Route to provider-specific handler
+		if (providerConfig.format === "hyperbolic") {
+			return handleHyperbolicSpeech(providerConfig, body, token);
+		}
 
-    if (providerConfig.format === "deepgram") {
-      return handleDeepgramSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "deepgram") {
+			return handleDeepgramSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "elevenlabs") {
-      return handleElevenLabsSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "elevenlabs") {
+			return handleElevenLabsSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "nvidia-tts") {
-      return handleNvidiaTtsSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "nvidia-tts") {
+			return handleNvidiaTtsSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "huggingface-tts") {
-      return handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "huggingface-tts") {
+			return handleHuggingFaceTtsSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "inworld") {
-      return handleInworldSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "inworld") {
+			return handleInworldSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "cartesia") {
-      return handleCartesiaSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "cartesia") {
+			return handleCartesiaSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "playht") {
-      return handlePlayHtSpeech(providerConfig, body, modelId, token);
-    }
+		if (providerConfig.format === "playht") {
+			return handlePlayHtSpeech(providerConfig, body, modelId, token);
+		}
 
-    if (providerConfig.format === "coqui") {
-      return handleCoquiSpeech(providerConfig, body);
-    }
+		if (providerConfig.format === "coqui") {
+			return handleCoquiSpeech(providerConfig, body);
+		}
 
-    if (providerConfig.format === "tortoise") {
-      return handleTortoiseSpeech(providerConfig, body);
-    }
+		if (providerConfig.format === "tortoise") {
+			return handleTortoiseSpeech(providerConfig, body);
+		}
 
-    // Default: OpenAI-compatible JSON → audio stream proxy (also used by Qwen3)
-    const res = await fetch(providerConfig.baseUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...buildAuthHeaders(providerConfig, token),
-      },
-      body: JSON.stringify({
-        model: modelId,
-        input: body.input,
-        voice: body.voice || "alloy",
-        response_format: body.response_format || "mp3",
-        speed: body.speed || 1.0,
-      }),
-    });
+		// Default: OpenAI-compatible JSON → audio stream proxy (also used by Qwen3)
+		const res = await fetch(providerConfig.baseUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				...buildAuthHeaders(providerConfig, token),
+			},
+			body: JSON.stringify({
+				model: modelId,
+				input: body.input,
+				voice: body.voice || "alloy",
+				response_format: body.response_format || "mp3",
+				speed: body.speed || 1.0,
+			}),
+		});
 
-    if (!res.ok) {
-      return upstreamErrorResponse(res, await res.text());
-    }
+		if (!res.ok) {
+			return upstreamErrorResponse(res, await res.text());
+		}
 
-    return audioStreamResponse(res);
-  } catch (err) {
-    return errorResponse(500, `Speech request failed: ${err.message}`);
-  }
+		return audioStreamResponse(res);
+	} catch (err) {
+		return errorResponse(500, `Speech request failed: ${err.message}`);
+	}
 }

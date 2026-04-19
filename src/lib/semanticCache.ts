@@ -19,74 +19,74 @@ import { getDbInstance } from "./db/core";
 type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+	return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
 function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim().length > 0) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-  return fallback;
+	if (typeof value === "number" && Number.isFinite(value)) return value;
+	if (typeof value === "string" && value.trim().length > 0) {
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? parsed : fallback;
+	}
+	return fallback;
 }
 
 function ensureCacheMetricsTable() {
-  try {
-    const db = getDbInstance();
-    db.prepare(
-      `CREATE TABLE IF NOT EXISTS cache_metrics (
+	try {
+		const db = getDbInstance();
+		db.prepare(
+			`CREATE TABLE IF NOT EXISTS cache_metrics (
         key TEXT PRIMARY KEY,
         value INTEGER NOT NULL DEFAULT 0,
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       )`
-    ).run();
-    db.prepare(
-      `INSERT OR IGNORE INTO cache_metrics (key, value) VALUES ('hits', 0), ('misses', 0), ('tokens_saved', 0)`
-    ).run();
-  } catch {
-    // DB not available
-  }
+		).run();
+		db.prepare(
+			`INSERT OR IGNORE INTO cache_metrics (key, value) VALUES ('hits', 0), ('misses', 0), ('tokens_saved', 0)`
+		).run();
+	} catch {
+		// DB not available
+	}
 }
 
 function incrementMetric(metric: "hits" | "misses" | "tokens_saved", amount = 1) {
-  try {
-    const db = getDbInstance();
-    db.prepare(
-      `UPDATE cache_metrics SET value = value + ?, updated_at = datetime('now') WHERE key = ?`
-    ).run(amount, metric);
-  } catch {
-    // DB not available — fall back to in-memory
-  }
+	try {
+		const db = getDbInstance();
+		db.prepare(
+			`UPDATE cache_metrics SET value = value + ?, updated_at = datetime('now') WHERE key = ?`
+		).run(amount, metric);
+	} catch {
+		// DB not available — fall back to in-memory
+	}
 }
 
 function getMetricValue(metric: string): number {
-  try {
-    const db = getDbInstance();
-    const row = db.prepare(`SELECT value FROM cache_metrics WHERE key = ?`).get(metric);
-    return row ? toNumber(asRecord(row).value, 0) : 0;
-  } catch {
-    return 0;
-  }
+	try {
+		const db = getDbInstance();
+		const row = db.prepare(`SELECT value FROM cache_metrics WHERE key = ?`).get(metric);
+		return row ? toNumber(asRecord(row).value, 0) : 0;
+	} catch {
+		return 0;
+	}
 }
 
 function getHeaderValue(
-  headers: { get?: (name: string) => string | null } | Record<string, unknown> | null | undefined,
-  name: string
+	headers: { get?: (name: string) => string | null } | Record<string, unknown> | null | undefined,
+	name: string
 ): string | null {
-  if (!headers) return null;
+	if (!headers) return null;
 
-  if (typeof headers.get === "function") {
-    return headers.get(name);
-  }
+	if (typeof headers.get === "function") {
+		return headers.get(name);
+	}
 
-  const needle = name.toLowerCase();
-  for (const [key, value] of Object.entries(headers)) {
-    if (key.toLowerCase() !== needle) continue;
-    return typeof value === "string" ? value : null;
-  }
+	const needle = name.toLowerCase();
+	for (const [key, value] of Object.entries(headers)) {
+		if (key.toLowerCase() !== needle) continue;
+		return typeof value === "string" ? value : null;
+	}
 
-  return null;
+	return null;
 }
 
 // ─── Singleton ─────────────────
@@ -94,15 +94,15 @@ function getHeaderValue(
 let memoryCache: LRUCache | null = null;
 
 function getMemoryCache() {
-  if (!memoryCache) {
-    memoryCache = new LRUCache({
-      maxSize: parseInt(process.env.SEMANTIC_CACHE_MAX_SIZE || "100", 10),
-      maxBytes: parseInt(process.env.SEMANTIC_CACHE_MAX_BYTES || String(4 * 1024 * 1024), 10),
-      defaultTTL: parseInt(process.env.SEMANTIC_CACHE_TTL_MS || "1800000", 10),
-    });
-    ensureCacheMetricsTable();
-  }
-  return memoryCache;
+	if (!memoryCache) {
+		memoryCache = new LRUCache({
+			maxSize: parseInt(process.env.SEMANTIC_CACHE_MAX_SIZE || "100", 10),
+			maxBytes: parseInt(process.env.SEMANTIC_CACHE_MAX_BYTES || String(4 * 1024 * 1024), 10),
+			defaultTTL: parseInt(process.env.SEMANTIC_CACHE_TTL_MS || "1800000", 10),
+		});
+		ensureCacheMetricsTable();
+	}
+	return memoryCache;
 }
 
 // ─── Signature Generation ─────────────────
@@ -116,22 +116,22 @@ function getMemoryCache() {
  * @returns {string} hex signature
  */
 export function generateSignature(model, conversation, temperature = 0, topP = 1) {
-  const payload = JSON.stringify({
-    model,
-    messages: normalizeConversation(conversation),
-    temperature,
-    top_p: topP,
-  });
-  return crypto.createHash("sha256").update(payload).digest("hex");
+	const payload = JSON.stringify({
+		model,
+		messages: normalizeConversation(conversation),
+		temperature,
+		top_p: topP,
+	});
+	return crypto.createHash("sha256").update(payload).digest("hex");
 }
 
 function stringifyForSignature(value: unknown): string {
-  if (typeof value === "string") return value;
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
+	if (typeof value === "string") return value;
+	try {
+		return JSON.stringify(value);
+	} catch {
+		return String(value);
+	}
 }
 
 /**
@@ -139,15 +139,15 @@ function stringifyForSignature(value: unknown): string {
  * Supports both Chat Completions `messages[]` and Responses API `input[]`.
  */
 function normalizeConversation(conversation: unknown) {
-  if (typeof conversation === "string") {
-    return [{ role: "user", content: conversation }];
-  }
-  if (!Array.isArray(conversation)) return [];
+	if (typeof conversation === "string") {
+		return [{ role: "user", content: conversation }];
+	}
+	if (!Array.isArray(conversation)) return [];
 
-  return conversation.map((item: Record<string, unknown>) => ({
-    role: typeof item?.role === "string" && item.role.trim().length > 0 ? item.role : "user",
-    content: stringifyForSignature(item?.content),
-  }));
+	return conversation.map((item: Record<string, unknown>) => ({
+		role: typeof item?.role === "string" && item.role.trim().length > 0 ? item.role : "user",
+		content: stringifyForSignature(item?.content),
+	}));
 }
 
 // ─── Cache Operations ─────────────────
@@ -159,52 +159,52 @@ function normalizeConversation(conversation: unknown) {
  * @returns {object|null} Cached response or null
  */
 export function getCachedResponse(signature) {
-  // 1. Check memory cache
-  const memResult = getMemoryCache().get(signature);
-  if (memResult) {
-    incrementMetric("hits");
-    incrementMetric("tokens_saved", memResult.tokensSaved || 0);
-    return memResult.response;
-  }
+	// 1. Check memory cache
+	const memResult = getMemoryCache().get(signature);
+	if (memResult) {
+		incrementMetric("hits");
+		incrementMetric("tokens_saved", memResult.tokensSaved || 0);
+		return memResult.response;
+	}
 
-  // 2. Check SQLite
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare(
-        "SELECT response, tokens_saved FROM semantic_cache WHERE signature = ? AND expires_at > datetime('now')"
-      )
-      .get(signature);
+	// 2. Check SQLite
+	try {
+		const db = getDbInstance();
+		const row = db
+			.prepare(
+				"SELECT response, tokens_saved FROM semantic_cache WHERE signature = ? AND expires_at > datetime('now')"
+			)
+			.get(signature);
 
-    if (row) {
-      const record = asRecord(row);
-      const responsePayload = typeof record.response === "string" ? record.response : null;
-      if (!responsePayload) {
-        incrementMetric("misses");
-        return null;
-      }
-      const parsed = JSON.parse(responsePayload);
-      const tokensSaved = toNumber(record.tokens_saved, 0);
-      // Promote to memory cache
-      getMemoryCache().set(signature, {
-        response: parsed,
-        tokensSaved,
-      });
-      // Update hit count in DB
-      db.prepare("UPDATE semantic_cache SET hit_count = hit_count + 1 WHERE signature = ?").run(
-        signature
-      );
+		if (row) {
+			const record = asRecord(row);
+			const responsePayload = typeof record.response === "string" ? record.response : null;
+			if (!responsePayload) {
+				incrementMetric("misses");
+				return null;
+			}
+			const parsed = JSON.parse(responsePayload);
+			const tokensSaved = toNumber(record.tokens_saved, 0);
+			// Promote to memory cache
+			getMemoryCache().set(signature, {
+				response: parsed,
+				tokensSaved,
+			});
+			// Update hit count in DB
+			db.prepare(
+				"UPDATE semantic_cache SET hit_count = hit_count + 1 WHERE signature = ?"
+			).run(signature);
 
-      incrementMetric("hits");
-      incrementMetric("tokens_saved", tokensSaved);
-      return parsed;
-    }
-  } catch {
-    // DB not available — fail open
-  }
+			incrementMetric("hits");
+			incrementMetric("tokens_saved", tokensSaved);
+			return parsed;
+		}
+	} catch {
+		// DB not available — fail open
+	}
 
-  incrementMetric("misses");
-  return null;
+	incrementMetric("misses");
+	return null;
 }
 
 /**
@@ -216,26 +216,35 @@ export function getCachedResponse(signature) {
  * @param {number} [ttlMs] - TTL in ms (default: 1 hour)
  */
 export function setCachedResponse(signature, model, response, tokensSaved = 0, ttlMs = 3600000) {
-  const ttl = parseInt(process.env.SEMANTIC_CACHE_TTL_MS || String(ttlMs), 10);
+	const ttl = parseInt(process.env.SEMANTIC_CACHE_TTL_MS || String(ttlMs), 10);
 
-  // 1. Memory cache
-  getMemoryCache().set(signature, { response, tokensSaved }, ttl);
+	// 1. Memory cache
+	getMemoryCache().set(signature, { response, tokensSaved }, ttl);
 
-  // 2. SQLite
-  try {
-    const db = getDbInstance();
-    const id = crypto.randomUUID();
-    const promptHash = signature.slice(0, 16);
-    const now = new Date().toISOString();
-    const expiresAt = new Date(Date.now() + ttl).toISOString();
+	// 2. SQLite
+	try {
+		const db = getDbInstance();
+		const id = crypto.randomUUID();
+		const promptHash = signature.slice(0, 16);
+		const now = new Date().toISOString();
+		const expiresAt = new Date(Date.now() + ttl).toISOString();
 
-    db.prepare(
-      `INSERT OR REPLACE INTO semantic_cache (id, signature, model, prompt_hash, response, tokens_saved, hit_count, created_at, expires_at)
+		db.prepare(
+			`INSERT OR REPLACE INTO semantic_cache (id, signature, model, prompt_hash, response, tokens_saved, hit_count, created_at, expires_at)
        VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`
-    ).run(id, signature, model, promptHash, JSON.stringify(response), tokensSaved, now, expiresAt);
-  } catch {
-    // DB write failed — cache still in memory
-  }
+		).run(
+			id,
+			signature,
+			model,
+			promptHash,
+			JSON.stringify(response),
+			tokensSaved,
+			now,
+			expiresAt
+		);
+	} catch {
+		// DB write failed — cache still in memory
+	}
 }
 
 // ─── Maintenance ─────────────────
@@ -245,15 +254,15 @@ export function setCachedResponse(signature, model, response, tokensSaved = 0, t
  * @returns {number} Number of entries removed
  */
 export function cleanExpiredEntries() {
-  try {
-    const db = getDbInstance();
-    const result = db
-      .prepare("DELETE FROM semantic_cache WHERE expires_at <= datetime('now')")
-      .run();
-    return result.changes;
-  } catch {
-    return 0;
-  }
+	try {
+		const db = getDbInstance();
+		const result = db
+			.prepare("DELETE FROM semantic_cache WHERE expires_at <= datetime('now')")
+			.run();
+		return result.changes;
+	} catch {
+		return 0;
+	}
 }
 
 /**
@@ -263,14 +272,14 @@ export function cleanExpiredEntries() {
  * @returns {number} Number of entries removed
  */
 export function invalidateByModel(model: string): number {
-  getMemoryCache().clear(); // Memory cache doesn't track model; full clear
-  try {
-    const db = getDbInstance();
-    const result = db.prepare("DELETE FROM semantic_cache WHERE model = ?").run(model);
-    return result.changes || 0;
-  } catch {
-    return 0;
-  }
+	getMemoryCache().clear(); // Memory cache doesn't track model; full clear
+	try {
+		const db = getDbInstance();
+		const result = db.prepare("DELETE FROM semantic_cache WHERE model = ?").run(model);
+		return result.changes || 0;
+	} catch {
+		return 0;
+	}
 }
 
 /**
@@ -279,14 +288,14 @@ export function invalidateByModel(model: string): number {
  * @returns {boolean} Whether the entry was found and removed
  */
 export function invalidateBySignature(signature: string): boolean {
-  getMemoryCache().delete(signature);
-  try {
-    const db = getDbInstance();
-    const result = db.prepare("DELETE FROM semantic_cache WHERE signature = ?").run(signature);
-    return (result.changes || 0) > 0;
-  } catch {
-    return false;
-  }
+	getMemoryCache().delete(signature);
+	try {
+		const db = getDbInstance();
+		const result = db.prepare("DELETE FROM semantic_cache WHERE signature = ?").run(signature);
+		return (result.changes || 0) > 0;
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -295,15 +304,15 @@ export function invalidateBySignature(signature: string): boolean {
  * @returns {number} Number of entries removed
  */
 export function invalidateStale(maxAgeMs: number): number {
-  getMemoryCache().clear();
-  try {
-    const db = getDbInstance();
-    const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
-    const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
-    return result.changes || 0;
-  } catch {
-    return 0;
-  }
+	getMemoryCache().clear();
+	try {
+		const db = getDbInstance();
+		const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+		const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
+		return result.changes || 0;
+	} catch {
+		return 0;
+	}
 }
 
 // ── Auto-cleanup timer ──
@@ -315,82 +324,84 @@ let _cleanupTimer: ReturnType<typeof setInterval> | null = null;
  * @param {number} intervalMs - Cleanup interval (default: 5 minutes)
  */
 export function startAutoCleanup(intervalMs = 300_000): void {
-  stopAutoCleanup();
-  _cleanupTimer = setInterval(() => {
-    const removed = cleanExpiredEntries();
-    if (removed > 0) {
-      console.log(`[SemanticCache] Auto-cleaned ${removed} expired entries`);
-    }
-  }, intervalMs);
-  if (_cleanupTimer && typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
-    (_cleanupTimer as { unref?: () => void }).unref?.();
-  }
+	stopAutoCleanup();
+	_cleanupTimer = setInterval(() => {
+		const removed = cleanExpiredEntries();
+		if (removed > 0) {
+			console.log(`[SemanticCache] Auto-cleaned ${removed} expired entries`);
+		}
+	}, intervalMs);
+	if (_cleanupTimer && typeof _cleanupTimer === "object" && "unref" in _cleanupTimer) {
+		(_cleanupTimer as { unref?: () => void }).unref?.();
+	}
 }
 
 /**
  * Stop periodic auto-cleanup.
  */
 export function stopAutoCleanup(): void {
-  if (_cleanupTimer) {
-    clearInterval(_cleanupTimer);
-    _cleanupTimer = null;
-  }
+	if (_cleanupTimer) {
+		clearInterval(_cleanupTimer);
+		_cleanupTimer = null;
+	}
 }
 
 export function cleanOldMetrics(retentionDays = 90): number {
-  try {
-    const db = getDbInstance();
-    const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
-    const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
-    return result.changes || 0;
-  } catch {
-    return 0;
-  }
+	try {
+		const db = getDbInstance();
+		const cutoff = new Date(Date.now() - retentionDays * 86400000).toISOString();
+		const result = db.prepare("DELETE FROM semantic_cache WHERE created_at < ?").run(cutoff);
+		return result.changes || 0;
+	} catch {
+		return 0;
+	}
 }
 
 /**
  * Clear all cache entries.
  */
 export function clearCache(): number {
-  getMemoryCache().clear();
-  let removed = 0;
-  try {
-    const db = getDbInstance();
-    const result = db.prepare("DELETE FROM semantic_cache").run();
-    removed = result.changes || 0;
-    db.prepare("UPDATE cache_metrics SET value = 0").run();
-  } catch {
-    // DB not available
-  }
-  return removed;
+	getMemoryCache().clear();
+	let removed = 0;
+	try {
+		const db = getDbInstance();
+		const result = db.prepare("DELETE FROM semantic_cache").run();
+		removed = result.changes || 0;
+		db.prepare("UPDATE cache_metrics SET value = 0").run();
+	} catch {
+		// DB not available
+	}
+	return removed;
 }
 
 export function getCacheStats() {
-  const memStats = getMemoryCache().getStats();
-  let dbSize = 0;
-  try {
-    const db = getDbInstance();
-    const row = db
-      .prepare("SELECT COUNT(*) as count FROM semantic_cache WHERE expires_at > datetime('now')")
-      .get();
-    dbSize = toNumber(asRecord(row).count, 0);
-  } catch {
-    // DB not available
-  }
+	const memStats = getMemoryCache().getStats();
+	let dbSize = 0;
+	try {
+		const db = getDbInstance();
+		const row = db
+			.prepare(
+				"SELECT COUNT(*) as count FROM semantic_cache WHERE expires_at > datetime('now')"
+			)
+			.get();
+		dbSize = toNumber(asRecord(row).count, 0);
+	} catch {
+		// DB not available
+	}
 
-  const hits = getMetricValue("hits");
-  const misses = getMetricValue("misses");
-  const tokensSaved = getMetricValue("tokens_saved");
-  const total = hits + misses;
+	const hits = getMetricValue("hits");
+	const misses = getMetricValue("misses");
+	const tokensSaved = getMetricValue("tokens_saved");
+	const total = hits + misses;
 
-  return {
-    memoryEntries: memStats.size,
-    dbEntries: dbSize,
-    hits,
-    misses,
-    hitRate: total > 0 ? ((hits / total) * 100).toFixed(1) : "0.0",
-    tokensSaved,
-  };
+	return {
+		memoryEntries: memStats.size,
+		dbEntries: dbSize,
+		hits,
+		misses,
+		hitRate: total > 0 ? ((hits / total) * 100).toFixed(1) : "0.0",
+		tokensSaved,
+	};
 }
 
 /**
@@ -399,12 +410,12 @@ export function getCacheStats() {
  * @deprecated Use isCacheableForRead instead.
  */
 export function isCacheable(body, headers) {
-  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
-    return false;
-  }
-  if (body.stream !== false) return false;
-  if ((body.temperature ?? 0) !== 0) return false;
-  return true;
+	if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+		return false;
+	}
+	if (body.stream !== false) return false;
+	if ((body.temperature ?? 0) !== 0) return false;
+	return true;
 }
 
 /**
@@ -413,11 +424,11 @@ export function isCacheable(body, headers) {
  * Omitted temperature defaults to 0 for read (matching existing cache entries).
  */
 export function isCacheableForRead(body, headers) {
-  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
-    return false;
-  }
-  if ((body.temperature ?? 0) !== 0) return false;
-  return true;
+	if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+		return false;
+	}
+	if ((body.temperature ?? 0) !== 0) return false;
+	return true;
 }
 
 /**
@@ -427,9 +438,9 @@ export function isCacheableForRead(body, headers) {
  * because the provider default may be non-deterministic.
  */
 export function isCacheableForWrite(body, headers) {
-  if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
-    return false;
-  }
-  if (body.temperature !== 0) return false;
-  return true;
+	if ((getHeaderValue(headers, "x-omniroute-no-cache") || "").toLowerCase() === "true") {
+		return false;
+	}
+	if (body.temperature !== 0) return false;
+	return true;
 }

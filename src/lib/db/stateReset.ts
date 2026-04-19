@@ -12,7 +12,7 @@ const resetters = new Set<DbStateResetter>();
  * Duplicate function references are deduplicated by Set semantics.
  */
 export function registerDbStateResetter(resetter: DbStateResetter) {
-  resetters.add(resetter);
+	resetters.add(resetter);
 }
 
 /**
@@ -20,11 +20,11 @@ export function registerDbStateResetter(resetter: DbStateResetter) {
  * A failing resetter must not block execution of the remaining handlers.
  */
 export function resetAllDbModuleState() {
-  for (const resetter of resetters) {
-    try {
-      resetter();
-    } catch (error) {
-      console.warn("[DB] Failed to reset module state:", error);
-    }
-  }
+	for (const resetter of resetters) {
+		try {
+			resetter();
+		} catch (error) {
+			console.warn("[DB] Failed to reset module state:", error);
+		}
+	}
 }

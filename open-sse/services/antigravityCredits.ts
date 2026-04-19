@@ -16,10 +16,10 @@ import { isCreditsDisabled, recordCreditsFailure } from "./antigravity429Engine.
  * Returns a new body object with the field added.
  */
 export function injectCreditsField(body: Record<string, unknown>): Record<string, unknown> {
-  return {
-    ...body,
-    enabledCreditTypes: ["GOOGLE_ONE_AI"],
-  };
+	return {
+		...body,
+		enabledCreditTypes: ["GOOGLE_ONE_AI"],
+	};
 }
 
 /**
@@ -28,9 +28,9 @@ export function injectCreditsField(body: Record<string, unknown>): Record<string
  * config flag is off.
  */
 export function shouldRetryWithCredits(authKey: string, creditsEnabled: boolean): boolean {
-  if (!creditsEnabled) return false;
-  if (isCreditsDisabled(authKey)) return false;
-  return true;
+	if (!creditsEnabled) return false;
+	if (isCreditsDisabled(authKey)) return false;
+	return true;
 }
 
 /**
@@ -38,7 +38,7 @@ export function shouldRetryWithCredits(authKey: string, creditsEnabled: boolean)
  * true if credits are now disabled for this auth key.
  */
 export function handleCreditsFailure(authKey: string): boolean {
-  return recordCreditsFailure(authKey);
+	return recordCreditsFailure(authKey);
 }
 
 /**
@@ -51,9 +51,9 @@ export function handleCreditsFailure(authKey: string): boolean {
 export type CreditsMode = "off" | "retry" | "always";
 
 export function getCreditsMode(): CreditsMode {
-  const raw = (process.env.ANTIGRAVITY_CREDITS || "").trim().toLowerCase();
-  if (raw === "always" || raw === "retry") return raw;
-  return "off";
+	const raw = (process.env.ANTIGRAVITY_CREDITS || "").trim().toLowerCase();
+	if (raw === "always" || raw === "retry") return raw;
+	return "off";
 }
 
 /**
@@ -62,7 +62,7 @@ export function getCreditsMode(): CreditsMode {
  * and the auth key hasn't been disabled by repeated failures.
  */
 export function shouldUseCreditsFirst(authKey: string, creditsMode: CreditsMode | string): boolean {
-  if (creditsMode !== "always") return false;
-  if (isCreditsDisabled(authKey)) return false;
-  return true;
+	if (creditsMode !== "always") return false;
+	if (isCreditsDisabled(authKey)) return false;
+	return true;
 }

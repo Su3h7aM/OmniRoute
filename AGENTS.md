@@ -40,7 +40,7 @@ with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 ### Running Tests
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
+# All tests (unit + integration + ecosystem + e2e)
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
@@ -51,9 +51,6 @@ node --import tsx/esm --test tests/unit/security-fase01.test.ts
 
 # Integration tests
 node --import tsx/esm --test tests/integration/*.test.ts
-
-# Vitest (MCP server, autoCombo)
-npm run test:vitest
 
 # E2E with Playwright
 npm run test:e2e
@@ -74,10 +71,10 @@ npm run test:coverage
 
 ## Code Style Guidelines
 
-### Formatting (Prettier — enforced via lint-staged)
+### Formatting (Biome — enforced via lint-staged)
 
-2 spaces · semicolons required · double quotes (`"`) · 100 char width · es5 trailing commas.
-Always run `prettier --write` on changed files.
+Tabs · width 4 · semicolons required · double quotes (`"`) · 100 char width · es5 trailing commas.
+Always run `bun run format` or `biome format --write .` on changed files.
 
 ### TypeScript
 
@@ -85,10 +82,10 @@ Always run `prettier --write` on changed files.
 - `strict: false` — prefer explicit types, don't rely on inference
 - Path aliases: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`, `@omniroute/open-sse/*` → `open-sse/*`
 
-### ESLint Rules
+### Biome Rules
 
-- **Security (error, everywhere)**: `no-eval`, `no-implied-eval`, `no-new-func`
-- **Relaxed in `open-sse/` and `tests/`**: `@typescript-eslint/no-explicit-any` = warn
+- **Security (error, everywhere)**: `no-eval` equivalent enforced in Biome; migration target keeps security-sensitive dynamic code paths restricted
+- **Relaxed in `open-sse/` and `tests/`**: explicit `any` remains warning in selected paths during incremental cleanup
 - React hooks rules and `@next/next/no-assign-module-variable` disabled in `open-sse/` and `tests/`
 
 ### Naming

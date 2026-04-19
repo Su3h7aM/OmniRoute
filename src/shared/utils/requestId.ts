@@ -14,18 +14,18 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "crypto";
 
 type HeaderReader = {
-  get?: (name: string) => string | null | undefined;
+	get?: (name: string) => string | null | undefined;
 };
 
 type RequestLike = {
-  headers?: HeaderReader | null;
+	headers?: HeaderReader | null;
 } | null;
 
 const requestIdStore = new AsyncLocalStorage<string>();
 
 function getHeaderValue(request: RequestLike, name: string): string | null {
-  const value = request?.headers?.get?.(name);
-  return typeof value === "string" && value.length > 0 ? value : null;
+	const value = request?.headers?.get?.(name);
+	return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 /**
@@ -35,7 +35,7 @@ function getHeaderValue(request: RequestLike, name: string): string | null {
  * @returns {string | null}
  */
 export function getRequestId() {
-  return requestIdStore.getStore() || null;
+	return requestIdStore.getStore() || null;
 }
 
 /**
@@ -49,12 +49,12 @@ export function getRequestId() {
  * @returns {Promise<T>}
  */
 export async function withRequestId<T>(
-  request: RequestLike,
-  handler: () => T | Promise<T>
+	request: RequestLike,
+	handler: () => T | Promise<T>
 ): Promise<T> {
-  const existingId = getHeaderValue(request, "x-request-id");
-  const requestId = existingId || randomUUID();
-  return requestIdStore.run(requestId, handler);
+	const existingId = getHeaderValue(request, "x-request-id");
+	const requestId = existingId || randomUUID();
+	return requestIdStore.run(requestId, handler);
 }
 
 /**
@@ -65,11 +65,11 @@ export async function withRequestId<T>(
  * @returns {Record<string, string>} Headers with x-request-id added
  */
 export function addRequestIdHeader(headers: Record<string, string> = {}): Record<string, string> {
-  const requestId = getRequestId();
-  if (requestId) {
-    return { ...headers, "x-request-id": requestId };
-  }
-  return headers;
+	const requestId = getRequestId();
+	if (requestId) {
+		return { ...headers, "x-request-id": requestId };
+	}
+	return headers;
 }
 
 /**
@@ -81,16 +81,16 @@ export function addRequestIdHeader(headers: Record<string, string> = {}): Record
  * @returns {Response} Response with request ID header
  */
 export function attachRequestIdToResponse(request: RequestLike, response: Response): Response {
-  const requestId = getRequestId() || getHeaderValue(request, "x-request-id") || randomUUID();
+	const requestId = getRequestId() || getHeaderValue(request, "x-request-id") || randomUUID();
 
-  const headers = new Headers(response.headers);
-  headers.set("x-request-id", requestId);
+	const headers = new Headers(response.headers);
+	headers.set("x-request-id", requestId);
 
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+	return new Response(response.body, {
+		status: response.status,
+		statusText: response.statusText,
+		headers,
+	});
 }
 
 /**
@@ -98,5 +98,5 @@ export function attachRequestIdToResponse(request: RequestLike, response: Respon
  * @returns {string}
  */
 export function generateRequestId() {
-  return randomUUID();
+	return randomUUID();
 }

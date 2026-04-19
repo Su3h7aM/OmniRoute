@@ -53,109 +53,109 @@ const THRESHOLD_API_ROUTE_MS = 1000;
 
 // --- Helpers ---
 function makeMemoryData(index) {
-  return {
-    apiKeyId: TEST_API_KEY_ID,
-    sessionId: TEST_SESSION_ID,
-    type: MemoryType.FACTUAL,
-    key: `perf-test-key-${index}`,
-    content: `This is test memory content number ${index} for performance regression testing purposes`,
-    metadata: { index, tag: "perf-test" },
-    expiresAt: null,
-  };
+	return {
+		apiKeyId: TEST_API_KEY_ID,
+		sessionId: TEST_SESSION_ID,
+		type: MemoryType.FACTUAL,
+		key: `perf-test-key-${index}`,
+		content: `This is test memory content number ${index} for performance regression testing purposes`,
+		metadata: { index, tag: "perf-test" },
+		expiresAt: null,
+	};
 }
 
 // ============================================================
 // Test 1: listMemories with 1000 records, paginated (page=1, limit=50)
 // ============================================================
 describe("Performance: listMemories pagination (1000 records)", () => {
-  const createdIds = [];
+	const createdIds = [];
 
-  before(async () => {
-    // Bulk insert 1000 memories
-    for (let i = 0; i < MEMORY_COUNT; i++) {
-      const mem = await createMemory(makeMemoryData(i));
-      createdIds.push(mem.id);
-    }
-    assert.equal(createdIds.length, MEMORY_COUNT, "Should have created 1000 memories");
-  });
+	before(async () => {
+		// Bulk insert 1000 memories
+		for (let i = 0; i < MEMORY_COUNT; i++) {
+			const mem = await createMemory(makeMemoryData(i));
+			createdIds.push(mem.id);
+		}
+		assert.equal(createdIds.length, MEMORY_COUNT, "Should have created 1000 memories");
+	});
 
-  after(async () => {
-    // Bulk delete all created memories
-    const db = core.getDbInstance();
-    db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
-  });
+	after(async () => {
+		// Bulk delete all created memories
+		const db = core.getDbInstance();
+		db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
+	});
 
-  it(`should list page=1, limit=50 of 1000 memories in <${THRESHOLD_LIST_MEMORIES_MS}ms`, async () => {
-    const start = performance.now();
-    const result = await listMemories({
-      apiKeyId: TEST_API_KEY_ID,
-      page: 1,
-      limit: 50,
-    });
-    const elapsed = performance.now() - start;
+	it(`should list page=1, limit=50 of 1000 memories in <${THRESHOLD_LIST_MEMORIES_MS}ms`, async () => {
+		const start = performance.now();
+		const result = await listMemories({
+			apiKeyId: TEST_API_KEY_ID,
+			page: 1,
+			limit: 50,
+		});
+		const elapsed = performance.now() - start;
 
-    assert.equal(result.data.length, 50, "Should return 50 items for page 1");
-    assert.equal(result.total, MEMORY_COUNT, "Total should be 1000");
-    assert.ok(
-      elapsed < THRESHOLD_LIST_MEMORIES_MS,
-      `listMemories took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_LIST_MEMORIES_MS}ms`
-    );
-  });
+		assert.equal(result.data.length, 50, "Should return 50 items for page 1");
+		assert.equal(result.total, MEMORY_COUNT, "Total should be 1000");
+		assert.ok(
+			elapsed < THRESHOLD_LIST_MEMORIES_MS,
+			`listMemories took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_LIST_MEMORIES_MS}ms`
+		);
+	});
 });
 
 // ============================================================
 // Test 2: Skills registry - cached vs uncached list
 // ============================================================
 describe("Performance: skills registry cached vs uncached", () => {
-  before(async () => {
-    // Register 100 skills in the database
-    for (let i = 0; i < SKILL_COUNT; i++) {
-      await skillRegistry.register({
-        name: `perf-skill-${i}`,
-        version: "1.0.0",
-        description: `Performance test skill ${i}`,
-        schema: { input: {}, output: {} },
-        handler: `echo "skill ${i}"`,
-        enabled: true,
-        apiKeyId: TEST_API_KEY_ID,
-      });
-    }
-  });
+	before(async () => {
+		// Register 100 skills in the database
+		for (let i = 0; i < SKILL_COUNT; i++) {
+			await skillRegistry.register({
+				name: `perf-skill-${i}`,
+				version: "1.0.0",
+				description: `Performance test skill ${i}`,
+				schema: { input: {}, output: {} },
+				handler: `echo "skill ${i}"`,
+				enabled: true,
+				apiKeyId: TEST_API_KEY_ID,
+			});
+		}
+	});
 
-  after(async () => {
-    // Clean up skills
-    const db = core.getDbInstance();
-    db.prepare("DELETE FROM skills WHERE api_key_id = ?").run(TEST_API_KEY_ID);
-    skillRegistry.invalidateCache();
-  });
+	after(async () => {
+		// Clean up skills
+		const db = core.getDbInstance();
+		db.prepare("DELETE FROM skills WHERE api_key_id = ?").run(TEST_API_KEY_ID);
+		skillRegistry.invalidateCache();
+	});
 
-  it(`should load skills from DB (uncached) in <${THRESHOLD_SKILLS_UNCACHED_MS}ms`, async () => {
-    // Force cache invalidation so loadFromDatabase actually hits DB
-    skillRegistry.invalidateCache();
+	it(`should load skills from DB (uncached) in <${THRESHOLD_SKILLS_UNCACHED_MS}ms`, async () => {
+		// Force cache invalidation so loadFromDatabase actually hits DB
+		skillRegistry.invalidateCache();
 
-    const start = performance.now();
-    await skillRegistry.loadFromDatabase();
-    const elapsed = performance.now() - start;
+		const start = performance.now();
+		await skillRegistry.loadFromDatabase();
+		const elapsed = performance.now() - start;
 
-    assert.ok(
-      elapsed < THRESHOLD_SKILLS_UNCACHED_MS,
-      `Uncached loadFromDatabase took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_SKILLS_UNCACHED_MS}ms`
-    );
-  });
+		assert.ok(
+			elapsed < THRESHOLD_SKILLS_UNCACHED_MS,
+			`Uncached loadFromDatabase took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_SKILLS_UNCACHED_MS}ms`
+		);
+	});
 
-  it(`should list skills from cache in <${THRESHOLD_SKILLS_CACHED_MS}ms`, async () => {
-    // Ensure cache is warm (loadFromDatabase was just called above)
-    // Call list() which reads from in-memory Map
-    const start = performance.now();
-    const skills = skillRegistry.list();
-    const elapsed = performance.now() - start;
+	it(`should list skills from cache in <${THRESHOLD_SKILLS_CACHED_MS}ms`, async () => {
+		// Ensure cache is warm (loadFromDatabase was just called above)
+		// Call list() which reads from in-memory Map
+		const start = performance.now();
+		const skills = skillRegistry.list();
+		const elapsed = performance.now() - start;
 
-    assert.ok(skills.length >= SKILL_COUNT, `Should have at least ${SKILL_COUNT} skills`);
-    assert.ok(
-      elapsed < THRESHOLD_SKILLS_CACHED_MS,
-      `Cached list() took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_SKILLS_CACHED_MS}ms`
-    );
-  });
+		assert.ok(skills.length >= SKILL_COUNT, `Should have at least ${SKILL_COUNT} skills`);
+		assert.ok(
+			elapsed < THRESHOLD_SKILLS_CACHED_MS,
+			`Cached list() took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_SKILLS_CACHED_MS}ms`
+		);
+	});
 });
 
 // ============================================================
@@ -166,79 +166,79 @@ describe("Performance: skills registry cached vs uncached", () => {
 // scoring, which is the production fallback path we validate here.
 // ============================================================
 describe("Performance: memory search (1000 records)", () => {
-  const createdIds = [];
+	const createdIds = [];
 
-  before(async () => {
-    // Bulk insert 1000 memories with searchable content
-    for (let i = 0; i < MEMORY_COUNT; i++) {
-      const mem = await createMemory(makeMemoryData(i));
-      createdIds.push(mem.id);
-    }
-    assert.equal(createdIds.length, MEMORY_COUNT, "Should have created 1000 memories");
-  });
+	before(async () => {
+		// Bulk insert 1000 memories with searchable content
+		for (let i = 0; i < MEMORY_COUNT; i++) {
+			const mem = await createMemory(makeMemoryData(i));
+			createdIds.push(mem.id);
+		}
+		assert.equal(createdIds.length, MEMORY_COUNT, "Should have created 1000 memories");
+	});
 
-  after(async () => {
-    const db = core.getDbInstance();
-    db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
-  });
+	after(async () => {
+		const db = core.getDbInstance();
+		db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
+	});
 
-  it(`should search memories with retrieveMemories (query="test") in <${THRESHOLD_SEARCH_MS}ms`, async () => {
-    const start = performance.now();
-    const results = await retrieveMemories(TEST_API_KEY_ID, {
-      query: "test",
-      retrievalStrategy: "semantic",
-      maxTokens: 8000,
-    });
-    const elapsed = performance.now() - start;
+	it(`should search memories with retrieveMemories (query="test") in <${THRESHOLD_SEARCH_MS}ms`, async () => {
+		const start = performance.now();
+		const results = await retrieveMemories(TEST_API_KEY_ID, {
+			query: "test",
+			retrievalStrategy: "semantic",
+			maxTokens: 8000,
+		});
+		const elapsed = performance.now() - start;
 
-    assert.ok(results.length > 0, "Should find matching memories");
-    assert.ok(
-      elapsed < THRESHOLD_SEARCH_MS,
-      `retrieveMemories search took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_SEARCH_MS}ms`
-    );
-  });
+		assert.ok(results.length > 0, "Should find matching memories");
+		assert.ok(
+			elapsed < THRESHOLD_SEARCH_MS,
+			`retrieveMemories search took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_SEARCH_MS}ms`
+		);
+	});
 });
 
 // ============================================================
 // Test 4: API route handler GET /api/memory?limit=50
 // ============================================================
 describe("Performance: memory API route handler (1000 records)", () => {
-  before(async () => {
-    // Bulk insert 1000 memories
-    for (let i = 0; i < MEMORY_COUNT; i++) {
-      await createMemory(makeMemoryData(i));
-    }
-  });
+	before(async () => {
+		// Bulk insert 1000 memories
+		for (let i = 0; i < MEMORY_COUNT; i++) {
+			await createMemory(makeMemoryData(i));
+		}
+	});
 
-  after(async () => {
-    const db = core.getDbInstance();
-    db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
-    // Final cleanup: reset DB instance and remove temp dir
-    core.resetDbInstance();
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  });
+	after(async () => {
+		const db = core.getDbInstance();
+		db.prepare("DELETE FROM memories WHERE api_key_id = ?").run(TEST_API_KEY_ID);
+		// Final cleanup: reset DB instance and remove temp dir
+		core.resetDbInstance();
+		fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	});
 
-  it(`should handle GET /api/memory?limit=50 in <${THRESHOLD_API_ROUTE_MS}ms`, async () => {
-    // Create a mock Request object for the route handler
-    const request = new Request(
-      `http://localhost:20128/api/memory?limit=50&apiKeyId=${TEST_API_KEY_ID}`,
-      { method: "GET" }
-    );
+	it(`should handle GET /api/memory?limit=50 in <${THRESHOLD_API_ROUTE_MS}ms`, async () => {
+		// Create a mock Request object for the route handler
+		const request = new Request(
+			`http://localhost:20128/api/memory?limit=50&apiKeyId=${TEST_API_KEY_ID}`,
+			{ method: "GET" }
+		);
 
-    const start = performance.now();
-    const response = await memoryRouteGET(request);
-    const elapsed = performance.now() - start;
+		const start = performance.now();
+		const response = await memoryRouteGET(request);
+		const elapsed = performance.now() - start;
 
-    assert.equal(response.status, 200, "Response should be 200 OK");
+		assert.equal(response.status, 200, "Response should be 200 OK");
 
-    const body = await response.json();
-    assert.equal(body.data.length, 50, "Should return 50 items");
-    assert.equal(body.total, MEMORY_COUNT, "Total should be 1000");
-    assert.ok(body.stats, "Response should include stats");
+		const body = await response.json();
+		assert.equal(body.data.length, 50, "Should return 50 items");
+		assert.equal(body.total, MEMORY_COUNT, "Total should be 1000");
+		assert.ok(body.stats, "Response should include stats");
 
-    assert.ok(
-      elapsed < THRESHOLD_API_ROUTE_MS,
-      `API route handler took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_API_ROUTE_MS}ms`
-    );
-  });
+		assert.ok(
+			elapsed < THRESHOLD_API_ROUTE_MS,
+			`API route handler took ${elapsed.toFixed(1)}ms, expected <${THRESHOLD_API_ROUTE_MS}ms`
+		);
+	});
 });

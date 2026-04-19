@@ -13,109 +13,109 @@ const providersDb = await import("../../src/lib/db/providers.ts");
 const auth = await import("../../src/sse/services/auth.ts");
 
 async function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 beforeEach(async () => {
-  await resetStorage();
+	await resetStorage();
 });
 
 afterAll(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	if (ORIGINAL_DATA_DIR === undefined) {
+		delete process.env.DATA_DIR;
+	} else {
+		process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+	}
 });
 
 test("getProviderCredentials skips credits_exhausted connections", async () => {
-  await resetStorage();
+	await resetStorage();
 
-  const exhausted = await providersDb.createProviderConnection({
-    provider: "openai",
-    authType: "apikey",
-    apiKey: "sk-exhausted",
-    isActive: true,
-    testStatus: "credits_exhausted",
-  });
+	const exhausted = await providersDb.createProviderConnection({
+		provider: "openai",
+		authType: "apikey",
+		apiKey: "sk-exhausted",
+		isActive: true,
+		testStatus: "credits_exhausted",
+	});
 
-  const healthy = await providersDb.createProviderConnection({
-    provider: "openai",
-    authType: "apikey",
-    apiKey: "sk-healthy",
-    isActive: true,
-    testStatus: "active",
-  });
+	const healthy = await providersDb.createProviderConnection({
+		provider: "openai",
+		authType: "apikey",
+		apiKey: "sk-healthy",
+		isActive: true,
+		testStatus: "active",
+	});
 
-  const selected = await auth.getProviderCredentials("openai");
-  assert.ok(selected);
-  assert.equal(selected.connectionId, healthy.id);
-  assert.notEqual(selected.connectionId, exhausted.id);
+	const selected = await auth.getProviderCredentials("openai");
+	assert.ok(selected);
+	assert.equal(selected.connectionId, healthy.id);
+	assert.notEqual(selected.connectionId, exhausted.id);
 });
 
 test("getProviderCredentials returns null when all active connections are terminal", async () => {
-  await resetStorage();
+	await resetStorage();
 
-  await providersDb.createProviderConnection({
-    provider: "openai",
-    authType: "apikey",
-    apiKey: "sk-only-exhausted",
-    isActive: true,
-    testStatus: "credits_exhausted",
-  });
+	await providersDb.createProviderConnection({
+		provider: "openai",
+		authType: "apikey",
+		apiKey: "sk-only-exhausted",
+		isActive: true,
+		testStatus: "credits_exhausted",
+	});
 
-  const selected = await auth.getProviderCredentials("openai");
-  assert.equal(selected, null);
+	const selected = await auth.getProviderCredentials("openai");
+	assert.equal(selected, null);
 });
 
 test("getProviderCredentials can reuse a locally suppressed connection for combo live tests", async () => {
-  await resetStorage();
+	await resetStorage();
 
-  const conn = await providersDb.createProviderConnection({
-    provider: "openai",
-    authType: "apikey",
-    apiKey: "sk-live-test",
-    isActive: true,
-    testStatus: "credits_exhausted",
-    rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
-  });
+	const conn = await providersDb.createProviderConnection({
+		provider: "openai",
+		authType: "apikey",
+		apiKey: "sk-live-test",
+		isActive: true,
+		testStatus: "credits_exhausted",
+		rateLimitedUntil: new Date(Date.now() + 60_000).toISOString(),
+	});
 
-  const selected = await auth.getProviderCredentials("openai", null, null, null, {
-    allowSuppressedConnections: true,
-    bypassQuotaPolicy: true,
-  });
+	const selected = await auth.getProviderCredentials("openai", null, null, null, {
+		allowSuppressedConnections: true,
+		bypassQuotaPolicy: true,
+	});
 
-  assert.ok(selected);
-  assert.equal(selected.connectionId, conn.id);
+	assert.ok(selected);
+	assert.equal(selected.connectionId, conn.id);
 });
 
 test("markAccountUnavailable does not overwrite terminal status", async () => {
-  await resetStorage();
+	await resetStorage();
 
-  const conn = await providersDb.createProviderConnection({
-    provider: "openai",
-    authType: "apikey",
-    apiKey: "sk-terminal",
-    isActive: true,
-    testStatus: "credits_exhausted",
-    lastError: "insufficient_quota",
-  });
+	const conn = await providersDb.createProviderConnection({
+		provider: "openai",
+		authType: "apikey",
+		apiKey: "sk-terminal",
+		isActive: true,
+		testStatus: "credits_exhausted",
+		lastError: "insufficient_quota",
+	});
 
-  const result = await auth.markAccountUnavailable(
-    conn.id,
-    503,
-    "temporary upstream error",
-    "openai",
-    "gpt-4.1"
-  );
+	const result = await auth.markAccountUnavailable(
+		conn.id,
+		503,
+		"temporary upstream error",
+		"openai",
+		"gpt-4.1"
+	);
 
-  assert.equal(result.shouldFallback, true);
-  assert.equal(result.cooldownMs, 0);
+	assert.equal(result.shouldFallback, true);
+	assert.equal(result.cooldownMs, 0);
 
-  const after = await providersDb.getProviderConnectionById(conn.id);
-  assert.equal(after.testStatus, "credits_exhausted");
+	const after = await providersDb.getProviderConnectionById(conn.id);
+	assert.equal(after.testStatus, "credits_exhausted");
 });

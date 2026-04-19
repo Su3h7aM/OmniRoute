@@ -6,9 +6,9 @@
  * Detects when a client explicitly prefers JSON (non-SSE) responses.
  */
 export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
-  if (typeof acceptHeader !== "string") return false;
-  const normalized = acceptHeader.toLowerCase();
-  return normalized.includes("application/json") && !normalized.includes("text/event-stream");
+	if (typeof acceptHeader !== "string") return false;
+	const normalized = acceptHeader.toLowerCase();
+	return normalized.includes("application/json") && !normalized.includes("text/event-stream");
 }
 
 /**
@@ -19,11 +19,11 @@ export function clientWantsJsonResponse(acceptHeader: unknown): boolean {
  * should still get streaming responses — body intent takes precedence.
  */
 export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): boolean {
-  // Explicit body value always wins
-  if (bodyStream === true) return true;
-  if (bodyStream === false) return false;
-  // No explicit stream param — fall back to Accept header heuristic
-  return !clientWantsJsonResponse(acceptHeader);
+	// Explicit body value always wins
+	if (bodyStream === true) return true;
+	if (bodyStream === false) return false;
+	// No explicit stream param — fall back to Accept header heuristic
+	return !clientWantsJsonResponse(acceptHeader);
 }
 
 /**
@@ -34,23 +34,23 @@ export function resolveStreamFlag(bodyStream: unknown, acceptHeader: unknown): b
  * - `undefined` -> no explicit alias present
  */
 export function resolveExplicitStreamAlias(body: unknown): boolean | undefined {
-  if (!body || typeof body !== "object") return undefined;
-  const b = body as Record<string, unknown>;
+	if (!body || typeof body !== "object") return undefined;
+	const b = body as Record<string, unknown>;
 
-  if (b.streaming === true) return true;
-  if (b.streaming === false) return false;
-  if (b.non_stream === true) return false;
-  if (b.disable_stream === true) return false;
-  if (b.disable_streaming === true) return false;
+	if (b.streaming === true) return true;
+	if (b.streaming === false) return false;
+	if (b.non_stream === true) return false;
+	if (b.disable_stream === true) return false;
+	if (b.disable_streaming === true) return false;
 
-  return undefined;
+	return undefined;
 }
 
 /**
  * Backward-compatible helper used by tests/legacy call sites.
  */
 export function hasExplicitNoStreamParam(body: unknown): boolean {
-  return resolveExplicitStreamAlias(body) === false;
+	return resolveExplicitStreamAlias(body) === false;
 }
 
 /**
@@ -58,8 +58,8 @@ export function hasExplicitNoStreamParam(body: unknown): boolean {
  * Example: ```json\n{"ok":true}\n``` -> {"ok":true}
  */
 export function stripMarkdownCodeFence(text: unknown): unknown {
-  if (typeof text !== "string") return text;
-  const codeBlockRegex = /^```(?:json|javascript|typescript|js|ts)?\s*\n?([\s\S]*?)\n?```\s*$/i;
-  const match = text.trim().match(codeBlockRegex);
-  return match ? match[1].trim() : text;
+	if (typeof text !== "string") return text;
+	const codeBlockRegex = /^```(?:json|javascript|typescript|js|ts)?\s*\n?([\s\S]*?)\n?```\s*$/i;
+	const match = text.trim().match(codeBlockRegex);
+	return match ? match[1].trim() : text;
 }

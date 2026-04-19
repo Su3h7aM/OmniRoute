@@ -7,13 +7,13 @@ import RateLimitStatus from "../usage/components/RateLimitStatus";
 import SessionsTab from "../usage/components/SessionsTab";
 
 export default function LimitsPage() {
-  return (
-    <div className="flex flex-col gap-6">
-      <Suspense fallback={<CardSkeleton />}>
-        <ProviderLimits />
-      </Suspense>
-      <SessionsTab />
-      <RateLimitStatus />
-    </div>
-  );
+	return (
+		<div className="flex flex-col gap-6">
+			<Suspense fallback={<CardSkeleton />}>
+				<ProviderLimits />
+			</Suspense>
+			<SessionsTab />
+			<RateLimitStatus />
+		</div>
+	);
 }

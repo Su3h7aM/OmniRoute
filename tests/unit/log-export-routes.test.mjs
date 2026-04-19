@@ -16,74 +16,74 @@ const exportRoute = await import("../../src/app/api/logs/export/route.ts");
 const exportAllRoute = await import("../../src/app/api/db-backups/exportAll/route.ts");
 
 async function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 beforeEach(async () => {
-  await resetStorage();
-  await settingsDb.updateSettings({ requireLogin: false, password: null });
-  delete process.env.INITIAL_PASSWORD;
+	await resetStorage();
+	await settingsDb.updateSettings({ requireLogin: false, password: null });
+	delete process.env.INITIAL_PASSWORD;
 });
 
 afterAll(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
 test("GET /api/logs/export returns explicit detailed payloads from artifact storage", async () => {
-  await callLogs.saveCallLog({
-    id: "export-route-log",
-    timestamp: new Date().toISOString(),
-    method: "POST",
-    path: "/v1/chat/completions",
-    status: 200,
-    model: "openai/gpt-4.1",
-    provider: "openai",
-    requestBody: { messages: [{ role: "user", content: "hello export" }] },
-    responseBody: { id: "resp-export", ok: true },
-  });
+	await callLogs.saveCallLog({
+		id: "export-route-log",
+		timestamp: new Date().toISOString(),
+		method: "POST",
+		path: "/v1/chat/completions",
+		status: 200,
+		model: "openai/gpt-4.1",
+		provider: "openai",
+		requestBody: { messages: [{ role: "user", content: "hello export" }] },
+		responseBody: { id: "resp-export", ok: true },
+	});
 
-  const response = await exportRoute.GET(
-    new Request("http://localhost/api/logs/export?hours=24&type=call-logs")
-  );
-  const body = await response.json();
+	const response = await exportRoute.GET(
+		new Request("http://localhost/api/logs/export?hours=24&type=call-logs")
+	);
+	const body = await response.json();
 
-  assert.equal(response.status, 200);
-  assert.equal(body.count, 1);
-  assert.equal(body.logs[0].id, "export-route-log");
-  assert.deepEqual(body.logs[0].requestBody, {
-    messages: [{ role: "user", content: "hello export" }],
-  });
-  assert.deepEqual(body.logs[0].responseBody, { id: "resp-export", ok: true });
-  assert.equal(body.logs[0].detailState, "ready");
+	assert.equal(response.status, 200);
+	assert.equal(body.count, 1);
+	assert.equal(body.logs[0].id, "export-route-log");
+	assert.deepEqual(body.logs[0].requestBody, {
+		messages: [{ role: "user", content: "hello export" }],
+	});
+	assert.deepEqual(body.logs[0].responseBody, { id: "resp-export", ok: true });
+	assert.equal(body.logs[0].detailState, "ready");
 });
 
 test("GET /api/db-backups/exportAll includes call_logs artifacts in the archive", async () => {
-  await callLogs.saveCallLog({
-    id: "backup-route-log",
-    timestamp: new Date().toISOString(),
-    method: "POST",
-    path: "/v1/chat/completions",
-    status: 200,
-    model: "openai/gpt-4.1",
-    provider: "openai",
-    requestBody: { hello: "backup" },
-  });
+	await callLogs.saveCallLog({
+		id: "backup-route-log",
+		timestamp: new Date().toISOString(),
+		method: "POST",
+		path: "/v1/chat/completions",
+		status: 200,
+		model: "openai/gpt-4.1",
+		provider: "openai",
+		requestBody: { hello: "backup" },
+	});
 
-  const response = await exportAllRoute.GET(
-    new Request("http://localhost/api/db-backups/exportAll")
-  );
-  assert.equal(response.status, 200);
+	const response = await exportAllRoute.GET(
+		new Request("http://localhost/api/db-backups/exportAll")
+	);
+	assert.equal(response.status, 200);
 
-  const archiveBuffer = Buffer.from(await response.arrayBuffer());
-  const archivePath = path.join(TEST_DATA_DIR, "backup-export.tar.gz");
-  fs.writeFileSync(archivePath, archiveBuffer);
+	const archiveBuffer = Buffer.from(await response.arrayBuffer());
+	const archivePath = path.join(TEST_DATA_DIR, "backup-export.tar.gz");
+	fs.writeFileSync(archivePath, archiveBuffer);
 
-  const listing = execFileSync("tar", ["-tzf", archivePath], { encoding: "utf8" });
-  assert.match(listing, /call_logs\//);
-  assert.match(listing, /call_logs\/.+\.json/);
-  assert.match(listing, /metadata\.json/);
-  assert.match(listing, /storage\.sqlite/);
+	const listing = execFileSync("tar", ["-tzf", archivePath], { encoding: "utf8" });
+	assert.match(listing, /call_logs\//);
+	assert.match(listing, /call_logs\/.+\.json/);
+	assert.match(listing, /metadata\.json/);
+	assert.match(listing, /storage\.sqlite/);
 });

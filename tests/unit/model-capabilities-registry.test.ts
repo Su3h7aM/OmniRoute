@@ -13,99 +13,99 @@ const modelsDevSync = await import("../../src/lib/modelsDevSync.ts");
 const modelCapabilities = await import("../../src/lib/modelCapabilities.ts");
 
 function buildCapability(overrides = {}) {
-  return {
-    tool_call: null,
-    reasoning: null,
-    attachment: null,
-    structured_output: null,
-    temperature: null,
-    modalities_input: "[]",
-    modalities_output: "[]",
-    knowledge_cutoff: null,
-    release_date: null,
-    last_updated: null,
-    status: null,
-    family: null,
-    open_weights: null,
-    limit_context: null,
-    limit_input: null,
-    limit_output: null,
-    interleaved_field: null,
-    ...overrides,
-  };
+	return {
+		tool_call: null,
+		reasoning: null,
+		attachment: null,
+		structured_output: null,
+		temperature: null,
+		modalities_input: "[]",
+		modalities_output: "[]",
+		knowledge_cutoff: null,
+		release_date: null,
+		last_updated: null,
+		status: null,
+		family: null,
+		open_weights: null,
+		limit_context: null,
+		limit_input: null,
+		limit_output: null,
+		interleaved_field: null,
+		...overrides,
+	};
 }
 
 function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 beforeEach(() => {
-  resetStorage();
+	resetStorage();
 });
 
 afterAll(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	if (ORIGINAL_DATA_DIR === undefined) {
+		delete process.env.DATA_DIR;
+	} else {
+		process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+	}
 });
 
 test("canonical model capability resolver merges models.dev data and keeps static overrides authoritative", () => {
-  modelsDevSync.saveModelsDevCapabilities({
-    openai: {
-      "gpt-4o": buildCapability({
-        tool_call: false,
-        reasoning: false,
-        attachment: true,
-        structured_output: true,
-        temperature: true,
-        modalities_input: JSON.stringify(["text", "image"]),
-        modalities_output: JSON.stringify(["text"]),
-        family: "gpt-4",
-        status: "stable",
-        limit_context: 256000,
-        limit_input: 256000,
-        limit_output: 12345,
-      }),
-    },
-    antigravity: {
-      "gemini-3.1-pro-high": buildCapability({
-        tool_call: false,
-        reasoning: false,
-        modalities_input: JSON.stringify(["text"]),
-        modalities_output: JSON.stringify(["text"]),
-        limit_context: 1024,
-        limit_output: 9999,
-      }),
-    },
-  });
+	modelsDevSync.saveModelsDevCapabilities({
+		openai: {
+			"gpt-4o": buildCapability({
+				tool_call: false,
+				reasoning: false,
+				attachment: true,
+				structured_output: true,
+				temperature: true,
+				modalities_input: JSON.stringify(["text", "image"]),
+				modalities_output: JSON.stringify(["text"]),
+				family: "gpt-4",
+				status: "stable",
+				limit_context: 256000,
+				limit_input: 256000,
+				limit_output: 12345,
+			}),
+		},
+		antigravity: {
+			"gemini-3.1-pro-high": buildCapability({
+				tool_call: false,
+				reasoning: false,
+				modalities_input: JSON.stringify(["text"]),
+				modalities_output: JSON.stringify(["text"]),
+				limit_context: 1024,
+				limit_output: 9999,
+			}),
+		},
+	});
 
-  const gpt4o = modelCapabilities.getResolvedModelCapabilities("openai/gpt-4o");
-  assert.equal(gpt4o.toolCalling, false);
-  assert.equal(gpt4o.reasoning, false);
-  assert.equal(gpt4o.supportsVision, true);
-  assert.equal(gpt4o.contextWindow, 256000);
-  assert.equal(gpt4o.maxInputTokens, 256000);
-  assert.equal(gpt4o.maxOutputTokens, 12345);
-  assert.equal(modelCapabilities.getModelContextLimit("openai", "gpt-4o"), 256000);
-  assert.equal(modelCapabilities.capMaxOutputTokens("openai/gpt-4o", 999999), 12345);
+	const gpt4o = modelCapabilities.getResolvedModelCapabilities("openai/gpt-4o");
+	assert.equal(gpt4o.toolCalling, false);
+	assert.equal(gpt4o.reasoning, false);
+	assert.equal(gpt4o.supportsVision, true);
+	assert.equal(gpt4o.contextWindow, 256000);
+	assert.equal(gpt4o.maxInputTokens, 256000);
+	assert.equal(gpt4o.maxOutputTokens, 12345);
+	assert.equal(modelCapabilities.getModelContextLimit("openai", "gpt-4o"), 256000);
+	assert.equal(modelCapabilities.capMaxOutputTokens("openai/gpt-4o", 999999), 12345);
 
-  const geminiHigh = modelCapabilities.getResolvedModelCapabilities(
-    "antigravity/gemini-3.1-pro-high"
-  );
-  assert.equal(geminiHigh.toolCalling, true);
-  assert.equal(geminiHigh.reasoning, true);
-  assert.equal(geminiHigh.supportsThinking, true);
-  assert.equal(geminiHigh.contextWindow, 1048576);
-  assert.equal(geminiHigh.maxOutputTokens, 65535);
-  assert.equal(geminiHigh.defaultThinkingBudget, 24576);
-  assert.equal(
-    modelCapabilities.capThinkingBudget("antigravity/gemini-3.1-pro-high", 40000),
-    32768
-  );
+	const geminiHigh = modelCapabilities.getResolvedModelCapabilities(
+		"antigravity/gemini-3.1-pro-high"
+	);
+	assert.equal(geminiHigh.toolCalling, true);
+	assert.equal(geminiHigh.reasoning, true);
+	assert.equal(geminiHigh.supportsThinking, true);
+	assert.equal(geminiHigh.contextWindow, 1048576);
+	assert.equal(geminiHigh.maxOutputTokens, 65535);
+	assert.equal(geminiHigh.defaultThinkingBudget, 24576);
+	assert.equal(
+		modelCapabilities.capThinkingBudget("antigravity/gemini-3.1-pro-high", 40000),
+		32768
+	);
 });

@@ -12,39 +12,41 @@ import { PROVIDERS } from "../config/constants.ts";
  * Docs: https://pollinations.ai/docs
  */
 export class PollinationsExecutor extends BaseExecutor {
-  constructor() {
-    super("pollinations", PROVIDERS["pollinations"] || { format: "openai" });
-  }
+	constructor() {
+		super("pollinations", PROVIDERS["pollinations"] || { format: "openai" });
+	}
 
-  buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
-    const baseUrls = this.getBaseUrls();
-    return (
-      baseUrls[urlIndex] || baseUrls[0] || "https://text.pollinations.ai/openai/chat/completions"
-    );
-  }
+	buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
+		const baseUrls = this.getBaseUrls();
+		return (
+			baseUrls[urlIndex] ||
+			baseUrls[0] ||
+			"https://text.pollinations.ai/openai/chat/completions"
+		);
+	}
 
-  buildHeaders(credentials: any, stream = true): Record<string, string> {
-    const key = credentials?.apiKey || credentials?.accessToken;
+	buildHeaders(credentials: any, stream = true): Record<string, string> {
+		const key = credentials?.apiKey || credentials?.accessToken;
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
 
-    if (key) {
-      headers.Authorization = `Bearer ${key}`;
-    }
+		if (key) {
+			headers.Authorization = `Bearer ${key}`;
+		}
 
-    if (stream) {
-      headers["Accept"] = "text/event-stream";
-    }
+		if (stream) {
+			headers["Accept"] = "text/event-stream";
+		}
 
-    return headers;
-  }
+		return headers;
+	}
 
-  transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
-    // Pollinations uses provider aliases directly: "openai", "claude", "gemini", etc.
-    return body;
-  }
+	transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
+		// Pollinations uses provider aliases directly: "openai", "claude", "gemini", etc.
+		return body;
+	}
 }
 
 export default PollinationsExecutor;

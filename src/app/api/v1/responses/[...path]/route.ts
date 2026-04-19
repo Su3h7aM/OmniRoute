@@ -5,21 +5,21 @@ import { initTranslators } from "@omniroute/open-sse/translator/index.ts";
 let initialized = false;
 
 async function ensureInitialized() {
-  if (!initialized) {
-    await initTranslators();
-    initialized = true;
-    console.log("[SSE] Translators initialized for /v1/responses/*");
-  }
+	if (!initialized) {
+		await initTranslators();
+		initialized = true;
+		console.log("[SSE] Translators initialized for /v1/responses/*");
+	}
 }
 
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+	return new Response(null, {
+		headers: {
+			"Access-Control-Allow-Origin": CORS_ORIGIN,
+			"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+			"Access-Control-Allow-Headers": "*",
+		},
+	});
 }
 
 /**
@@ -28,6 +28,6 @@ export async function OPTIONS() {
  * arbitrary Responses suffixes all the way to the upstream provider.
  */
 export async function POST(request) {
-  await ensureInitialized();
-  return await handleChat(request);
+	await ensureInitialized();
+	return await handleChat(request);
 }

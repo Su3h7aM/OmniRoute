@@ -16,28 +16,28 @@ import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 
 interface AccessSchedule {
-  enabled: boolean;
-  from: string;
-  until: string;
-  days: number[];
-  tz: string;
+	enabled: boolean;
+	from: string;
+	until: string;
+	days: number[];
+	tz: string;
 }
 
 /** Metadata stored for an API key in the local database. */
 export interface ApiKeyMetadata {
-  id: string;
-  name?: string;
-  allowedModels?: string[];
-  allowedConnections?: string[];
-  noLog?: boolean;
-  autoResolve?: boolean;
-  budget?: number;
-  usedBudget?: number;
-  isActive?: boolean;
-  accessSchedule?: AccessSchedule | null;
-  maxRequestsPerDay?: number | null;
-  maxRequestsPerMinute?: number | null;
-  maxSessions?: number | null;
+	id: string;
+	name?: string;
+	allowedModels?: string[];
+	allowedConnections?: string[];
+	noLog?: boolean;
+	autoResolve?: boolean;
+	budget?: number;
+	usedBudget?: number;
+	isActive?: boolean;
+	accessSchedule?: AccessSchedule | null;
+	maxRequestsPerDay?: number | null;
+	maxRequestsPerMinute?: number | null;
+	maxSessions?: number | null;
 }
 
 /**
@@ -46,64 +46,64 @@ export interface ApiKeyMetadata {
  * Supports overnight ranges (e.g. 22:00 until 06:00).
  */
 function isWithinSchedule(schedule: AccessSchedule): boolean {
-  if (!schedule.enabled) return true;
+	if (!schedule.enabled) return true;
 
-  const now = new Date();
+	const now = new Date();
 
-  // Convert current UTC time to the configured timezone
-  let localTimeStr: string;
-  try {
-    localTimeStr = new Intl.DateTimeFormat("en-US", {
-      timeZone: schedule.tz,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).format(now);
-  } catch {
-    // Invalid timezone — fail open (don't block)
-    return true;
-  }
+	// Convert current UTC time to the configured timezone
+	let localTimeStr: string;
+	try {
+		localTimeStr = new Intl.DateTimeFormat("en-US", {
+			timeZone: schedule.tz,
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		}).format(now);
+	} catch {
+		// Invalid timezone — fail open (don't block)
+		return true;
+	}
 
-  // Intl may return "24:xx" instead of "00:xx" — normalize
-  const normalizedTime = localTimeStr.replace(/^24:/, "00:");
-  const [localHour, localMin] = normalizedTime.split(":").map(Number);
-  const localMinutes = localHour * 60 + localMin;
+	// Intl may return "24:xx" instead of "00:xx" — normalize
+	const normalizedTime = localTimeStr.replace(/^24:/, "00:");
+	const [localHour, localMin] = normalizedTime.split(":").map(Number);
+	const localMinutes = localHour * 60 + localMin;
 
-  // Determine current weekday in the configured timezone
-  let localDayStr: string;
-  try {
-    localDayStr = new Intl.DateTimeFormat("en-US", {
-      timeZone: schedule.tz,
-      weekday: "short",
-    }).format(now);
-  } catch {
-    return true;
-  }
+	// Determine current weekday in the configured timezone
+	let localDayStr: string;
+	try {
+		localDayStr = new Intl.DateTimeFormat("en-US", {
+			timeZone: schedule.tz,
+			weekday: "short",
+		}).format(now);
+	} catch {
+		return true;
+	}
 
-  const dayMap: Record<string, number> = {
-    Sun: 0,
-    Mon: 1,
-    Tue: 2,
-    Wed: 3,
-    Thu: 4,
-    Fri: 5,
-    Sat: 6,
-  };
-  const localDay = dayMap[localDayStr] ?? now.getDay();
+	const dayMap: Record<string, number> = {
+		Sun: 0,
+		Mon: 1,
+		Tue: 2,
+		Wed: 3,
+		Thu: 4,
+		Fri: 5,
+		Sat: 6,
+	};
+	const localDay = dayMap[localDayStr] ?? now.getDay();
 
-  if (!schedule.days.includes(localDay)) return false;
+	if (!schedule.days.includes(localDay)) return false;
 
-  const [fromHour, fromMin] = schedule.from.split(":").map(Number);
-  const [untilHour, untilMin] = schedule.until.split(":").map(Number);
-  const fromMinutes = fromHour * 60 + fromMin;
-  const untilMinutes = untilHour * 60 + untilMin;
+	const [fromHour, fromMin] = schedule.from.split(":").map(Number);
+	const [untilHour, untilMin] = schedule.until.split(":").map(Number);
+	const fromMinutes = fromHour * 60 + fromMin;
+	const untilMinutes = untilHour * 60 + untilMin;
 
-  // Overnight window (e.g. 22:00 → 06:00)
-  if (untilMinutes < fromMinutes) {
-    return localMinutes >= fromMinutes || localMinutes < untilMinutes;
-  }
+	// Overnight window (e.g. 22:00 → 06:00)
+	if (untilMinutes < fromMinutes) {
+		return localMinutes >= fromMinutes || localMinutes < untilMinutes;
+	}
 
-  return localMinutes >= fromMinutes && localMinutes < untilMinutes;
+	return localMinutes >= fromMinutes && localMinutes < untilMinutes;
 }
 
 // ── In-memory request counter for per-key rate limits (#452) ──
@@ -116,62 +116,62 @@ const REQUEST_MINUTE_MS = 60 * 1000;
 
 /** Record a request and check per-key limits. Returns null if OK, or an error message. */
 function checkRequestCountLimits(
-  apiKeyId: string,
-  maxPerDay: number | null | undefined,
-  maxPerMinute: number | null | undefined
+	apiKeyId: string,
+	maxPerDay: number | null | undefined,
+	maxPerMinute: number | null | undefined
 ): string | null {
-  if (!maxPerDay && !maxPerMinute) return null;
+	if (!maxPerDay && !maxPerMinute) return null;
 
-  const now = Date.now();
+	const now = Date.now();
 
-  // Get or create timestamp array for this key
-  let timestamps = _requestTimestamps.get(apiKeyId);
-  if (!timestamps) {
-    timestamps = [];
-    _requestTimestamps.set(apiKeyId, timestamps);
-    // Prevent unbounded growth
-    if (_requestTimestamps.size > REQUEST_COUNTER_MAX_KEYS) {
-      const firstKey = _requestTimestamps.keys().next().value;
-      if (firstKey) _requestTimestamps.delete(firstKey);
-    }
-  }
+	// Get or create timestamp array for this key
+	let timestamps = _requestTimestamps.get(apiKeyId);
+	if (!timestamps) {
+		timestamps = [];
+		_requestTimestamps.set(apiKeyId, timestamps);
+		// Prevent unbounded growth
+		if (_requestTimestamps.size > REQUEST_COUNTER_MAX_KEYS) {
+			const firstKey = _requestTimestamps.keys().next().value;
+			if (firstKey) _requestTimestamps.delete(firstKey);
+		}
+	}
 
-  // Prune timestamps older than 24h
-  const dayAgo = now - REQUEST_DAY_MS;
-  while (timestamps.length > 0 && timestamps[0] < dayAgo) {
-    timestamps.shift();
-  }
+	// Prune timestamps older than 24h
+	const dayAgo = now - REQUEST_DAY_MS;
+	while (timestamps.length > 0 && timestamps[0] < dayAgo) {
+		timestamps.shift();
+	}
 
-  // Check per-minute limit (before recording this request)
-  if (maxPerMinute && maxPerMinute > 0) {
-    const minuteAgo = now - REQUEST_MINUTE_MS;
-    const recentCount = timestamps.filter((t) => t >= minuteAgo).length;
-    if (recentCount >= maxPerMinute) {
-      return `Per-minute request limit exceeded (${maxPerMinute} RPM). Try again in a few seconds.`;
-    }
-  }
+	// Check per-minute limit (before recording this request)
+	if (maxPerMinute && maxPerMinute > 0) {
+		const minuteAgo = now - REQUEST_MINUTE_MS;
+		const recentCount = timestamps.filter((t) => t >= minuteAgo).length;
+		if (recentCount >= maxPerMinute) {
+			return `Per-minute request limit exceeded (${maxPerMinute} RPM). Try again in a few seconds.`;
+		}
+	}
 
-  // Check per-day limit
-  if (maxPerDay && maxPerDay > 0) {
-    if (timestamps.length >= maxPerDay) {
-      return `Daily request limit exceeded (${maxPerDay} RPD). Resets in ${Math.ceil(
-        (timestamps[0] + REQUEST_DAY_MS - now) / 60000
-      )} minutes.`;
-    }
-  }
+	// Check per-day limit
+	if (maxPerDay && maxPerDay > 0) {
+		if (timestamps.length >= maxPerDay) {
+			return `Daily request limit exceeded (${maxPerDay} RPD). Resets in ${Math.ceil(
+				(timestamps[0] + REQUEST_DAY_MS - now) / 60000
+			)} minutes.`;
+		}
+	}
 
-  // All checks passed — record this request
-  timestamps.push(now);
-  return null;
+	// All checks passed — record this request
+	timestamps.push(now);
+	return null;
 }
 
 export interface ApiKeyPolicyResult {
-  /** API key string (null if no key provided) */
-  apiKey: string | null;
-  /** Metadata from DB (null if no key or key not found) */
-  apiKeyInfo: ApiKeyMetadata | null;
-  /** If set, the request should be rejected with this Response */
-  rejection: Response | null;
+	/** API key string (null if no key provided) */
+	apiKey: string | null;
+	/** Metadata from DB (null if no key or key not found) */
+	apiKeyInfo: ApiKeyMetadata | null;
+	/** If set, the request should be rejected with this Response */
+	rejection: Response | null;
 }
 
 /**
@@ -193,114 +193,117 @@ export interface ApiKeyPolicyResult {
  * ```
  */
 export async function enforceApiKeyPolicy(
-  request: Request,
-  modelStr: string | null
+	request: Request,
+	modelStr: string | null
 ): Promise<ApiKeyPolicyResult> {
-  const apiKey = extractApiKey(request);
+	const apiKey = extractApiKey(request);
 
-  // No API key = local mode, skip policy checks
-  if (!apiKey) {
-    return { apiKey: null, apiKeyInfo: null, rejection: null };
-  }
+	// No API key = local mode, skip policy checks
+	if (!apiKey) {
+		return { apiKey: null, apiKeyInfo: null, rejection: null };
+	}
 
-  // Fetch key metadata (includes allowedModels)
-  let apiKeyInfo: ApiKeyMetadata | null = null;
-  try {
-    apiKeyInfo = await getApiKeyMetadata(apiKey);
-  } catch (error) {
-    // Fail-closed: if policy backend fails, reject the request
-    log.error("API_POLICY", "Failed to fetch API key metadata. Request blocked.", { error });
-    return {
-      apiKey,
-      apiKeyInfo: null,
-      rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key policy unavailable"),
-    };
-  }
+	// Fetch key metadata (includes allowedModels)
+	let apiKeyInfo: ApiKeyMetadata | null = null;
+	try {
+		apiKeyInfo = await getApiKeyMetadata(apiKey);
+	} catch (error) {
+		// Fail-closed: if policy backend fails, reject the request
+		log.error("API_POLICY", "Failed to fetch API key metadata. Request blocked.", { error });
+		return {
+			apiKey,
+			apiKeyInfo: null,
+			rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "API key policy unavailable"),
+		};
+	}
 
-  // Key not found in DB — skip policy (auth layer handles validation)
-  if (!apiKeyInfo) {
-    return { apiKey, apiKeyInfo: null, rejection: null };
-  }
+	// Key not found in DB — skip policy (auth layer handles validation)
+	if (!apiKeyInfo) {
+		return { apiKey, apiKeyInfo: null, rejection: null };
+	}
 
-  // ── Check 1: is_active — hard block regardless of schedule ──
-  if (apiKeyInfo.isActive === false) {
-    return {
-      apiKey,
-      apiKeyInfo,
-      rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled"),
-    };
-  }
+	// ── Check 1: is_active — hard block regardless of schedule ──
+	if (apiKeyInfo.isActive === false) {
+		return {
+			apiKey,
+			apiKeyInfo,
+			rejection: errorResponse(HTTP_STATUS.FORBIDDEN, "This API key is disabled"),
+		};
+	}
 
-  // ── Check 2: access_schedule — time-based access window ──
-  if (apiKeyInfo.accessSchedule && apiKeyInfo.accessSchedule.enabled) {
-    if (!isWithinSchedule(apiKeyInfo.accessSchedule)) {
-      const { from, until, tz } = apiKeyInfo.accessSchedule;
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.FORBIDDEN,
-          `Access denied outside allowed hours (${from}–${until} ${tz})`
-        ),
-      };
-    }
-  }
+	// ── Check 2: access_schedule — time-based access window ──
+	if (apiKeyInfo.accessSchedule && apiKeyInfo.accessSchedule.enabled) {
+		if (!isWithinSchedule(apiKeyInfo.accessSchedule)) {
+			const { from, until, tz } = apiKeyInfo.accessSchedule;
+			return {
+				apiKey,
+				apiKeyInfo,
+				rejection: errorResponse(
+					HTTP_STATUS.FORBIDDEN,
+					`Access denied outside allowed hours (${from}–${until} ${tz})`
+				),
+			};
+		}
+	}
 
-  // ── Check 3: Model restriction ──
-  if (modelStr && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) {
-    const allowed = await isModelAllowedForKey(apiKey, modelStr);
-    if (!allowed) {
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(
-          HTTP_STATUS.FORBIDDEN,
-          `Model "${modelStr}" is not allowed for this API key`
-        ),
-      };
-    }
-  }
+	// ── Check 3: Model restriction ──
+	if (modelStr && apiKeyInfo.allowedModels && apiKeyInfo.allowedModels.length > 0) {
+		const allowed = await isModelAllowedForKey(apiKey, modelStr);
+		if (!allowed) {
+			return {
+				apiKey,
+				apiKeyInfo,
+				rejection: errorResponse(
+					HTTP_STATUS.FORBIDDEN,
+					`Model "${modelStr}" is not allowed for this API key`
+				),
+			};
+		}
+	}
 
-  // ── Check 4: Budget limit ──
-  if (apiKeyInfo.id) {
-    try {
-      const budgetOk = checkBudget(apiKeyInfo.id);
-      if (!budgetOk.allowed) {
-        return {
-          apiKey,
-          apiKeyInfo,
-          rejection: errorResponse(
-            HTTP_STATUS.RATE_LIMITED,
-            budgetOk.reason || "Budget limit exceeded"
-          ),
-        };
-      }
-    } catch (error) {
-      // Fail-closed: budget backend error should block request
-      log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.SERVICE_UNAVAILABLE, "Budget policy unavailable"),
-      };
-    }
-  }
+	// ── Check 4: Budget limit ──
+	if (apiKeyInfo.id) {
+		try {
+			const budgetOk = checkBudget(apiKeyInfo.id);
+			if (!budgetOk.allowed) {
+				return {
+					apiKey,
+					apiKeyInfo,
+					rejection: errorResponse(
+						HTTP_STATUS.RATE_LIMITED,
+						budgetOk.reason || "Budget limit exceeded"
+					),
+				};
+			}
+		} catch (error) {
+			// Fail-closed: budget backend error should block request
+			log.error("API_POLICY", "Budget check failed. Request blocked.", { error });
+			return {
+				apiKey,
+				apiKeyInfo,
+				rejection: errorResponse(
+					HTTP_STATUS.SERVICE_UNAVAILABLE,
+					"Budget policy unavailable"
+				),
+			};
+		}
+	}
 
-  // ── Check 5: Request-count limits (#452) ──
-  if (apiKeyInfo.id && (apiKeyInfo.maxRequestsPerDay || apiKeyInfo.maxRequestsPerMinute)) {
-    const limitError = checkRequestCountLimits(
-      apiKeyInfo.id,
-      apiKeyInfo.maxRequestsPerDay,
-      apiKeyInfo.maxRequestsPerMinute
-    );
-    if (limitError) {
-      return {
-        apiKey,
-        apiKeyInfo,
-        rejection: errorResponse(HTTP_STATUS.RATE_LIMITED, limitError),
-      };
-    }
-  }
+	// ── Check 5: Request-count limits (#452) ──
+	if (apiKeyInfo.id && (apiKeyInfo.maxRequestsPerDay || apiKeyInfo.maxRequestsPerMinute)) {
+		const limitError = checkRequestCountLimits(
+			apiKeyInfo.id,
+			apiKeyInfo.maxRequestsPerDay,
+			apiKeyInfo.maxRequestsPerMinute
+		);
+		if (limitError) {
+			return {
+				apiKey,
+				apiKeyInfo,
+				rejection: errorResponse(HTTP_STATUS.RATE_LIMITED, limitError),
+			};
+		}
+	}
 
-  return { apiKey, apiKeyInfo, rejection: null };
+	return { apiKey, apiKeyInfo, rejection: null };
 }

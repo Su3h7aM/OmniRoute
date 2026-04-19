@@ -6,20 +6,20 @@
  */
 
 const DEFAULT_COMBO_CONFIG = {
-  strategy: "priority",
-  maxRetries: 1,
-  retryDelayMs: 2000,
-  timeoutMs: 600000,
-  concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
-  queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
-  healthCheckEnabled: true,
-  healthCheckTimeoutMs: 3000,
-  handoffThreshold: 0.85,
-  handoffModel: "",
-  handoffProviders: ["codex"],
-  maxMessagesForSummary: 30,
-  maxComboDepth: 3,
-  trackMetrics: true,
+	strategy: "priority",
+	maxRetries: 1,
+	retryDelayMs: 2000,
+	timeoutMs: 600000,
+	concurrencyPerModel: 3, // max simultaneous requests per model (round-robin)
+	queueTimeoutMs: 30000, // max wait time in semaphore queue (round-robin)
+	healthCheckEnabled: true,
+	healthCheckTimeoutMs: 3000,
+	handoffThreshold: 0.85,
+	handoffModel: "",
+	handoffProviders: ["codex"],
+	maxMessagesForSummary: 30,
+	maxComboDepth: 3,
+	trackMetrics: true,
 };
 
 /**
@@ -32,25 +32,25 @@ const DEFAULT_COMBO_CONFIG = {
  * @returns {Object} Resolved config
  */
 export function resolveComboConfig(combo, settings, provider?: string | null) {
-  const global = settings?.comboDefaults || {};
-  const providerOverride = provider ? settings?.providerOverrides?.[provider] || {} : {};
-  const comboConfig = combo?.config || {};
+	const global = settings?.comboDefaults || {};
+	const providerOverride = provider ? settings?.providerOverrides?.[provider] || {} : {};
+	const comboConfig = combo?.config || {};
 
-  // Clean undefined values before spreading
-  const clean = (obj) =>
-    Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== null));
+	// Clean undefined values before spreading
+	const clean = (obj) =>
+		Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== null));
 
-  return {
-    ...DEFAULT_COMBO_CONFIG,
-    ...clean(global),
-    ...clean(providerOverride),
-    ...clean(comboConfig),
-  };
+	return {
+		...DEFAULT_COMBO_CONFIG,
+		...clean(global),
+		...clean(providerOverride),
+		...clean(comboConfig),
+	};
 }
 
 /**
  * Get the default combo config (used when no overrides exist)
  */
 export function getDefaultComboConfig() {
-  return { ...DEFAULT_COMBO_CONFIG };
+	return { ...DEFAULT_COMBO_CONFIG };
 }

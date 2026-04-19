@@ -19,11 +19,11 @@ let _derivedKey: Buffer | null = null;
 
 /** Connection object with potentially encrypted credential fields. */
 export interface ConnectionFields {
-  apiKey?: string | null;
-  accessToken?: string | null;
-  refreshToken?: string | null;
-  idToken?: string | null;
-  [key: string]: unknown;
+	apiKey?: string | null;
+	accessToken?: string | null;
+	refreshToken?: string | null;
+	idToken?: string | null;
+	[key: string]: unknown;
 }
 
 /**
@@ -31,37 +31,37 @@ export interface ConnectionFields {
  * Returns null if no encryption key is configured.
  */
 function getKey(): Buffer | null {
-  if (_derivedKey !== null) return _derivedKey;
+	if (_derivedKey !== null) return _derivedKey;
 
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
-  if (!secret) return null;
+	const secret = process.env.STORAGE_ENCRYPTION_KEY;
+	if (!secret) return null;
 
-  if (typeof secret !== "string" || secret.trim().length === 0) {
-    console.error(
-      "[Encryption] STORAGE_ENCRYPTION_KEY is set but empty or invalid. " +
-        "Generate a valid key with: openssl rand -base64 32"
-    );
-    return null;
-  }
+	if (typeof secret !== "string" || secret.trim().length === 0) {
+		console.error(
+			"[Encryption] STORAGE_ENCRYPTION_KEY is set but empty or invalid. " +
+				"Generate a valid key with: openssl rand -base64 32"
+		);
+		return null;
+	}
 
-  // Fixed salt derived from app name — deterministic so same key always produces same derived key
-  const salt = "omniroute-field-encryption-v1";
-  try {
-    _derivedKey = scryptSync(secret, salt, KEY_LENGTH);
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(
-      `[Encryption] Failed to derive key from STORAGE_ENCRYPTION_KEY: ${message}. ` +
-        `Generate a valid key with: openssl rand -base64 32`
-    );
-    return null;
-  }
-  return _derivedKey;
+	// Fixed salt derived from app name — deterministic so same key always produces same derived key
+	const salt = "omniroute-field-encryption-v1";
+	try {
+		_derivedKey = scryptSync(secret, salt, KEY_LENGTH);
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		console.error(
+			`[Encryption] Failed to derive key from STORAGE_ENCRYPTION_KEY: ${message}. ` +
+				`Generate a valid key with: openssl rand -base64 32`
+		);
+		return null;
+	}
+	return _derivedKey;
 }
 
 /** Check if encryption is enabled. */
 export function isEncryptionEnabled(): boolean {
-  return !!process.env.STORAGE_ENCRYPTION_KEY;
+	return !!process.env.STORAGE_ENCRYPTION_KEY;
 }
 
 /**
@@ -69,103 +69,103 @@ export function isEncryptionEnabled(): boolean {
  * If encryption is not configured, returns plaintext unchanged.
  */
 export function encrypt(plaintext: string | null | undefined): string | null | undefined {
-  if (!plaintext || typeof plaintext !== "string") return plaintext;
+	if (!plaintext || typeof plaintext !== "string") return plaintext;
 
-  const key = getKey();
-  if (!key) return plaintext; // passthrough mode
+	const key = getKey();
+	if (!key) return plaintext; // passthrough mode
 
-  // Already encrypted — don't double-encrypt
-  if (plaintext.startsWith(PREFIX)) return plaintext;
+	// Already encrypted — don't double-encrypt
+	if (plaintext.startsWith(PREFIX)) return plaintext;
 
-  try {
-    const iv = randomBytes(IV_LENGTH);
-    const cipher = createCipheriv(ALGORITHM, key, iv);
+	try {
+		const iv = randomBytes(IV_LENGTH);
+		const cipher = createCipheriv(ALGORITHM, key, iv);
 
-    let encrypted = cipher.update(plaintext, "utf8", "hex");
-    encrypted += cipher.final("hex");
-    const authTag = cipher.getAuthTag().toString("hex");
+		let encrypted = cipher.update(plaintext, "utf8", "hex");
+		encrypted += cipher.final("hex");
+		const authTag = cipher.getAuthTag().toString("hex");
 
-    return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(
-      `[Encryption] Encryption failed: ${message}. ` +
-        `Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
-    );
-    return plaintext; // fallback to plaintext rather than crashing
-  }
+		return `${PREFIX}${iv.toString("hex")}:${encrypted}:${authTag}`;
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		console.error(
+			`[Encryption] Encryption failed: ${message}. ` +
+				`Check your STORAGE_ENCRYPTION_KEY — generate one with: openssl rand -base64 32`
+		);
+		return plaintext; // fallback to plaintext rather than crashing
+	}
 }
 
 /**
  * Decrypt a ciphertext string. If not encrypted (no prefix), returns as-is.
  */
 export function decrypt(ciphertext: string | null | undefined): string | null | undefined {
-  if (!ciphertext || typeof ciphertext !== "string") return ciphertext;
+	if (!ciphertext || typeof ciphertext !== "string") return ciphertext;
 
-  // Not encrypted — return as-is (legacy plaintext or passthrough mode)
-  if (!ciphertext.startsWith(PREFIX)) return ciphertext;
+	// Not encrypted — return as-is (legacy plaintext or passthrough mode)
+	if (!ciphertext.startsWith(PREFIX)) return ciphertext;
 
-  const key = getKey();
-  if (!key) {
-    console.warn(
-      "[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
-    );
-    return ciphertext;
-  }
+	const key = getKey();
+	if (!key) {
+		console.warn(
+			"[Encryption] Found encrypted data but STORAGE_ENCRYPTION_KEY is not set. Cannot decrypt."
+		);
+		return ciphertext;
+	}
 
-  const body = ciphertext.slice(PREFIX.length);
-  const parts = body.split(":");
-  if (parts.length !== 3) {
-    console.error("[Encryption] Malformed encrypted value");
-    return ciphertext;
-  }
+	const body = ciphertext.slice(PREFIX.length);
+	const parts = body.split(":");
+	if (parts.length !== 3) {
+		console.error("[Encryption] Malformed encrypted value");
+		return ciphertext;
+	}
 
-  const [ivHex, encryptedHex, authTagHex] = parts;
+	const [ivHex, encryptedHex, authTagHex] = parts;
 
-  try {
-    const iv = Buffer.from(ivHex, "hex");
-    const authTag = Buffer.from(authTagHex, "hex");
-    const decipher = createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(authTag);
+	try {
+		const iv = Buffer.from(ivHex, "hex");
+		const authTag = Buffer.from(authTagHex, "hex");
+		const decipher = createDecipheriv(ALGORITHM, key, iv);
+		decipher.setAuthTag(authTag);
 
-    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[Encryption] Decryption failed:", message);
-    return ciphertext;
-  }
+		let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+		decrypted += decipher.final("utf8");
+		return decrypted;
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		console.error("[Encryption] Decryption failed:", message);
+		return ciphertext;
+	}
 }
 
 /**
  * Encrypt sensitive fields in a connection object (mutates in-place).
  */
 export function encryptConnectionFields<T extends ConnectionFields | null | undefined>(conn: T): T {
-  if (!isEncryptionEnabled()) return conn;
-  if (!conn) return conn;
+	if (!isEncryptionEnabled()) return conn;
+	if (!conn) return conn;
 
-  if (conn.apiKey) conn.apiKey = encrypt(conn.apiKey);
-  if (conn.accessToken) conn.accessToken = encrypt(conn.accessToken);
-  if (conn.refreshToken) conn.refreshToken = encrypt(conn.refreshToken);
-  if (conn.idToken) conn.idToken = encrypt(conn.idToken);
-  return conn;
+	if (conn.apiKey) conn.apiKey = encrypt(conn.apiKey);
+	if (conn.accessToken) conn.accessToken = encrypt(conn.accessToken);
+	if (conn.refreshToken) conn.refreshToken = encrypt(conn.refreshToken);
+	if (conn.idToken) conn.idToken = encrypt(conn.idToken);
+	return conn;
 }
 
 /**
  * Decrypt sensitive fields in a connection row (returns new object).
  */
 export function decryptConnectionFields<T extends ConnectionFields | null | undefined>(row: T): T {
-  if (!row) return row;
-  if (!isEncryptionEnabled()) return row;
+	if (!row) return row;
+	if (!isEncryptionEnabled()) return row;
 
-  return {
-    ...row,
-    apiKey: decrypt(row.apiKey),
-    accessToken: decrypt(row.accessToken),
-    refreshToken: decrypt(row.refreshToken),
-    idToken: decrypt(row.idToken),
-  };
+	return {
+		...row,
+		apiKey: decrypt(row.apiKey),
+		accessToken: decrypt(row.accessToken),
+		refreshToken: decrypt(row.refreshToken),
+		idToken: decrypt(row.idToken),
+	};
 }
 
 /**
@@ -173,31 +173,31 @@ export function decryptConnectionFields<T extends ConnectionFields | null | unde
  * Returns { valid: true } or { valid: false, error: string } with actionable guidance.
  */
 export function validateEncryptionConfig(): { valid: boolean; error?: string } {
-  const secret = process.env.STORAGE_ENCRYPTION_KEY;
+	const secret = process.env.STORAGE_ENCRYPTION_KEY;
 
-  // No key set — passthrough mode is fine
-  if (!secret) return { valid: true };
+	// No key set — passthrough mode is fine
+	if (!secret) return { valid: true };
 
-  if (typeof secret !== "string" || secret.trim().length === 0) {
-    return {
-      valid: false,
-      error:
-        "STORAGE_ENCRYPTION_KEY is set but empty. " +
-        "Either remove it (passthrough mode) or set a valid key: openssl rand -base64 32",
-    };
-  }
+	if (typeof secret !== "string" || secret.trim().length === 0) {
+		return {
+			valid: false,
+			error:
+				"STORAGE_ENCRYPTION_KEY is set but empty. " +
+				"Either remove it (passthrough mode) or set a valid key: openssl rand -base64 32",
+		};
+	}
 
-  // Try deriving a key to verify it works
-  try {
-    scryptSync(secret, "omniroute-field-encryption-v1", KEY_LENGTH);
-    return { valid: true };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return {
-      valid: false,
-      error:
-        `STORAGE_ENCRYPTION_KEY is invalid (${message}). ` +
-        `Generate a valid key with: openssl rand -base64 32`,
-    };
-  }
+	// Try deriving a key to verify it works
+	try {
+		scryptSync(secret, "omniroute-field-encryption-v1", KEY_LENGTH);
+		return { valid: true };
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		return {
+			valid: false,
+			error:
+				`STORAGE_ENCRYPTION_KEY is invalid (${message}). ` +
+				`Generate a valid key with: openssl rand -base64 32`,
+		};
+	}
 }

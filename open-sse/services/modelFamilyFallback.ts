@@ -22,68 +22,72 @@ import { CONTEXT_OVERFLOW_REGEX } from "./errorClassifier.ts";
  * First entry is the most preferred; fallback proceeds in order.
  */
 const MODEL_FAMILIES: Record<string, string[]> = {
-  // Gemini 3 / 3.1 Pro family — ordered by preference
-  "gemini-3-pro": [
-    "gemini-3.1-pro-preview",
-    "gemini-3-pro-preview",
-    "gemini-3.1-pro-high",
-    "gemini-3-pro-high",
-    "gemini-3.1-pro-low",
-    "gemini-3-pro-low",
-  ],
-  "gemini-3.1-pro": [
-    "gemini-3.1-pro-preview",
-    "gemini-3-pro-preview",
-    "gemini-3.1-pro-high",
-    "gemini-3-pro-high",
-    "gemini-3.1-pro-low",
-    "gemini-3-pro-low",
-  ],
-  "gemini-3-pro-preview": [
-    "gemini-3.1-pro-preview",
-    "gemini-3-pro-high",
-    "gemini-3.1-pro-high",
-    "gemini-3-pro-low",
-    "gemini-3.1-pro-low",
-  ],
-  "gemini-3.1-pro-preview": [
-    "gemini-3-pro-preview",
-    "gemini-3.1-pro-high",
-    "gemini-3-pro-high",
-    "gemini-3.1-pro-low",
-    "gemini-3-pro-low",
-  ],
-  "gemini-3-pro-high": [
-    "gemini-3.1-pro-high",
-    "gemini-3-pro-preview",
-    "gemini-3.1-pro-preview",
-    "gemini-3-pro-low",
-    "gemini-3.1-pro-low",
-  ],
-  "gemini-3.1-pro-high": [
-    "gemini-3-pro-high",
-    "gemini-3.1-pro-preview",
-    "gemini-3-pro-preview",
-    "gemini-3.1-pro-low",
-    "gemini-3-pro-low",
-  ],
+	// Gemini 3 / 3.1 Pro family — ordered by preference
+	"gemini-3-pro": [
+		"gemini-3.1-pro-preview",
+		"gemini-3-pro-preview",
+		"gemini-3.1-pro-high",
+		"gemini-3-pro-high",
+		"gemini-3.1-pro-low",
+		"gemini-3-pro-low",
+	],
+	"gemini-3.1-pro": [
+		"gemini-3.1-pro-preview",
+		"gemini-3-pro-preview",
+		"gemini-3.1-pro-high",
+		"gemini-3-pro-high",
+		"gemini-3.1-pro-low",
+		"gemini-3-pro-low",
+	],
+	"gemini-3-pro-preview": [
+		"gemini-3.1-pro-preview",
+		"gemini-3-pro-high",
+		"gemini-3.1-pro-high",
+		"gemini-3-pro-low",
+		"gemini-3.1-pro-low",
+	],
+	"gemini-3.1-pro-preview": [
+		"gemini-3-pro-preview",
+		"gemini-3.1-pro-high",
+		"gemini-3-pro-high",
+		"gemini-3.1-pro-low",
+		"gemini-3-pro-low",
+	],
+	"gemini-3-pro-high": [
+		"gemini-3.1-pro-high",
+		"gemini-3-pro-preview",
+		"gemini-3.1-pro-preview",
+		"gemini-3-pro-low",
+		"gemini-3.1-pro-low",
+	],
+	"gemini-3.1-pro-high": [
+		"gemini-3-pro-high",
+		"gemini-3.1-pro-preview",
+		"gemini-3-pro-preview",
+		"gemini-3.1-pro-low",
+		"gemini-3-pro-low",
+	],
 
-  // Gemini 2.5 Pro family
-  "gemini-2.5-pro": ["gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-exp-03-25"],
-  "gemini-2.5-pro-preview-06-05": ["gemini-2.5-pro", "gemini-2.5-pro-exp-03-25"],
+	// Gemini 2.5 Pro family
+	"gemini-2.5-pro": ["gemini-2.5-pro-preview-06-05", "gemini-2.5-pro-exp-03-25"],
+	"gemini-2.5-pro-preview-06-05": ["gemini-2.5-pro", "gemini-2.5-pro-exp-03-25"],
 
-  // Claude Opus family
-  "claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
-  "claude-opus-4-6": ["claude-opus-4-6-thinking", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
-  "claude-opus-4-6-thinking": ["claude-opus-4-6", "claude-opus-4-5-20251101"],
+	// Claude Opus family
+	"claude-opus-4-7": ["claude-opus-4-6", "claude-opus-4-5-20251101", "claude-sonnet-4-6"],
+	"claude-opus-4-6": [
+		"claude-opus-4-6-thinking",
+		"claude-opus-4-5-20251101",
+		"claude-sonnet-4-6",
+	],
+	"claude-opus-4-6-thinking": ["claude-opus-4-6", "claude-opus-4-5-20251101"],
 
-  // Claude Sonnet family
-  "claude-sonnet-4-6": ["claude-sonnet-4-5-20250929", "claude-sonnet-4-20250514"],
-  "claude-sonnet-4-5-20250929": ["claude-sonnet-4-6", "claude-sonnet-4-20250514"],
+	// Claude Sonnet family
+	"claude-sonnet-4-6": ["claude-sonnet-4-5-20250929", "claude-sonnet-4-20250514"],
+	"claude-sonnet-4-5-20250929": ["claude-sonnet-4-6", "claude-sonnet-4-20250514"],
 
-  // GPT-5 family
-  "gpt-5": ["gpt-5-mini", "gpt-4o"],
-  "gpt-5.1": ["gpt-5.1-mini", "gpt-5", "gpt-4o"],
+	// GPT-5 family
+	"gpt-5": ["gpt-5-mini", "gpt-4o"],
+	"gpt-5.1": ["gpt-5.1-mini", "gpt-5", "gpt-4o"],
 };
 
 // ── Error Detection ──────────────────────────────────────────────────────────
@@ -93,20 +97,20 @@ const MODEL_FAMILIES: Record<string, string[]> = {
  * for the current account/provider, as opposed to a transient error.
  */
 const MODEL_UNAVAILABLE_FRAGMENTS = [
-  "model not found",
-  "model_not_found",
-  "model not available",
-  "model is not available",
-  "no such model",
-  "unsupported model",
-  "unknown model",
-  "this model does not exist",
-  "invalid model",
-  "model not supported",
-  "does not support",
-  "not enabled for",
-  "access to model",
-  "improperly formed request", // Kiro 400 (model unavailable)
+	"model not found",
+	"model_not_found",
+	"model not available",
+	"model is not available",
+	"no such model",
+	"unsupported model",
+	"unknown model",
+	"this model does not exist",
+	"invalid model",
+	"model not supported",
+	"does not support",
+	"not enabled for",
+	"access to model",
+	"improperly formed request", // Kiro 400 (model unavailable)
 ];
 
 /**
@@ -114,16 +118,16 @@ const MODEL_UNAVAILABLE_FRAGMENTS = [
  * itself is not available, not a transient server error.
  */
 export function isModelUnavailableError(status: number, errorMessage: string): boolean {
-  if (status === 404) return true;
-  if (status !== 400 && status !== 403) return false;
+	if (status === 404) return true;
+	if (status !== 400 && status !== 403) return false;
 
-  const msg = errorMessage.toLowerCase();
-  return MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment));
+	const msg = errorMessage.toLowerCase();
+	return MODEL_UNAVAILABLE_FRAGMENTS.some((fragment) => msg.includes(fragment));
 }
 
 export function isContextOverflowError(status: number, errorMessage: string): boolean {
-  if (status !== 400) return false;
-  return CONTEXT_OVERFLOW_REGEX.test(errorMessage);
+	if (status !== 400) return false;
+	return CONTEXT_OVERFLOW_REGEX.test(errorMessage);
 }
 
 // ── Fallback Resolution ──────────────────────────────────────────────────────
@@ -136,35 +140,35 @@ export function isContextOverflowError(status: number, errorMessage: string): bo
  * @returns             Next model to try, or null if family exhausted
  */
 export function getNextFamilyFallback(
-  currentModel: string,
-  triedModels: Set<string>
+	currentModel: string,
+	triedModels: Set<string>
 ): string | null {
-  const family = MODEL_FAMILIES[currentModel];
-  if (!family) return null;
+	const family = MODEL_FAMILIES[currentModel];
+	if (!family) return null;
 
-  for (const candidate of family) {
-    if (!triedModels.has(candidate)) {
-      return candidate;
-    }
-  }
+	for (const candidate of family) {
+		if (!triedModels.has(candidate)) {
+			return candidate;
+		}
+	}
 
-  return null; // family exhausted
+	return null; // family exhausted
 }
 
 /**
  * Check if a model belongs to any registered family.
  */
 export function isInModelFamily(model: string): boolean {
-  return model in MODEL_FAMILIES;
+	return model in MODEL_FAMILIES;
 }
 
 /**
  * Get all members of a model's family (including itself).
  */
 export function getModelFamily(model: string): string[] {
-  const family = MODEL_FAMILIES[model];
-  if (!family) return [model];
-  return [model, ...family];
+	const family = MODEL_FAMILIES[model];
+	if (!family) return [model];
+	return [model, ...family];
 }
 
 /**
@@ -172,29 +176,29 @@ export function getModelFamily(model: string): string[] {
  * Uses models.dev synced capabilities to compare context limits.
  */
 export function findLargerContextModel(
-  currentModel: string,
-  availableModels: string[]
+	currentModel: string,
+	availableModels: string[]
 ): string | null {
-  const currentParsed = parseModel(currentModel);
-  const currentProvider = currentParsed.provider || currentParsed.providerAlias || "unknown";
-  const currentModelId = currentParsed.model || currentModel;
-  const currentLimit = getModelContextLimit(currentProvider, currentModelId) ?? 0;
+	const currentParsed = parseModel(currentModel);
+	const currentProvider = currentParsed.provider || currentParsed.providerAlias || "unknown";
+	const currentModelId = currentParsed.model || currentModel;
+	const currentLimit = getModelContextLimit(currentProvider, currentModelId) ?? 0;
 
-  let bestModel: string | null = null;
-  let bestLimit = currentLimit;
+	let bestModel: string | null = null;
+	let bestLimit = currentLimit;
 
-  for (const candidate of availableModels) {
-    if (candidate === currentModel) continue;
-    const parsed = parseModel(candidate);
-    const provider = parsed.provider || parsed.providerAlias || "unknown";
-    const modelId = parsed.model || candidate;
-    const limit = getModelContextLimit(provider, modelId) ?? 0;
+	for (const candidate of availableModels) {
+		if (candidate === currentModel) continue;
+		const parsed = parseModel(candidate);
+		const provider = parsed.provider || parsed.providerAlias || "unknown";
+		const modelId = parsed.model || candidate;
+		const limit = getModelContextLimit(provider, modelId) ?? 0;
 
-    if (limit > bestLimit) {
-      bestLimit = limit;
-      bestModel = candidate;
-    }
-  }
+		if (limit > bestLimit) {
+			bestLimit = limit;
+			bestModel = candidate;
+		}
+	}
 
-  return bestModel;
+	return bestModel;
 }

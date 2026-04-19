@@ -43,23 +43,23 @@ const failureState = new Map();
 const FAILURE_WINDOW_MS = 30 * 60 * 1000;
 
 const PROBLEMATIC_STATUS_COOLDOWNS = {
-  429: 5 * 60 * 1000,
-  408: 60 * 1000,
-  500: 2 * 60 * 1000,
-  502: 2 * 60 * 1000,
-  503: 2 * 60 * 1000,
-  504: 2 * 60 * 1000,
+	429: 5 * 60 * 1000,
+	408: 60 * 1000,
+	500: 2 * 60 * 1000,
+	502: 2 * 60 * 1000,
+	503: 2 * 60 * 1000,
+	504: 2 * 60 * 1000,
 };
 
 const MIN_PROBLEMATIC_COOLDOWN_MS = 60 * 1000;
 const MAX_PROBLEMATIC_COOLDOWN_MS = 30 * 60 * 1000;
 
 function toPositiveNumber(value) {
-  return Number.isFinite(value) && Number(value) > 0 ? Number(value) : null;
+	return Number.isFinite(value) && Number(value) > 0 ? Number(value) : null;
 }
 
 function toNonNegativeNumber(value) {
-  return Number.isFinite(value) && Number(value) >= 0 ? Number(value) : null;
+	return Number.isFinite(value) && Number(value) >= 0 ? Number(value) : null;
 }
 
 /**
@@ -71,7 +71,7 @@ function toNonNegativeNumber(value) {
  * @returns {number}
  */
 function getFailureWindowMs(profile) {
-  return toPositiveNumber(profile?.circuitBreakerReset) ?? FAILURE_WINDOW_MS;
+	return toPositiveNumber(profile?.circuitBreakerReset) ?? FAILURE_WINDOW_MS;
 }
 
 /**
@@ -81,13 +81,13 @@ function getFailureWindowMs(profile) {
  * @returns {number}
  */
 function getFailureThreshold(profile) {
-  return toPositiveNumber(profile?.circuitBreakerThreshold) ?? 1;
+	return toPositiveNumber(profile?.circuitBreakerThreshold) ?? 1;
 }
 
 function getLegacyStatusCooldown(status) {
-  return status && Object.prototype.hasOwnProperty.call(PROBLEMATIC_STATUS_COOLDOWNS, status)
-    ? PROBLEMATIC_STATUS_COOLDOWNS[status]
-    : 0;
+	return status && Object.hasOwn(PROBLEMATIC_STATUS_COOLDOWNS, status)
+		? PROBLEMATIC_STATUS_COOLDOWNS[status]
+		: 0;
 }
 
 /**
@@ -96,11 +96,11 @@ function getLegacyStatusCooldown(status) {
  * @returns {number}
  */
 function getProfileStatusCooldown(status, profile) {
-  if (!profile) return 0;
-  if (status === 429) {
-    return toPositiveNumber(profile.rateLimitCooldown) ?? 0;
-  }
-  return toPositiveNumber(profile.transientCooldown) ?? 0;
+	if (!profile) return 0;
+	if (status === 429) {
+		return toPositiveNumber(profile.rateLimitCooldown) ?? 0;
+	}
+	return toPositiveNumber(profile.transientCooldown) ?? 0;
 }
 
 /**
@@ -110,20 +110,20 @@ function getProfileStatusCooldown(status, profile) {
  * @returns {number}
  */
 function getScaledCooldown(baseCooldownMs, failureCount, profile) {
-  const safeBase = toPositiveNumber(baseCooldownMs) ?? 1000;
-  if (!profile) {
-    return Math.min(
-      Math.max(safeBase, MIN_PROBLEMATIC_COOLDOWN_MS) * Math.pow(2, Math.max(0, failureCount - 1)),
-      MAX_PROBLEMATIC_COOLDOWN_MS
-    );
-  }
+	const safeBase = toPositiveNumber(baseCooldownMs) ?? 1000;
+	if (!profile) {
+		return Math.min(
+			Math.max(safeBase, MIN_PROBLEMATIC_COOLDOWN_MS) * 2 ** Math.max(0, failureCount - 1),
+			MAX_PROBLEMATIC_COOLDOWN_MS
+		);
+	}
 
-  const maxBackoffLevel = Math.max(
-    0,
-    Math.trunc(toNonNegativeNumber(profile.maxBackoffLevel) ?? 0)
-  );
-  const exponent = Math.min(Math.max(0, failureCount - 1), maxBackoffLevel);
-  return safeBase * Math.pow(2, exponent);
+	const maxBackoffLevel = Math.max(
+		0,
+		Math.trunc(toNonNegativeNumber(profile.maxBackoffLevel) ?? 0)
+	);
+	const exponent = Math.min(Math.max(0, failureCount - 1), maxBackoffLevel);
+	return safeBase * 2 ** exponent;
 }
 
 /**
@@ -133,7 +133,7 @@ function getScaledCooldown(baseCooldownMs, failureCount, profile) {
  * @returns {string}
  */
 function makeKey(provider, model) {
-  return `${provider}::${model}`;
+	return `${provider}::${model}`;
 }
 
 /**
@@ -144,17 +144,17 @@ function makeKey(provider, model) {
  * @returns {boolean} true if model is available (not in cooldown)
  */
 export function isModelAvailable(provider, model) {
-  const key = makeKey(provider, model);
-  const entry = unavailable.get(key);
-  if (!entry) return true;
+	const key = makeKey(provider, model);
+	const entry = unavailable.get(key);
+	if (!entry) return true;
 
-  // Check if cooldown has expired
-  if (Date.now() - entry.unavailableSince >= entry.cooldownMs) {
-    unavailable.delete(key);
-    return true;
-  }
+	// Check if cooldown has expired
+	if (Date.now() - entry.unavailableSince >= entry.cooldownMs) {
+		unavailable.delete(key);
+		return true;
+	}
 
-  return false;
+	return false;
 }
 
 /**
@@ -165,23 +165,23 @@ export function isModelAvailable(provider, model) {
  * @returns {{ provider: string, model: string, reason: string, remainingMs: number, unavailableSince: string } | null}
  */
 export function getModelCooldownInfo(provider, model) {
-  const key = makeKey(provider, model);
-  const entry = unavailable.get(key);
-  if (!entry) return null;
+	const key = makeKey(provider, model);
+	const entry = unavailable.get(key);
+	if (!entry) return null;
 
-  const elapsed = Date.now() - entry.unavailableSince;
-  if (elapsed >= entry.cooldownMs) {
-    unavailable.delete(key);
-    return null;
-  }
+	const elapsed = Date.now() - entry.unavailableSince;
+	if (elapsed >= entry.cooldownMs) {
+		unavailable.delete(key);
+		return null;
+	}
 
-  return {
-    provider: entry.provider,
-    model: entry.model,
-    reason: entry.reason || "unknown",
-    remainingMs: entry.cooldownMs - elapsed,
-    unavailableSince: new Date(entry.unavailableSince).toISOString(),
-  };
+	return {
+		provider: entry.provider,
+		model: entry.model,
+		reason: entry.reason || "unknown",
+		remainingMs: entry.cooldownMs - elapsed,
+		unavailableSince: new Date(entry.unavailableSince).toISOString(),
+	};
 }
 
 /**
@@ -193,23 +193,23 @@ export function getModelCooldownInfo(provider, model) {
  * @param {string} [reason] - Optional reason for unavailability
  */
 export function setModelUnavailable(provider, model, cooldownMs = 60000, reason) {
-  const key = makeKey(provider, model);
-  const now = Date.now();
-  const safeCooldownMs = Number.isFinite(cooldownMs) && cooldownMs > 0 ? cooldownMs : 60000;
-  const existing = unavailable.get(key);
-  const existingRemainingMs =
-    existing && Date.now() - existing.unavailableSince < existing.cooldownMs
-      ? existing.cooldownMs - (Date.now() - existing.unavailableSince)
-      : 0;
-  const effectiveCooldownMs = Math.max(safeCooldownMs, existingRemainingMs);
+	const key = makeKey(provider, model);
+	const now = Date.now();
+	const safeCooldownMs = Number.isFinite(cooldownMs) && cooldownMs > 0 ? cooldownMs : 60000;
+	const existing = unavailable.get(key);
+	const existingRemainingMs =
+		existing && Date.now() - existing.unavailableSince < existing.cooldownMs
+			? existing.cooldownMs - (Date.now() - existing.unavailableSince)
+			: 0;
+	const effectiveCooldownMs = Math.max(safeCooldownMs, existingRemainingMs);
 
-  unavailable.set(key, {
-    provider,
-    model,
-    unavailableSince: now,
-    cooldownMs: effectiveCooldownMs,
-    reason: reason || "unknown",
-  });
+	unavailable.set(key, {
+		provider,
+		model,
+		unavailableSince: now,
+		cooldownMs: effectiveCooldownMs,
+		reason: reason || "unknown",
+	});
 }
 
 /**
@@ -223,40 +223,40 @@ export function setModelUnavailable(provider, model, cooldownMs = 60000, reason)
  * @returns {{ cooldownMs: number, failureCount: number, quarantined: boolean, threshold: number, resetAfterMs: number }}
  */
 export function markModelAsProblematic(provider, model, options = {}) {
-  const key = makeKey(provider, model);
-  const now = Date.now();
-  const status = Number.isFinite(options.status) ? Number(options.status) : null;
-  const profile = options.profile || null;
-  const explicitBaseCooldownMs =
-    Number.isFinite(options.baseCooldownMs) && Number(options.baseCooldownMs) > 0
-      ? Number(options.baseCooldownMs)
-      : 0;
-  const statusBaseCooldown = profile
-    ? getProfileStatusCooldown(status, profile)
-    : getLegacyStatusCooldown(status);
-  const baseCooldownMs = Math.max(explicitBaseCooldownMs, statusBaseCooldown);
+	const key = makeKey(provider, model);
+	const now = Date.now();
+	const status = Number.isFinite(options.status) ? Number(options.status) : null;
+	const profile = options.profile || null;
+	const explicitBaseCooldownMs =
+		Number.isFinite(options.baseCooldownMs) && Number(options.baseCooldownMs) > 0
+			? Number(options.baseCooldownMs)
+			: 0;
+	const statusBaseCooldown = profile
+		? getProfileStatusCooldown(status, profile)
+		: getLegacyStatusCooldown(status);
+	const baseCooldownMs = Math.max(explicitBaseCooldownMs, statusBaseCooldown);
 
-  const prev = failureState.get(key);
-  const resetAfterMs = getFailureWindowMs(profile);
-  const withinFailureWindow = prev && now - prev.lastFailureAt <= prev.resetAfterMs;
-  const failureCount = withinFailureWindow ? prev.failureCount + 1 : 1;
-  failureState.set(key, { failureCount, lastFailureAt: now, resetAfterMs });
+	const prev = failureState.get(key);
+	const resetAfterMs = getFailureWindowMs(profile);
+	const withinFailureWindow = prev && now - prev.lastFailureAt <= prev.resetAfterMs;
+	const failureCount = withinFailureWindow ? prev.failureCount + 1 : 1;
+	failureState.set(key, { failureCount, lastFailureAt: now, resetAfterMs });
 
-  const threshold = getFailureThreshold(profile);
-  const cooldownMs = getScaledCooldown(baseCooldownMs, failureCount, profile);
-  const quarantined = failureCount >= threshold;
+	const threshold = getFailureThreshold(profile);
+	const cooldownMs = getScaledCooldown(baseCooldownMs, failureCount, profile);
+	const quarantined = failureCount >= threshold;
 
-  if (quarantined) {
-    setModelUnavailable(provider, model, cooldownMs, options.reason || "problematic_model");
-  }
+	if (quarantined) {
+		setModelUnavailable(provider, model, cooldownMs, options.reason || "problematic_model");
+	}
 
-  return {
-    cooldownMs,
-    failureCount,
-    quarantined,
-    threshold,
-    resetAfterMs,
-  };
+	return {
+		cooldownMs,
+		failureCount,
+		quarantined,
+		threshold,
+		resetAfterMs,
+	};
 }
 
 /**
@@ -267,9 +267,9 @@ export function markModelAsProblematic(provider, model, options = {}) {
  * @returns {boolean} true if entry existed and was removed
  */
 export function clearModelUnavailability(provider, model) {
-  const key = makeKey(provider, model);
-  failureState.delete(key);
-  return unavailable.delete(key);
+	const key = makeKey(provider, model);
+	failureState.delete(key);
+	return unavailable.delete(key);
 }
 
 /**
@@ -278,26 +278,26 @@ export function clearModelUnavailability(provider, model) {
  * @returns {Array<{ provider: string, model: string, reason: string, remainingMs: number, unavailableSince: string }>}
  */
 export function getAvailabilityReport() {
-  const now = Date.now();
-  const report = [];
+	const now = Date.now();
+	const report = [];
 
-  for (const [key, entry] of unavailable.entries()) {
-    const elapsed = now - entry.unavailableSince;
-    if (elapsed >= entry.cooldownMs) {
-      unavailable.delete(key);
-      continue;
-    }
+	for (const [key, entry] of unavailable.entries()) {
+		const elapsed = now - entry.unavailableSince;
+		if (elapsed >= entry.cooldownMs) {
+			unavailable.delete(key);
+			continue;
+		}
 
-    report.push({
-      provider: entry.provider,
-      model: entry.model,
-      reason: entry.reason || "unknown",
-      remainingMs: entry.cooldownMs - elapsed,
-      unavailableSince: new Date(entry.unavailableSince).toISOString(),
-    });
-  }
+		report.push({
+			provider: entry.provider,
+			model: entry.model,
+			reason: entry.reason || "unknown",
+			remainingMs: entry.cooldownMs - elapsed,
+			unavailableSince: new Date(entry.unavailableSince).toISOString(),
+		});
+	}
 
-  return report;
+	return report;
 }
 
 /**
@@ -305,15 +305,15 @@ export function getAvailabilityReport() {
  * @returns {number}
  */
 export function getUnavailableCount() {
-  // Prune expired entries first
-  getAvailabilityReport();
-  return unavailable.size;
+	// Prune expired entries first
+	getAvailabilityReport();
+	return unavailable.size;
 }
 
 /**
  * Reset all availability states (for testing or admin).
  */
 export function resetAllAvailability() {
-  unavailable.clear();
-  failureState.clear();
+	unavailable.clear();
+	failureState.clear();
 }

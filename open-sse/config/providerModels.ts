@@ -8,51 +8,51 @@ export const PROVIDER_ID_TO_ALIAS = generateAliasMap();
 
 // Helper functions
 export function getProviderModels(aliasOrId: string): RegistryModel[] {
-  return PROVIDER_MODELS[aliasOrId] || [];
+	return PROVIDER_MODELS[aliasOrId] || [];
 }
 
 export function getDefaultModel(aliasOrId: string): string | null {
-  const models = PROVIDER_MODELS[aliasOrId];
-  return models?.[0]?.id || null;
+	const models = PROVIDER_MODELS[aliasOrId];
+	return models?.[0]?.id || null;
 }
 
 export function getProviderModel(aliasOrId: string, modelId: string): RegistryModel | undefined {
-  const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return undefined;
-  return models.find((model) => model.id === modelId);
+	const models = PROVIDER_MODELS[aliasOrId];
+	if (!models) return undefined;
+	return models.find((model) => model.id === modelId);
 }
 
 export function isValidModel(
-  aliasOrId: string,
-  modelId: string,
-  passthroughProviders = new Set<string>()
+	aliasOrId: string,
+	modelId: string,
+	passthroughProviders = new Set<string>()
 ): boolean {
-  if (passthroughProviders.has(aliasOrId)) return true;
-  const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return false;
-  return models.some((m) => m.id === modelId);
+	if (passthroughProviders.has(aliasOrId)) return true;
+	const models = PROVIDER_MODELS[aliasOrId];
+	if (!models) return false;
+	return models.some((m) => m.id === modelId);
 }
 
 export function findModelName(aliasOrId: string, modelId: string): string {
-  const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return modelId;
-  const found = models.find((m) => m.id === modelId);
-  return found?.name || modelId;
+	const models = PROVIDER_MODELS[aliasOrId];
+	if (!models) return modelId;
+	const found = models.find((m) => m.id === modelId);
+	return found?.name || modelId;
 }
 
 export function getModelTargetFormat(aliasOrId: string, modelId: string): string | null {
-  const models = PROVIDER_MODELS[aliasOrId];
-  if (!models) return null;
-  const found = models.find((m) => m.id === modelId);
-  return found?.targetFormat || null;
+	const models = PROVIDER_MODELS[aliasOrId];
+	if (!models) return null;
+	const found = models.find((m) => m.id === modelId);
+	return found?.targetFormat || null;
 }
 
 export function getModelsByProviderId(providerId: string): RegistryModel[] {
-  const alias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
-  return PROVIDER_MODELS[alias] || [];
+	const alias = PROVIDER_ID_TO_ALIAS[providerId] || providerId;
+	return PROVIDER_MODELS[alias] || [];
 }
 
 export function supportsXHighEffort(aliasOrId: string, modelId: string): boolean {
-  const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
-  return getProviderModel(alias, modelId)?.supportsXHighEffort === true;
+	const alias = PROVIDER_ID_TO_ALIAS[aliasOrId] || aliasOrId;
+	return getProviderModel(alias, modelId)?.supportsXHighEffort === true;
 }

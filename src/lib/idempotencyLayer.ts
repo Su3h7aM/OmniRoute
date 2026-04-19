@@ -21,17 +21,17 @@ const idempotencyStore = new Map();
 let cleanupInterval;
 
 function ensureCleanup() {
-  if (cleanupInterval) return;
-  cleanupInterval = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of idempotencyStore) {
-      if (now >= entry.expiresAt) {
-        idempotencyStore.delete(key);
-      }
-    }
-  }, 30000);
-  // Don't prevent process exit
-  if (cleanupInterval.unref) cleanupInterval.unref();
+	if (cleanupInterval) return;
+	cleanupInterval = setInterval(() => {
+		const now = Date.now();
+		for (const [key, entry] of idempotencyStore) {
+			if (now >= entry.expiresAt) {
+				idempotencyStore.delete(key);
+			}
+		}
+	}, 30000);
+	// Don't prevent process exit
+	if (cleanupInterval.unref) cleanupInterval.unref();
 }
 
 /**
@@ -40,9 +40,9 @@ function ensureCleanup() {
  * @returns {string|null}
  */
 export function getIdempotencyKey(headers) {
-  if (!headers) return null;
-  const get = typeof headers.get === "function" ? (k) => headers.get(k) : (k) => headers[k];
-  return get("idempotency-key") || get("x-request-id") || null;
+	if (!headers) return null;
+	const get = typeof headers.get === "function" ? (k) => headers.get(k) : (k) => headers[k];
+	return get("idempotency-key") || get("x-request-id") || null;
 }
 
 /**
@@ -51,14 +51,14 @@ export function getIdempotencyKey(headers) {
  * @returns {{ response: object, status: number }|null}
  */
 export function checkIdempotency(key) {
-  if (!key) return null;
-  const entry = idempotencyStore.get(key);
-  if (!entry) return null;
-  if (Date.now() >= entry.expiresAt) {
-    idempotencyStore.delete(key);
-    return null;
-  }
-  return { response: entry.response, status: entry.status };
+	if (!key) return null;
+	const entry = idempotencyStore.get(key);
+	if (!entry) return null;
+	if (Date.now() >= entry.expiresAt) {
+		idempotencyStore.delete(key);
+		return null;
+	}
+	return { response: entry.response, status: entry.status };
 }
 
 /**
@@ -69,37 +69,37 @@ export function checkIdempotency(key) {
  * @param {number} [windowMs=5000] - Dedup window in ms
  */
 export function saveIdempotency(key, response, status, windowMs = DEFAULT_WINDOW_MS) {
-  if (!key) return;
-  ensureCleanup();
-  idempotencyStore.set(key, {
-    response,
-    status,
-    expiresAt: Date.now() + windowMs,
-  });
+	if (!key) return;
+	ensureCleanup();
+	idempotencyStore.set(key, {
+		response,
+		status,
+		expiresAt: Date.now() + windowMs,
+	});
 }
 
 /**
  * Get current idempotency store stats.
  */
 export async function getIdempotencyStats() {
-  let windowMs = DEFAULT_WINDOW_MS;
-  try {
-    const settings = await getSettings();
-    if (typeof settings.idempotencyWindowMs === "number" && settings.idempotencyWindowMs > 0) {
-      windowMs = settings.idempotencyWindowMs;
-    }
-  } catch {
-    // Fallback to default if settings unavailable
-  }
-  return {
-    activeKeys: idempotencyStore.size,
-    windowMs,
-  };
+	let windowMs = DEFAULT_WINDOW_MS;
+	try {
+		const settings = await getSettings();
+		if (typeof settings.idempotencyWindowMs === "number" && settings.idempotencyWindowMs > 0) {
+			windowMs = settings.idempotencyWindowMs;
+		}
+	} catch {
+		// Fallback to default if settings unavailable
+	}
+	return {
+		activeKeys: idempotencyStore.size,
+		windowMs,
+	};
 }
 
 /**
  * Clear all idempotency entries (for testing).
  */
 export function clearIdempotency() {
-  idempotencyStore.clear();
+	idempotencyStore.clear();
 }

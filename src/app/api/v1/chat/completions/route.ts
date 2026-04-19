@@ -13,53 +13,56 @@ const injectionGuard = createInjectionGuard();
  * Initialize translators once (Promise-based singleton — no race condition)
  */
 function ensureInitialized() {
-  if (!initPromise) {
-    initPromise = Promise.resolve(initTranslators()).then(() => {
-      console.log("[SSE] Translators initialized");
-    });
-  }
-  return initPromise;
+	if (!initPromise) {
+		initPromise = Promise.resolve(initTranslators()).then(() => {
+			console.log("[SSE] Translators initialized");
+		});
+	}
+	return initPromise;
 }
 
 /**
  * Handle CORS preflight
  */
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+	return new Response(null, {
+		headers: {
+			"Access-Control-Allow-Origin": CORS_ORIGIN,
+			"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+			"Access-Control-Allow-Headers": "*",
+		},
+	});
 }
 
 export async function POST(request) {
-  await ensureInitialized();
+	await ensureInitialized();
 
-  // Prompt injection guard — inspect body before forwarding
-  try {
-    const cloned = request.clone();
-    const body = await cloned.json().catch(() => null);
-    if (body) {
-      const { blocked, result } = injectionGuard(body);
-      if (blocked) {
-        return new Response(
-          JSON.stringify({
-            error: {
-              message: "Request blocked: potential prompt injection detected",
-              type: "injection_detected",
-              code: "SECURITY_001",
-              detections: result.detections.length,
-            },
-          }),
-          { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-        );
-      }
-    }
-  } catch (error) {
-    console.error("[SECURITY] Prompt injection guard failed:", error);
-  }
+	// Prompt injection guard — inspect body before forwarding
+	try {
+		const cloned = request.clone();
+		const body = await cloned.json().catch(() => null);
+		if (body) {
+			const { blocked, result } = injectionGuard(body);
+			if (blocked) {
+				return new Response(
+					JSON.stringify({
+						error: {
+							message: "Request blocked: potential prompt injection detected",
+							type: "injection_detected",
+							code: "SECURITY_001",
+							detections: result.detections.length,
+						},
+					}),
+					{
+						status: 400,
+						headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+					}
+				);
+			}
+		}
+	} catch (error) {
+		console.error("[SECURITY] Prompt injection guard failed:", error);
+	}
 
-  return await handleChat(request);
+	return await handleChat(request);
 }

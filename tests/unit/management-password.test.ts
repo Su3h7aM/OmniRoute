@@ -14,64 +14,64 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const managementPassword = await import("../../src/lib/auth/managementPassword.ts");
 
 async function resetStorage() {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  delete process.env.INITIAL_PASSWORD;
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	delete process.env.INITIAL_PASSWORD;
 }
 
 beforeEach(async () => {
-  await resetStorage();
+	await resetStorage();
 });
 
 afterAll(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
-    delete process.env.INITIAL_PASSWORD;
-  } else {
-    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
-  }
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+		delete process.env.INITIAL_PASSWORD;
+	} else {
+		process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+	}
 });
 
 test("ensurePersistentManagementPasswordHash migrates INITIAL_PASSWORD into a persisted bcrypt hash", async () => {
-  process.env.INITIAL_PASSWORD = "bootstrap-secret";
+	process.env.INITIAL_PASSWORD = "bootstrap-secret";
 
-  const result = await managementPassword.ensurePersistentManagementPasswordHash({
-    source: "test",
-  });
-  const settings = await settingsDb.getSettings();
+	const result = await managementPassword.ensurePersistentManagementPasswordHash({
+		source: "test",
+	});
+	const settings = await settingsDb.getSettings();
 
-  assert.equal(result.migrated, true);
-  assert.equal(result.source, "env");
-  assert.equal(managementPassword.isBcryptHash(settings.password), true);
-  assert.notEqual(settings.password, "bootstrap-secret");
-  assert.equal(
-    await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
-    true
-  );
-  assert.equal(settings.requireLogin, true);
-  assert.equal(settings.setupComplete, true);
+	assert.equal(result.migrated, true);
+	assert.equal(result.source, "env");
+	assert.equal(managementPassword.isBcryptHash(settings.password), true);
+	assert.notEqual(settings.password, "bootstrap-secret");
+	assert.equal(
+		await managementPassword.verifyManagementPassword("bootstrap-secret", settings.password),
+		true
+	);
+	assert.equal(settings.requireLogin, true);
+	assert.equal(settings.setupComplete, true);
 });
 
 test("ensurePersistentManagementPasswordHash migrates legacy plaintext settings passwords", async () => {
-  await settingsDb.updateSettings({
-    password: "legacy-password",
-    requireLogin: true,
-    setupComplete: true,
-  });
+	await settingsDb.updateSettings({
+		password: "legacy-password",
+		requireLogin: true,
+		setupComplete: true,
+	});
 
-  const result = await managementPassword.ensurePersistentManagementPasswordHash({
-    source: "test",
-  });
-  const settings = await settingsDb.getSettings();
+	const result = await managementPassword.ensurePersistentManagementPasswordHash({
+		source: "test",
+	});
+	const settings = await settingsDb.getSettings();
 
-  assert.equal(result.migrated, true);
-  assert.equal(result.source, "stored_plaintext");
-  assert.equal(managementPassword.isBcryptHash(settings.password), true);
-  assert.notEqual(settings.password, "legacy-password");
-  assert.equal(
-    await managementPassword.verifyManagementPassword("legacy-password", settings.password),
-    true
-  );
+	assert.equal(result.migrated, true);
+	assert.equal(result.source, "stored_plaintext");
+	assert.equal(managementPassword.isBcryptHash(settings.password), true);
+	assert.notEqual(settings.password, "legacy-password");
+	assert.equal(
+		await managementPassword.verifyManagementPassword("legacy-password", settings.password),
+		true
+	);
 });

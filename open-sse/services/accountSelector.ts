@@ -17,21 +17,21 @@ import crypto from "crypto";
  * @returns {object|null} Selected account
  */
 export function selectAccountP2C(accounts, model = null) {
-  if (!accounts || accounts.length === 0) return null;
-  if (accounts.length === 1) return accounts[0];
+	if (!accounts || accounts.length === 0) return null;
+	if (accounts.length === 1) return accounts[0];
 
-  // Pick 2 random distinct indices (cryptographically secure)
-  const i = crypto.randomInt(accounts.length);
-  let j = crypto.randomInt(accounts.length - 1);
-  if (j >= i) j++; // Ensure distinct
+	// Pick 2 random distinct indices (cryptographically secure)
+	const i = crypto.randomInt(accounts.length);
+	let j = crypto.randomInt(accounts.length - 1);
+	if (j >= i) j++; // Ensure distinct
 
-  const a = accounts[i];
-  const b = accounts[j];
+	const a = accounts[i];
+	const b = accounts[j];
 
-  const healthA = getAccountHealth(a, model);
-  const healthB = getAccountHealth(b, model);
+	const healthA = getAccountHealth(a, model);
+	const healthB = getAccountHealth(b, model);
 
-  return healthA >= healthB ? a : b;
+	return healthA >= healthB ? a : b;
 }
 
 /**
@@ -45,36 +45,36 @@ export function selectAccountP2C(accounts, model = null) {
  * @returns {{ account: object|null, state: object }}
  */
 export function selectAccount(
-  accounts,
-  strategy = "fill-first",
-  state: { lastIndex?: number } = {},
-  model = null
+	accounts,
+	strategy = "fill-first",
+	state: { lastIndex?: number } = {},
+	model = null
 ) {
-  if (!accounts || accounts.length === 0) {
-    return { account: null, state };
-  }
+	if (!accounts || accounts.length === 0) {
+		return { account: null, state };
+	}
 
-  switch (strategy) {
-    case "p2c":
-      return { account: selectAccountP2C(accounts, model), state };
+	switch (strategy) {
+		case "p2c":
+			return { account: selectAccountP2C(accounts, model), state };
 
-    case "random":
-      return {
-        account: accounts[crypto.randomInt(accounts.length)],
-        state,
-      };
+		case "random":
+			return {
+				account: accounts[crypto.randomInt(accounts.length)],
+				state,
+			};
 
-    case "round-robin": {
-      const lastIndex = state.lastIndex ?? -1;
-      const nextIndex = (lastIndex + 1) % accounts.length;
-      return {
-        account: accounts[nextIndex],
-        state: { ...state, lastIndex: nextIndex },
-      };
-    }
+		case "round-robin": {
+			const lastIndex = state.lastIndex ?? -1;
+			const nextIndex = (lastIndex + 1) % accounts.length;
+			return {
+				account: accounts[nextIndex],
+				state: { ...state, lastIndex: nextIndex },
+			};
+		}
 
-    case "fill-first":
-    default:
-      return { account: accounts[0], state };
-  }
+		case "fill-first":
+		default:
+			return { account: accounts[0], state };
+	}
 }

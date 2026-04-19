@@ -1,10 +1,10 @@
 import { CORS_ORIGIN } from "@/shared/utils/cors";
 import { handleModeration } from "@omniroute/open-sse/handlers/moderations.ts";
 import {
-  getProviderCredentials,
-  clearRecoveredProviderState,
-  extractApiKey,
-  isValidApiKey,
+	getProviderCredentials,
+	clearRecoveredProviderState,
+	extractApiKey,
+	isValidApiKey,
 } from "@/sse/services/auth";
 import { parseModerationModel } from "@omniroute/open-sse/config/moderationRegistry.ts";
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
@@ -17,13 +17,13 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
  * Handle CORS preflight
  */
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+	return new Response(null, {
+		headers: {
+			"Access-Control-Allow-Origin": CORS_ORIGIN,
+			"Access-Control-Allow-Methods": "POST, OPTIONS",
+			"Access-Control-Allow-Headers": "*",
+		},
+	});
 }
 
 /**
@@ -31,47 +31,47 @@ export async function OPTIONS() {
  * OpenAI Moderations API compatible.
  */
 export async function POST(request) {
-  if (process.env.REQUIRE_API_KEY === "true") {
-    const apiKey = extractApiKey(request);
-    if (!apiKey) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
-    const valid = await isValidApiKey(apiKey);
-    if (!valid) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
-  }
+	if (process.env.REQUIRE_API_KEY === "true") {
+		const apiKey = extractApiKey(request);
+		if (!apiKey) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Missing API key");
+		const valid = await isValidApiKey(apiKey);
+		if (!valid) return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Invalid API key");
+	}
 
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
-  }
+	let rawBody;
+	try {
+		rawBody = await request.json();
+	} catch {
+		return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+	}
 
-  const validation = validateBody(v1ModerationSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
-  }
-  const body = validation.data;
+	const validation = validateBody(v1ModerationSchema, rawBody);
+	if (isValidationFailure(validation)) {
+		return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+	}
+	const body = validation.data;
 
-  const model = body.model || "omni-moderation-latest";
+	const model = body.model || "omni-moderation-latest";
 
-  // Enforce API key policies (model restrictions + budget limits)
-  const policy = await enforceApiKeyPolicy(request, model);
-  if (policy.rejection) return policy.rejection;
+	// Enforce API key policies (model restrictions + budget limits)
+	const policy = await enforceApiKeyPolicy(request, model);
+	if (policy.rejection) return policy.rejection;
 
-  const { provider } = parseModerationModel(model);
+	const { provider } = parseModerationModel(model);
 
-  // Default to openai if no provider prefix
-  const resolvedProvider = provider || "openai";
-  const credentials = await getProviderCredentials(resolvedProvider);
-  if (!credentials) {
-    return errorResponse(
-      HTTP_STATUS.BAD_REQUEST,
-      `No credentials for provider: ${resolvedProvider}`
-    );
-  }
+	// Default to openai if no provider prefix
+	const resolvedProvider = provider || "openai";
+	const credentials = await getProviderCredentials(resolvedProvider);
+	if (!credentials) {
+		return errorResponse(
+			HTTP_STATUS.BAD_REQUEST,
+			`No credentials for provider: ${resolvedProvider}`
+		);
+	}
 
-  const response = await handleModeration({ body: { ...body, model }, credentials });
-  if (response?.ok) {
-    await clearRecoveredProviderState(credentials);
-  }
-  return response;
+	const response = await handleModeration({ body: { ...body, model }, credentials });
+	if (response?.ok) {
+		await clearRecoveredProviderState(credentials);
+	}
+	return response;
 }

@@ -25,70 +25,70 @@ const roundRobinCounters = new Map();
  * @throws {Error} If combo has no models
  */
 export function resolveComboModel(combo: any, context: any = {}) {
-  const models = combo.models || [];
-  if (models.length === 0) {
-    throw new Error(`Combo "${combo.name}" has no models configured`);
-  }
+	const models = combo.models || [];
+	if (models.length === 0) {
+		throw new Error(`Combo "${combo.name}" has no models configured`);
+	}
 
-  // Normalize models to { model, weight } format
-  const normalized = models
-    .map((entry) => ({
-      model: getComboStepTarget(entry) || "",
-      weight: getComboStepWeight(entry) || 1,
-    }))
-    .filter((entry) => entry.model);
+	// Normalize models to { model, weight } format
+	const normalized = models
+		.map((entry) => ({
+			model: getComboStepTarget(entry) || "",
+			weight: getComboStepWeight(entry) || 1,
+		}))
+		.filter((entry) => entry.model);
 
-  const strategy = combo.strategy || "priority";
+	const strategy = combo.strategy || "priority";
 
-  switch (strategy) {
-    case "priority":
-      return { model: normalized[0].model, index: 0 };
+	switch (strategy) {
+		case "priority":
+			return { model: normalized[0].model, index: 0 };
 
-    case "round-robin": {
-      // Persistent counter per combo for deterministic round-robin
-      const comboKey = combo.id || combo.name || "default";
-      if (!roundRobinCounters.has(comboKey)) {
-        roundRobinCounters.set(comboKey, 0);
-      }
-      const counter = roundRobinCounters.get(comboKey);
-      const index = counter % normalized.length;
-      roundRobinCounters.set(comboKey, counter + 1);
-      return { model: normalized[index].model, index };
-    }
+		case "round-robin": {
+			// Persistent counter per combo for deterministic round-robin
+			const comboKey = combo.id || combo.name || "default";
+			if (!roundRobinCounters.has(comboKey)) {
+				roundRobinCounters.set(comboKey, 0);
+			}
+			const counter = roundRobinCounters.get(comboKey);
+			const index = counter % normalized.length;
+			roundRobinCounters.set(comboKey, counter + 1);
+			return { model: normalized[index].model, index };
+		}
 
-    case "random": {
-      // Weighted random selection
-      const totalWeight = normalized.reduce((sum, m) => sum + (m.weight || 1), 0);
-      let rand = Math.random() * totalWeight;
+		case "random": {
+			// Weighted random selection
+			const totalWeight = normalized.reduce((sum, m) => sum + (m.weight || 1), 0);
+			let rand = Math.random() * totalWeight;
 
-      for (let i = 0; i < normalized.length; i++) {
-        rand -= normalized[i].weight || 1;
-        if (rand <= 0) {
-          return { model: normalized[i].model, index: i };
-        }
-      }
-      return { model: normalized[0].model, index: 0 };
-    }
+			for (let i = 0; i < normalized.length; i++) {
+				rand -= normalized[i].weight || 1;
+				if (rand <= 0) {
+					return { model: normalized[i].model, index: i };
+				}
+			}
+			return { model: normalized[0].model, index: 0 };
+		}
 
-    case "least-used": {
-      const usageCounts = context.modelUsageCounts || {};
-      let minUsage = Infinity;
-      let minIndex = 0;
+		case "least-used": {
+			const usageCounts = context.modelUsageCounts || {};
+			let minUsage = Infinity;
+			let minIndex = 0;
 
-      for (let i = 0; i < normalized.length; i++) {
-        const usage = usageCounts[normalized[i].model] || 0;
-        if (usage < minUsage) {
-          minUsage = usage;
-          minIndex = i;
-        }
-      }
+			for (let i = 0; i < normalized.length; i++) {
+				const usage = usageCounts[normalized[i].model] || 0;
+				if (usage < minUsage) {
+					minUsage = usage;
+					minIndex = i;
+				}
+			}
 
-      return { model: normalized[minIndex].model, index: minIndex };
-    }
+			return { model: normalized[minIndex].model, index: minIndex };
+		}
 
-    default:
-      return { model: normalized[0].model, index: 0 };
-  }
+		default:
+			return { model: normalized[0].model, index: 0 };
+	}
 }
 
 /**
@@ -99,8 +99,8 @@ export function resolveComboModel(combo: any, context: any = {}) {
  * @returns {string[]} Remaining models in order
  */
 export function getComboFallbacks(combo, primaryIndex) {
-  const models = (combo.models || [])
-    .map((entry) => getComboStepTarget(entry))
-    .filter((entry): entry is string => !!entry);
-  return [...models.slice(primaryIndex + 1), ...models.slice(0, primaryIndex)];
+	const models = (combo.models || [])
+		.map((entry) => getComboStepTarget(entry))
+		.filter((entry): entry is string => !!entry);
+	return [...models.slice(primaryIndex + 1), ...models.slice(0, primaryIndex)];
 }

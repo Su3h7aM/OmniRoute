@@ -11,11 +11,11 @@
  */
 
 import {
-  saveFallbackChain,
-  loadFallbackChain,
-  loadAllFallbackChains,
-  deleteFallbackChain,
-  deleteAllFallbackChains,
+	saveFallbackChain,
+	loadFallbackChain,
+	loadAllFallbackChains,
+	deleteFallbackChain,
+	deleteAllFallbackChains,
 } from "../lib/db/domainState";
 
 /**
@@ -35,16 +35,16 @@ let _loaded = false;
  * Ensure in-memory cache is hydrated from SQLite.
  */
 function ensureLoaded() {
-  if (_loaded) return;
-  try {
-    const all = loadAllFallbackChains();
-    for (const [model, chain] of Object.entries(all)) {
-      fallbackChains.set(model, chain);
-    }
-  } catch {
-    // DB may not be ready yet (build phase), that's ok
-  }
-  _loaded = true;
+	if (_loaded) return;
+	try {
+		const all = loadAllFallbackChains();
+		for (const [model, chain] of Object.entries(all)) {
+			fallbackChains.set(model, chain);
+		}
+	} catch {
+		// DB may not be ready yet (build phase), that's ok
+	}
+	_loaded = true;
 }
 
 /**
@@ -54,21 +54,21 @@ function ensureLoaded() {
  * @param {FallbackEntry[]} chain - Ordered list of fallback providers
  */
 export function registerFallback(model, chain) {
-  ensureLoaded();
-  const sorted = [...chain]
-    .map((e) => ({
-      provider: e.provider,
-      priority: e.priority ?? 0,
-      enabled: e.enabled ?? true,
-    }))
-    .sort((a, b) => a.priority - b.priority);
+	ensureLoaded();
+	const sorted = [...chain]
+		.map((e) => ({
+			provider: e.provider,
+			priority: e.priority ?? 0,
+			enabled: e.enabled ?? true,
+		}))
+		.sort((a, b) => a.priority - b.priority);
 
-  fallbackChains.set(model, sorted);
-  try {
-    saveFallbackChain(model, sorted);
-  } catch {
-    // Non-critical: in-memory still works
-  }
+	fallbackChains.set(model, sorted);
+	try {
+		saveFallbackChain(model, sorted);
+	} catch {
+		// Non-critical: in-memory still works
+	}
 }
 
 /**
@@ -80,12 +80,12 @@ export function registerFallback(model, chain) {
  * @returns {FallbackEntry[]} Ordered list of fallback providers
  */
 export function resolveFallbackChain(model, excludeProviders = []) {
-  ensureLoaded();
-  const chain = fallbackChains.get(model);
-  if (!chain) return [];
+	ensureLoaded();
+	const chain = fallbackChains.get(model);
+	if (!chain) return [];
 
-  const excludeSet = new Set(excludeProviders);
-  return chain.filter((e) => e.enabled && !excludeSet.has(e.provider));
+	const excludeSet = new Set(excludeProviders);
+	return chain.filter((e) => e.enabled && !excludeSet.has(e.provider));
 }
 
 /**
@@ -96,8 +96,8 @@ export function resolveFallbackChain(model, excludeProviders = []) {
  * @returns {string | null} Next provider ID or null if chain exhausted
  */
 export function getNextFallback(model, excludeProviders = []) {
-  const chain = resolveFallbackChain(model, excludeProviders);
-  return chain.length > 0 ? chain[0].provider : null;
+	const chain = resolveFallbackChain(model, excludeProviders);
+	return chain.length > 0 ? chain[0].provider : null;
 }
 
 /**
@@ -107,9 +107,9 @@ export function getNextFallback(model, excludeProviders = []) {
  * @returns {boolean}
  */
 export function hasFallback(model) {
-  ensureLoaded();
-  const chain = fallbackChains.get(model);
-  return !!chain && chain.some((e) => e.enabled);
+	ensureLoaded();
+	const chain = fallbackChains.get(model);
+	return !!chain && chain.some((e) => e.enabled);
 }
 
 /**
@@ -119,16 +119,16 @@ export function hasFallback(model) {
  * @returns {boolean} true if removed
  */
 export function removeFallback(model) {
-  ensureLoaded();
-  const removed = fallbackChains.delete(model);
-  if (removed) {
-    try {
-      deleteFallbackChain(model);
-    } catch {
-      // Non-critical
-    }
-  }
-  return removed;
+	ensureLoaded();
+	const removed = fallbackChains.delete(model);
+	if (removed) {
+		try {
+			deleteFallbackChain(model);
+		} catch {
+			// Non-critical
+		}
+	}
+	return removed;
 }
 
 /**
@@ -137,24 +137,24 @@ export function removeFallback(model) {
  * @returns {Record<string, FallbackEntry[]>}
  */
 export function getAllFallbackChains() {
-  ensureLoaded();
-  /** @type {Record<string, FallbackEntry[]>} */
-  const result = {};
-  for (const [model, chain] of fallbackChains.entries()) {
-    result[model] = chain;
-  }
-  return result;
+	ensureLoaded();
+	/** @type {Record<string, FallbackEntry[]>} */
+	const result = {};
+	for (const [model, chain] of fallbackChains.entries()) {
+		result[model] = chain;
+	}
+	return result;
 }
 
 /**
  * Reset all fallback chains (for testing).
  */
 export function resetAllFallbacks() {
-  fallbackChains.clear();
-  _loaded = false;
-  try {
-    deleteAllFallbackChains();
-  } catch {
-    // Non-critical
-  }
+	fallbackChains.clear();
+	_loaded = false;
+	try {
+		deleteAllFallbackChains();
+	} catch {
+		// Non-critical
+	}
 }

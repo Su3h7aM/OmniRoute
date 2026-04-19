@@ -8,14 +8,14 @@
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
 interface ServerCredentials {
-  server: string;
-  token: string;
-  userId: string;
+	server: string;
+	token: string;
+	userId: string;
 }
 
 function getDefaultApiServer() {
-  const { dashboardPort } = getRuntimePorts();
-  return `http://localhost:${dashboardPort}`;
+	const { dashboardPort } = getRuntimePorts();
+	return `http://localhost:${dashboardPort}`;
 }
 
 /**
@@ -23,9 +23,9 @@ function getDefaultApiServer() {
  * Used by OAuth CLI services to save tokens to the running server.
  */
 export function getServerCredentials(): ServerCredentials {
-  return {
-    server: process.env.OMNIROUTE_SERVER || process.env.SERVER_URL || getDefaultApiServer(),
-    token: process.env.OMNIROUTE_TOKEN || process.env.CLI_TOKEN || "",
-    userId: process.env.OMNIROUTE_USER_ID || process.env.CLI_USER_ID || "cli",
-  };
+	return {
+		server: process.env.OMNIROUTE_SERVER || process.env.SERVER_URL || getDefaultApiServer(),
+		token: process.env.OMNIROUTE_TOKEN || process.env.CLI_TOKEN || "",
+		userId: process.env.OMNIROUTE_USER_ID || process.env.CLI_USER_ID || "cli",
+	};
 }

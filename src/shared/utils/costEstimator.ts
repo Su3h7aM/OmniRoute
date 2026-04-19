@@ -12,17 +12,17 @@
  * Values in USD.
  */
 const DEFAULT_PRICING = {
-  "gpt-4o": { input: 2.5, output: 10.0 },
-  "gpt-4o-mini": { input: 0.15, output: 0.6 },
-  "gpt-4.1": { input: 2.0, output: 8.0 },
-  "gpt-4.1-mini": { input: 0.4, output: 1.6 },
-  "gpt-4.1-nano": { input: 0.1, output: 0.4 },
-  o3: { input: 2.0, output: 8.0 },
-  "o4-mini": { input: 1.1, output: 4.4 },
-  "claude-sonnet-4-5-20250514": { input: 3.0, output: 15.0 },
-  "claude-3-5-haiku-20241022": { input: 0.8, output: 4.0 },
-  "gemini-2.5-pro": { input: 1.25, output: 10.0 },
-  "gemini-2.5-flash": { input: 0.15, output: 0.6 },
+	"gpt-4o": { input: 2.5, output: 10.0 },
+	"gpt-4o-mini": { input: 0.15, output: 0.6 },
+	"gpt-4.1": { input: 2.0, output: 8.0 },
+	"gpt-4.1-mini": { input: 0.4, output: 1.6 },
+	"gpt-4.1-nano": { input: 0.1, output: 0.4 },
+	o3: { input: 2.0, output: 8.0 },
+	"o4-mini": { input: 1.1, output: 4.4 },
+	"claude-sonnet-4-5-20250514": { input: 3.0, output: 15.0 },
+	"claude-3-5-haiku-20241022": { input: 0.8, output: 4.0 },
+	"gemini-2.5-pro": { input: 1.25, output: 10.0 },
+	"gemini-2.5-flash": { input: 0.15, output: 0.6 },
 };
 
 /**
@@ -33,8 +33,8 @@ const DEFAULT_PRICING = {
  * @returns {number} Estimated token count
  */
 export function estimateTokens(text) {
-  if (!text || typeof text !== "string") return 0;
-  return Math.ceil(text.length / 4);
+	if (!text || typeof text !== "string") return 0;
+	return Math.ceil(text.length / 4);
 }
 
 /**
@@ -46,28 +46,28 @@ export function estimateTokens(text) {
  * @returns {number} Estimated input token count
  */
 export function estimateInputTokens(body) {
-  if (!body) return 0;
-  let total = 0;
+	if (!body) return 0;
+	let total = 0;
 
-  if (body.system) total += estimateTokens(body.system);
+	if (body.system) total += estimateTokens(body.system);
 
-  if (Array.isArray(body.messages)) {
-    for (const msg of body.messages) {
-      if (typeof msg.content === "string") {
-        total += estimateTokens(msg.content);
-      } else if (Array.isArray(msg.content)) {
-        for (const part of msg.content) {
-          if (part.type === "text" && typeof part.text === "string") {
-            total += estimateTokens(part.text);
-          }
-        }
-      }
-      // Add ~4 tokens overhead per message (role, separators)
-      total += 4;
-    }
-  }
+	if (Array.isArray(body.messages)) {
+		for (const msg of body.messages) {
+			if (typeof msg.content === "string") {
+				total += estimateTokens(msg.content);
+			} else if (Array.isArray(msg.content)) {
+				for (const part of msg.content) {
+					if (part.type === "text" && typeof part.text === "string") {
+						total += estimateTokens(part.text);
+					}
+				}
+			}
+			// Add ~4 tokens overhead per message (role, separators)
+			total += 4;
+		}
+	}
 
-  return total;
+	return total;
 }
 
 /**
@@ -81,25 +81,25 @@ export function estimateInputTokens(body) {
  * @returns {{ inputCost: number, outputCost: number, totalCost: number, model: string, inputTokens: number, outputTokens: number }}
  */
 export function estimateCost({ model, inputTokens, maxOutputTokens = 1000, pricingOverrides }) {
-  // Find matching pricing (exact match or prefix match)
-  let pricing = pricingOverrides;
-  if (!pricing) {
-    const key = Object.keys(DEFAULT_PRICING).find((k) => model === k || model.startsWith(k));
-    pricing = key ? DEFAULT_PRICING[key] : { input: 1.0, output: 3.0 }; // conservative fallback
-  }
+	// Find matching pricing (exact match or prefix match)
+	let pricing = pricingOverrides;
+	if (!pricing) {
+		const key = Object.keys(DEFAULT_PRICING).find((k) => model === k || model.startsWith(k));
+		pricing = key ? DEFAULT_PRICING[key] : { input: 1.0, output: 3.0 }; // conservative fallback
+	}
 
-  const inputCost = (inputTokens / 1_000_000) * pricing.input;
-  const outputCost = (maxOutputTokens / 1_000_000) * pricing.output;
-  const totalCost = inputCost + outputCost;
+	const inputCost = (inputTokens / 1_000_000) * pricing.input;
+	const outputCost = (maxOutputTokens / 1_000_000) * pricing.output;
+	const totalCost = inputCost + outputCost;
 
-  return {
-    model,
-    inputTokens,
-    outputTokens: maxOutputTokens,
-    inputCost: Math.round(inputCost * 1_000_000) / 1_000_000,
-    outputCost: Math.round(outputCost * 1_000_000) / 1_000_000,
-    totalCost: Math.round(totalCost * 1_000_000) / 1_000_000,
-  };
+	return {
+		model,
+		inputTokens,
+		outputTokens: maxOutputTokens,
+		inputCost: Math.round(inputCost * 1_000_000) / 1_000_000,
+		outputCost: Math.round(outputCost * 1_000_000) / 1_000_000,
+		totalCost: Math.round(totalCost * 1_000_000) / 1_000_000,
+	};
 }
 
 /**
@@ -108,8 +108,8 @@ export function estimateCost({ model, inputTokens, maxOutputTokens = 1000, prici
  * @returns {string}
  */
 export function formatCost(usd) {
-  if (usd < 0.01) return `$${(usd * 100).toFixed(4)}¢`;
-  return `$${usd.toFixed(4)}`;
+	if (usd < 0.01) return `$${(usd * 100).toFixed(4)}¢`;
+	return `$${usd.toFixed(4)}`;
 }
 
 /**
@@ -121,12 +121,17 @@ export function formatCost(usd) {
  * @returns {{ inputCost: number, outputCost: number, totalCost: number, formatted: string }}
  */
 export function preflightEstimate(body, model, pricingOverrides) {
-  const inputTokens = estimateInputTokens(body);
-  const maxOutput = body.max_tokens || body.maxOutputTokens || 1000;
-  const result = estimateCost({ model, inputTokens, maxOutputTokens: maxOutput, pricingOverrides });
+	const inputTokens = estimateInputTokens(body);
+	const maxOutput = body.max_tokens || body.maxOutputTokens || 1000;
+	const result = estimateCost({
+		model,
+		inputTokens,
+		maxOutputTokens: maxOutput,
+		pricingOverrides,
+	});
 
-  return {
-    ...result,
-    formatted: formatCost(result.totalCost),
-  };
+	return {
+		...result,
+		formatted: formatCost(result.totalCost),
+	};
 }

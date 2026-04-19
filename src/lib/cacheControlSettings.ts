@@ -11,15 +11,15 @@ import type { CacheControlMode } from "@omniroute/open-sse/utils/cacheControlPol
 let cachedSettings: CacheControlMode | null = null;
 
 export async function getCacheControlSettings(): Promise<CacheControlMode> {
-  if (cachedSettings !== null) {
-    return cachedSettings;
-  }
+	if (cachedSettings !== null) {
+		return cachedSettings;
+	}
 
-  const settings = await getSettings();
-  cachedSettings = (settings.alwaysPreserveClientCache as CacheControlMode) || "auto";
-  return cachedSettings;
+	const settings = await getSettings();
+	cachedSettings = (settings.alwaysPreserveClientCache as CacheControlMode) || "auto";
+	return cachedSettings;
 }
 
 export function invalidateCacheControlSettingsCache() {
-  cachedSettings = null;
+	cachedSettings = null;
 }

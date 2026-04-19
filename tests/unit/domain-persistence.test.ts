@@ -5,10 +5,10 @@ import fs from "node:fs";
 import os from "node:os";
 
 function assertAlmostEqual(actual, expected, epsilon = 1e-9, message = "") {
-  assert.ok(
-    Math.abs(actual - expected) <= epsilon,
-    message || `expected ${actual} to be within ${epsilon} of ${expected}`
-  );
+	assert.ok(
+		Math.abs(actual - expected) <= epsilon,
+		message || `expected ${actual} to be within ${epsilon} of ${expected}`
+	);
 }
 
 // ─── Test Setup: Single temp dir for whole file (core caches DATA_DIR at first import) ────────
@@ -18,362 +18,373 @@ const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = fileTmpDir;
 
 async function removeStorageFiles(dir) {
-  const storage = path.join(dir, "storage.sqlite");
-  try {
-    const core = await import("../../src/lib/db/core.ts");
-    core.resetDbInstance();
-  } catch {
-    /* core may not be loaded yet */
-  }
-  for (const suffix of ["", "-wal", "-shm", "-journal"]) {
-    const p = storage + suffix;
-    try {
-      if (fs.existsSync(p)) fs.unlinkSync(p);
-    } catch {}
-  }
+	const storage = path.join(dir, "storage.sqlite");
+	try {
+		const core = await import("../../src/lib/db/core.ts");
+		core.resetDbInstance();
+	} catch {
+		/* core may not be loaded yet */
+	}
+	for (const suffix of ["", "-wal", "-shm", "-journal"]) {
+		const p = storage + suffix;
+		try {
+			if (fs.existsSync(p)) fs.unlinkSync(p);
+		} catch {}
+	}
 }
 
 beforeEach(async () => {
-  await removeStorageFiles(fileTmpDir);
+	await removeStorageFiles(fileTmpDir);
 });
 
 afterEach(async () => {
-  const core = await import("../../src/lib/db/core.ts");
-  core.resetDbInstance();
+	const core = await import("../../src/lib/db/core.ts");
+	core.resetDbInstance();
 });
 
 after(() => {
-  process.env.DATA_DIR = originalDataDir;
-  if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
+	process.env.DATA_DIR = originalDataDir;
+	if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
 });
 
 // ─── Fallback Policy Tests ────────────────────────
 
 describe("fallbackPolicy persistence", () => {
-  it("should register and resolve a fallback chain", async () => {
-    const { registerFallback, resolveFallbackChain, hasFallback, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.ts");
+	it("should register and resolve a fallback chain", async () => {
+		const { registerFallback, resolveFallbackChain, hasFallback, resetAllFallbacks } =
+			await import("../../src/domain/fallbackPolicy.ts");
 
-    resetAllFallbacks();
+		resetAllFallbacks();
 
-    registerFallback("gpt-4o", [
-      { provider: "openai", priority: 0, enabled: true },
-      { provider: "anthropic", priority: 1, enabled: true },
-      { provider: "disabled-one", priority: 2, enabled: false },
-    ]);
+		registerFallback("gpt-4o", [
+			{ provider: "openai", priority: 0, enabled: true },
+			{ provider: "anthropic", priority: 1, enabled: true },
+			{ provider: "disabled-one", priority: 2, enabled: false },
+		]);
 
-    assert.ok(hasFallback("gpt-4o"));
+		assert.ok(hasFallback("gpt-4o"));
 
-    const chain = resolveFallbackChain("gpt-4o");
-    assert.equal(chain.length, 2); // disabled-one excluded
-    assert.equal(chain[0].provider, "openai");
-    assert.equal(chain[1].provider, "anthropic");
+		const chain = resolveFallbackChain("gpt-4o");
+		assert.equal(chain.length, 2); // disabled-one excluded
+		assert.equal(chain[0].provider, "openai");
+		assert.equal(chain[1].provider, "anthropic");
 
-    resetAllFallbacks();
-  });
+		resetAllFallbacks();
+	});
 
-  it("should resolve with exclusions", async () => {
-    const { registerFallback, resolveFallbackChain, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.ts");
+	it("should resolve with exclusions", async () => {
+		const { registerFallback, resolveFallbackChain, resetAllFallbacks } = await import(
+			"../../src/domain/fallbackPolicy.ts"
+		);
 
-    resetAllFallbacks();
+		resetAllFallbacks();
 
-    registerFallback("claude-3", [
-      { provider: "anthropic", priority: 0 },
-      { provider: "openai", priority: 1 },
-    ]);
+		registerFallback("claude-3", [
+			{ provider: "anthropic", priority: 0 },
+			{ provider: "openai", priority: 1 },
+		]);
 
-    const chain = resolveFallbackChain("claude-3", ["anthropic"]);
-    assert.equal(chain.length, 1);
-    assert.equal(chain[0].provider, "openai");
+		const chain = resolveFallbackChain("claude-3", ["anthropic"]);
+		assert.equal(chain.length, 1);
+		assert.equal(chain[0].provider, "openai");
 
-    resetAllFallbacks();
-  });
+		resetAllFallbacks();
+	});
 
-  it("should get next fallback correctly", async () => {
-    const { registerFallback, getNextFallback, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.ts");
+	it("should get next fallback correctly", async () => {
+		const { registerFallback, getNextFallback, resetAllFallbacks } = await import(
+			"../../src/domain/fallbackPolicy.ts"
+		);
 
-    resetAllFallbacks();
+		resetAllFallbacks();
 
-    registerFallback("test-model", [
-      { provider: "p1", priority: 0 },
-      { provider: "p2", priority: 1 },
-    ]);
+		registerFallback("test-model", [
+			{ provider: "p1", priority: 0 },
+			{ provider: "p2", priority: 1 },
+		]);
 
-    assert.equal(getNextFallback("test-model"), "p1");
-    assert.equal(getNextFallback("test-model", ["p1"]), "p2");
-    assert.equal(getNextFallback("test-model", ["p1", "p2"]), null);
+		assert.equal(getNextFallback("test-model"), "p1");
+		assert.equal(getNextFallback("test-model", ["p1"]), "p2");
+		assert.equal(getNextFallback("test-model", ["p1", "p2"]), null);
 
-    // Non-existing model
-    assert.equal(getNextFallback("no-model"), null);
+		// Non-existing model
+		assert.equal(getNextFallback("no-model"), null);
 
-    resetAllFallbacks();
-  });
+		resetAllFallbacks();
+	});
 
-  it("should remove fallback chain", async () => {
-    const { registerFallback, removeFallback, hasFallback, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.ts");
+	it("should remove fallback chain", async () => {
+		const { registerFallback, removeFallback, hasFallback, resetAllFallbacks } = await import(
+			"../../src/domain/fallbackPolicy.ts"
+		);
 
-    resetAllFallbacks();
+		resetAllFallbacks();
 
-    registerFallback("gpt-4", [{ provider: "openai" }]);
-    assert.ok(hasFallback("gpt-4"));
+		registerFallback("gpt-4", [{ provider: "openai" }]);
+		assert.ok(hasFallback("gpt-4"));
 
-    removeFallback("gpt-4");
-    assert.ok(!hasFallback("gpt-4"));
+		removeFallback("gpt-4");
+		assert.ok(!hasFallback("gpt-4"));
 
-    resetAllFallbacks();
-  });
+		resetAllFallbacks();
+	});
 
-  it("should get all fallback chains", async () => {
-    const { registerFallback, getAllFallbackChains, resetAllFallbacks } =
-      await import("../../src/domain/fallbackPolicy.ts");
+	it("should get all fallback chains", async () => {
+		const { registerFallback, getAllFallbackChains, resetAllFallbacks } = await import(
+			"../../src/domain/fallbackPolicy.ts"
+		);
 
-    resetAllFallbacks();
+		resetAllFallbacks();
 
-    registerFallback("m1", [{ provider: "p1" }]);
-    registerFallback("m2", [{ provider: "p2" }]);
+		registerFallback("m1", [{ provider: "p1" }]);
+		registerFallback("m2", [{ provider: "p2" }]);
 
-    const all = getAllFallbackChains();
-    assert.ok("m1" in all);
-    assert.ok("m2" in all);
+		const all = getAllFallbackChains();
+		assert.ok("m1" in all);
+		assert.ok("m2" in all);
 
-    resetAllFallbacks();
-  });
+		resetAllFallbacks();
+	});
 });
 
 // ─── Cost Rules Tests ────────────────────────
 
 describe("costRules persistence", () => {
-  it("should set and check budget", async () => {
-    const { setBudget, getBudget, checkBudget, resetCostData } =
-      await import("../../src/domain/costRules.ts");
+	it("should set and check budget", async () => {
+		const { setBudget, getBudget, checkBudget, resetCostData } = await import(
+			"../../src/domain/costRules.ts"
+		);
 
-    resetCostData();
+		resetCostData();
 
-    setBudget("key1", { dailyLimitUsd: 10 });
-    const budget = getBudget("key1");
-    assert.equal(budget.dailyLimitUsd, 10);
-    assert.equal(budget.warningThreshold, 0.8);
+		setBudget("key1", { dailyLimitUsd: 10 });
+		const budget = getBudget("key1");
+		assert.equal(budget.dailyLimitUsd, 10);
+		assert.equal(budget.warningThreshold, 0.8);
 
-    const check = checkBudget("key1");
-    assert.ok(check.allowed);
-    assert.equal(check.dailyLimit, 10);
+		const check = checkBudget("key1");
+		assert.ok(check.allowed);
+		assert.equal(check.dailyLimit, 10);
 
-    resetCostData();
-  });
+		resetCostData();
+	});
 
-  it("should record cost and check daily total", async () => {
-    const { setBudget, recordCost, getDailyTotal, checkBudget, resetCostData } =
-      await import("../../src/domain/costRules.ts");
+	it("should record cost and check daily total", async () => {
+		const { setBudget, recordCost, getDailyTotal, checkBudget, resetCostData } = await import(
+			"../../src/domain/costRules.ts"
+		);
 
-    resetCostData();
+		resetCostData();
 
-    setBudget("key2", { dailyLimitUsd: 5 });
-    recordCost("key2", 3.5);
-    recordCost("key2", 1.0);
+		setBudget("key2", { dailyLimitUsd: 5 });
+		recordCost("key2", 3.5);
+		recordCost("key2", 1.0);
 
-    const total = getDailyTotal("key2");
-    assertAlmostEqual(total, 4.5, 1e-9, `daily total ${total} should equal 4.5 (3.5 + 1.0)`);
+		const total = getDailyTotal("key2");
+		assertAlmostEqual(total, 4.5, 1e-9, `daily total ${total} should equal 4.5 (3.5 + 1.0)`);
 
-    // Should still be allowed
-    const check = checkBudget("key2", 0);
-    assert.ok(check.allowed);
+		// Should still be allowed
+		const check = checkBudget("key2", 0);
+		assert.ok(check.allowed);
 
-    // Should be denied with additional cost
-    const checkOver = checkBudget("key2", 1.0);
-    assert.ok(!checkOver.allowed);
+		// Should be denied with additional cost
+		const checkOver = checkBudget("key2", 1.0);
+		assert.ok(!checkOver.allowed);
 
-    resetCostData();
-  });
+		resetCostData();
+	});
 
-  it("should return allowed=true when no budget set", async () => {
-    const { checkBudget, resetCostData } = await import("../../src/domain/costRules.ts");
+	it("should return allowed=true when no budget set", async () => {
+		const { checkBudget, resetCostData } = await import("../../src/domain/costRules.ts");
 
-    resetCostData();
+		resetCostData();
 
-    const check = checkBudget("no-budget-key");
-    assert.ok(check.allowed);
-    assert.equal(check.dailyLimit, 0);
+		const check = checkBudget("no-budget-key");
+		assert.ok(check.allowed);
+		assert.equal(check.dailyLimit, 0);
 
-    resetCostData();
-  });
+		resetCostData();
+	});
 
-  it("should get cost summary", async () => {
-    const { setBudget, recordCost, getCostSummary, resetCostData } =
-      await import("../../src/domain/costRules.ts");
+	it("should get cost summary", async () => {
+		const { setBudget, recordCost, getCostSummary, resetCostData } = await import(
+			"../../src/domain/costRules.ts"
+		);
 
-    resetCostData();
+		resetCostData();
 
-    setBudget("key3", { dailyLimitUsd: 100 });
-    recordCost("key3", 1.5);
-    recordCost("key3", 2.5);
+		setBudget("key3", { dailyLimitUsd: 100 });
+		recordCost("key3", 1.5);
+		recordCost("key3", 2.5);
 
-    const summary = getCostSummary("key3");
-    assertAlmostEqual(
-      summary.dailyTotal,
-      4.0,
-      1e-9,
-      `dailyTotal ${summary.dailyTotal} should equal 4.0 (1.5 + 2.5)`
-    );
-    assertAlmostEqual(
-      summary.monthlyTotal,
-      4.0,
-      1e-9,
-      `monthlyTotal ${summary.monthlyTotal} should equal 4.0`
-    );
-    assert.equal(summary.budget.dailyLimitUsd, 100);
+		const summary = getCostSummary("key3");
+		assertAlmostEqual(
+			summary.dailyTotal,
+			4.0,
+			1e-9,
+			`dailyTotal ${summary.dailyTotal} should equal 4.0 (1.5 + 2.5)`
+		);
+		assertAlmostEqual(
+			summary.monthlyTotal,
+			4.0,
+			1e-9,
+			`monthlyTotal ${summary.monthlyTotal} should equal 4.0`
+		);
+		assert.equal(summary.budget.dailyLimitUsd, 100);
 
-    resetCostData();
-  });
+		resetCostData();
+	});
 });
 
 // ─── Lockout Policy Tests ────────────────────────
 
 describe("lockoutPolicy persistence", () => {
-  it("should track failed attempts and trigger lockout", async () => {
-    const { recordFailedAttempt, checkLockout, recordSuccess } =
-      await import("../../src/domain/lockoutPolicy.ts");
+	it("should track failed attempts and trigger lockout", async () => {
+		const { recordFailedAttempt, checkLockout, recordSuccess } = await import(
+			"../../src/domain/lockoutPolicy.ts"
+		);
 
-    const id = "test-ip-" + Date.now();
-    const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
+		const id = "test-ip-" + Date.now();
+		const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
 
-    // First attempts should not lock
-    let result = recordFailedAttempt(id, config);
-    assert.ok(!result.locked);
+		// First attempts should not lock
+		let result = recordFailedAttempt(id, config);
+		assert.ok(!result.locked);
 
-    result = recordFailedAttempt(id, config);
-    assert.ok(!result.locked);
+		result = recordFailedAttempt(id, config);
+		assert.ok(!result.locked);
 
-    // Third attempt triggers lockout
-    result = recordFailedAttempt(id, config);
-    assert.ok(result.locked);
-    assert.ok(result.remainingMs > 0);
+		// Third attempt triggers lockout
+		result = recordFailedAttempt(id, config);
+		assert.ok(result.locked);
+		assert.ok(result.remainingMs > 0);
 
-    // Check lockout
-    const lockCheck = checkLockout(id, config);
-    assert.ok(lockCheck.locked);
+		// Check lockout
+		const lockCheck = checkLockout(id, config);
+		assert.ok(lockCheck.locked);
 
-    // Clean up
-    recordSuccess(id);
-  });
+		// Clean up
+		recordSuccess(id);
+	});
 
-  it("should unlock after success", async () => {
-    const { recordFailedAttempt, recordSuccess, checkLockout } =
-      await import("../../src/domain/lockoutPolicy.ts");
+	it("should unlock after success", async () => {
+		const { recordFailedAttempt, recordSuccess, checkLockout } = await import(
+			"../../src/domain/lockoutPolicy.ts"
+		);
 
-    const id = "test-unlock-" + Date.now();
-    const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
+		const id = "test-unlock-" + Date.now();
+		const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
 
-    recordFailedAttempt(id, config);
-    recordFailedAttempt(id, config);
+		recordFailedAttempt(id, config);
+		recordFailedAttempt(id, config);
 
-    recordSuccess(id);
+		recordSuccess(id);
 
-    const check = checkLockout(id, config);
-    assert.ok(!check.locked);
-  });
+		const check = checkLockout(id, config);
+		assert.ok(!check.locked);
+	});
 
-  it("should force-unlock", async () => {
-    const { recordFailedAttempt, forceUnlock, checkLockout } =
-      await import("../../src/domain/lockoutPolicy.ts");
+	it("should force-unlock", async () => {
+		const { recordFailedAttempt, forceUnlock, checkLockout } = await import(
+			"../../src/domain/lockoutPolicy.ts"
+		);
 
-    const id = "test-force-" + Date.now();
-    const config = { maxAttempts: 2, lockoutDurationMs: 60000, attemptWindowMs: 60000 };
+		const id = "test-force-" + Date.now();
+		const config = { maxAttempts: 2, lockoutDurationMs: 60000, attemptWindowMs: 60000 };
 
-    recordFailedAttempt(id, config);
-    recordFailedAttempt(id, config);
+		recordFailedAttempt(id, config);
+		recordFailedAttempt(id, config);
 
-    const lockCheck = checkLockout(id, config);
-    assert.ok(lockCheck.locked);
+		const lockCheck = checkLockout(id, config);
+		assert.ok(lockCheck.locked);
 
-    forceUnlock(id);
+		forceUnlock(id);
 
-    const afterUnlock = checkLockout(id, config);
-    assert.ok(!afterUnlock.locked);
-  });
+		const afterUnlock = checkLockout(id, config);
+		assert.ok(!afterUnlock.locked);
+	});
 });
 
 // ─── Circuit Breaker Tests ────────────────────────
 
 describe("circuitBreaker persistence", () => {
-  it("should open after threshold failures", async () => {
-    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
+	it("should open after threshold failures", async () => {
+		const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-    const cb = new CircuitBreaker("test-cb-" + Date.now(), { failureThreshold: 3 });
-    assert.equal(cb.state, STATE.CLOSED);
+		const cb = new CircuitBreaker("test-cb-" + Date.now(), { failureThreshold: 3 });
+		assert.equal(cb.state, STATE.CLOSED);
 
-    // Simulate failures
-    for (let i = 0; i < 3; i++) {
-      try {
-        await cb.execute(() => Promise.reject(new Error("fail")));
-      } catch {
-        // expected
-      }
-    }
+		// Simulate failures
+		for (let i = 0; i < 3; i++) {
+			try {
+				await cb.execute(() => Promise.reject(new Error("fail")));
+			} catch {
+				// expected
+			}
+		}
 
-    assert.equal(cb.state, STATE.OPEN);
-    assert.ok(!cb.canExecute());
-  });
+		assert.equal(cb.state, STATE.OPEN);
+		assert.ok(!cb.canExecute());
+	});
 
-  it("should reset correctly", async () => {
-    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
+	it("should reset correctly", async () => {
+		const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-    const cb = new CircuitBreaker("test-reset-" + Date.now(), { failureThreshold: 2 });
+		const cb = new CircuitBreaker("test-reset-" + Date.now(), { failureThreshold: 2 });
 
-    try {
-      await cb.execute(() => Promise.reject(new Error("fail")));
-    } catch {}
-    try {
-      await cb.execute(() => Promise.reject(new Error("fail")));
-    } catch {}
+		try {
+			await cb.execute(() => Promise.reject(new Error("fail")));
+		} catch {}
+		try {
+			await cb.execute(() => Promise.reject(new Error("fail")));
+		} catch {}
 
-    assert.equal(cb.state, STATE.OPEN);
+		assert.equal(cb.state, STATE.OPEN);
 
-    cb.reset();
-    assert.equal(cb.state, STATE.CLOSED);
-    assert.equal(cb.failureCount, 0);
-    assert.ok(cb.canExecute());
-  });
+		cb.reset();
+		assert.equal(cb.state, STATE.CLOSED);
+		assert.equal(cb.failureCount, 0);
+		assert.ok(cb.canExecute());
+	});
 
-  it("should close on success after half-open", async () => {
-    const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
+	it("should close on success after half-open", async () => {
+		const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-    const cb = new CircuitBreaker("test-halfopen-" + Date.now(), {
-      failureThreshold: 2,
-      resetTimeout: 10, // 10ms for test speed
-    });
+		const cb = new CircuitBreaker("test-halfopen-" + Date.now(), {
+			failureThreshold: 2,
+			resetTimeout: 10, // 10ms for test speed
+		});
 
-    // Open the circuit
-    try {
-      await cb.execute(() => Promise.reject(new Error("fail")));
-    } catch {}
-    try {
-      await cb.execute(() => Promise.reject(new Error("fail")));
-    } catch {}
-    assert.equal(cb.state, STATE.OPEN);
+		// Open the circuit
+		try {
+			await cb.execute(() => Promise.reject(new Error("fail")));
+		} catch {}
+		try {
+			await cb.execute(() => Promise.reject(new Error("fail")));
+		} catch {}
+		assert.equal(cb.state, STATE.OPEN);
 
-    // Wait for resetTimeout
-    await new Promise((r) => setTimeout(r, 20));
+		// Wait for resetTimeout
+		await new Promise((r) => setTimeout(r, 20));
 
-    // Should transition to HALF_OPEN and succeed
-    const result = await cb.execute(() => Promise.resolve("ok"));
-    assert.equal(result, "ok");
-    assert.equal(cb.state, STATE.CLOSED);
-  });
+		// Should transition to HALF_OPEN and succeed
+		const result = await cb.execute(() => Promise.resolve("ok"));
+		assert.equal(result, "ok");
+		assert.equal(cb.state, STATE.CLOSED);
+	});
 
-  it("registry should return statuses", async () => {
-    const { getCircuitBreaker, getAllCircuitBreakerStatuses } =
-      await import("../../src/shared/utils/circuitBreaker.ts");
+	it("registry should return statuses", async () => {
+		const { getCircuitBreaker, getAllCircuitBreakerStatuses } = await import(
+			"../../src/shared/utils/circuitBreaker.ts"
+		);
 
-    const name = "reg-test-" + Date.now();
-    const cb = getCircuitBreaker(name, { failureThreshold: 5 });
-    assert.ok(cb);
+		const name = "reg-test-" + Date.now();
+		const cb = getCircuitBreaker(name, { failureThreshold: 5 });
+		assert.ok(cb);
 
-    const statuses = getAllCircuitBreakerStatuses();
-    const found = statuses.find((s) => s.name === name);
-    assert.ok(found);
-    assert.equal(found.state, "CLOSED");
-  });
+		const statuses = getAllCircuitBreakerStatuses();
+		const found = statuses.find((s) => s.name === name);
+		assert.ok(found);
+		assert.equal(found.state, "CLOSED");
+	});
 });

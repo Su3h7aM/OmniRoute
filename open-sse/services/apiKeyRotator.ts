@@ -24,23 +24,23 @@ const _keyIndexes = new Map<string, number>();
  * @returns The selected API key (may be primary or one of the extras)
  */
 export function getRotatingApiKey(
-  connectionId: string,
-  primaryKey: string,
-  extraKeys: string[] = []
+	connectionId: string,
+	primaryKey: string,
+	extraKeys: string[] = []
 ): string {
-  const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
+	const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
 
-  // Only 1 key available → no rotation needed
-  if (validExtras.length === 0) return primaryKey;
+	// Only 1 key available → no rotation needed
+	if (validExtras.length === 0) return primaryKey;
 
-  const allKeys = [primaryKey, ...validExtras].filter(Boolean);
-  if (allKeys.length <= 1) return primaryKey;
+	const allKeys = [primaryKey, ...validExtras].filter(Boolean);
+	if (allKeys.length <= 1) return primaryKey;
 
-  const current = _keyIndexes.get(connectionId) ?? 0;
-  const idx = current % allKeys.length;
-  _keyIndexes.set(connectionId, current + 1);
+	const current = _keyIndexes.get(connectionId) ?? 0;
+	const idx = current % allKeys.length;
+	_keyIndexes.set(connectionId, current + 1);
 
-  return allKeys[idx];
+	return allKeys[idx];
 }
 
 /**
@@ -50,7 +50,7 @@ export function getRotatingApiKey(
  * @param connectionId - Connection to reset
  */
 export function resetRotationIndex(connectionId: string): void {
-  _keyIndexes.delete(connectionId);
+	_keyIndexes.delete(connectionId);
 }
 
 /**
@@ -58,6 +58,6 @@ export function resetRotationIndex(connectionId: string): void {
  * Used for logging/observability.
  */
 export function getApiKeyCount(primaryKey: string, extraKeys: string[] = []): number {
-  const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
-  return (primaryKey ? 1 : 0) + validExtras.length;
+	const validExtras = extraKeys.filter((k) => typeof k === "string" && k.trim().length > 0);
+	return (primaryKey ? 1 : 0) + validExtras.length;
 }

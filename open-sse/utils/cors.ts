@@ -9,14 +9,14 @@
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 
 export const CORS_HEADERS: Record<string, string> = {
-  "Access-Control-Allow-Origin": CORS_ORIGIN,
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version",
+	"Access-Control-Allow-Origin": CORS_ORIGIN,
+	"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version",
 };
 
 /**
  * Returns just the origin header for merging into existing header objects.
  */
 export function getCorsOrigin(): string {
-  return CORS_ORIGIN;
+	return CORS_ORIGIN;
 }

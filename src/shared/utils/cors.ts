@@ -22,9 +22,9 @@ export const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
  * @type {Record<string, string>}
  */
 export const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": CORS_ORIGIN,
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version",
+	"Access-Control-Allow-Origin": CORS_ORIGIN,
+	"Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+	"Access-Control-Allow-Headers": "Content-Type, Authorization, x-api-key, anthropic-version",
 };
 
 /**
@@ -32,5 +32,5 @@ export const CORS_HEADERS = {
  * @returns {Response} 204 No Content with CORS headers
  */
 export function handleCorsOptions() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
+	return new Response(null, { status: 204, headers: CORS_HEADERS });
 }

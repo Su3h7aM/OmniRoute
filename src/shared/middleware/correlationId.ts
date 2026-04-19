@@ -18,7 +18,7 @@ const correlationStore = new AsyncLocalStorage();
  * @returns {string} UUID-like correlation ID
  */
 function generateCorrelationId() {
-  return crypto.randomUUID();
+	return crypto.randomUUID();
 }
 
 /**
@@ -26,7 +26,7 @@ function generateCorrelationId() {
  * @returns {string|undefined}
  */
 export function getCorrelationId() {
-  return correlationStore.getStore();
+	return correlationStore.getStore();
 }
 
 /**
@@ -38,8 +38,8 @@ export function getCorrelationId() {
  * @returns {*} Result of fn()
  */
 export function runWithCorrelation(correlationId, fn) {
-  const id = correlationId || generateCorrelationId();
-  return correlationStore.run(id, fn);
+	const id = correlationId || generateCorrelationId();
+	return correlationStore.run(id, fn);
 }
 
 /**
@@ -55,21 +55,21 @@ export function runWithCorrelation(correlationId, fn) {
  * @returns {Promise<Response>}
  */
 export function correlationMiddleware(request, next) {
-  const requestId =
-    request.headers.get("x-request-id") ||
-    request.headers.get("x-correlation-id") ||
-    generateCorrelationId();
+	const requestId =
+		request.headers.get("x-request-id") ||
+		request.headers.get("x-correlation-id") ||
+		generateCorrelationId();
 
-  return runWithCorrelation(requestId, async () => {
-    const response = await next();
+	return runWithCorrelation(requestId, async () => {
+		const response = await next();
 
-    // Attach correlation ID to response
-    if (response && response.headers) {
-      response.headers.set("x-request-id", requestId);
-    }
+		// Attach correlation ID to response
+		if (response && response.headers) {
+			response.headers.set("x-request-id", requestId);
+		}
 
-    return response;
-  });
+		return response;
+	});
 }
 
 /**
@@ -79,20 +79,20 @@ export function correlationMiddleware(request, next) {
  * @returns {Object} Wrapped logger
  */
 export function createCorrelatedLogger(baseLogger) {
-  const withCorrelation = (level, ...args) => {
-    const correlationId = getCorrelationId();
-    if (correlationId) {
-      const meta = typeof args[args.length - 1] === "object" ? args.pop() : {};
-      meta.correlationId = correlationId;
-      args.push(meta);
-    }
-    baseLogger[level](...args);
-  };
+	const withCorrelation = (level, ...args) => {
+		const correlationId = getCorrelationId();
+		if (correlationId) {
+			const meta = typeof args[args.length - 1] === "object" ? args.pop() : {};
+			meta.correlationId = correlationId;
+			args.push(meta);
+		}
+		baseLogger[level](...args);
+	};
 
-  return {
-    info: (...args) => withCorrelation("info", ...args),
-    warn: (...args) => withCorrelation("warn", ...args),
-    error: (...args) => withCorrelation("error", ...args),
-    debug: (...args) => withCorrelation("debug", ...args),
-  };
+	return {
+		info: (...args) => withCorrelation("info", ...args),
+		warn: (...args) => withCorrelation("warn", ...args),
+		error: (...args) => withCorrelation("error", ...args),
+		debug: (...args) => withCorrelation("debug", ...args),
+	};
 }

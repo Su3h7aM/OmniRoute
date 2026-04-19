@@ -1,5 +1,5 @@
 export {
-  getResolvedModelCapabilities,
-  supportsReasoning,
-  supportsToolCalling,
+	getResolvedModelCapabilities,
+	supportsReasoning,
+	supportsToolCalling,
 } from "../../src/lib/modelCapabilities.ts";

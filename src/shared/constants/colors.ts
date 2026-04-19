@@ -12,17 +12,17 @@
 // ═══════════════════════════════════════════
 
 export const PROVIDER_COLORS = {
-  github: { bg: "#6e40c9", text: "#fff", label: "GitHub" },
-  kiro: { bg: "#FF9900", text: "#000", label: "Kiro" },
-  antigravity: { bg: "#4285F4", text: "#fff", label: "AG" },
-  claude: { bg: "#D97757", text: "#fff", label: "Claude" },
-  codex: { bg: "#10A37F", text: "#fff", label: "Codex" },
-  gemini: { bg: "#34A853", text: "#fff", label: "Gemini" },
-  qwen: { bg: "#6366F1", text: "#fff", label: "Qwen" },
-  qoder: { bg: "#EC4899", text: "#fff", label: "Qoder" },
-  fireworks: { bg: "#F97316", text: "#fff", label: "Fireworks" },
-  kimi: { bg: "#06B6D4", text: "#fff", label: "Kimi" },
-  "gemini-cli": { bg: "#34A853", text: "#fff", label: "Gemini CLI" },
+	github: { bg: "#6e40c9", text: "#fff", label: "GitHub" },
+	kiro: { bg: "#FF9900", text: "#000", label: "Kiro" },
+	antigravity: { bg: "#4285F4", text: "#fff", label: "AG" },
+	claude: { bg: "#D97757", text: "#fff", label: "Claude" },
+	codex: { bg: "#10A37F", text: "#fff", label: "Codex" },
+	gemini: { bg: "#34A853", text: "#fff", label: "Gemini" },
+	qwen: { bg: "#6366F1", text: "#fff", label: "Qwen" },
+	qoder: { bg: "#EC4899", text: "#fff", label: "Qoder" },
+	fireworks: { bg: "#F97316", text: "#fff", label: "Fireworks" },
+	kimi: { bg: "#06B6D4", text: "#fff", label: "Kimi" },
+	"gemini-cli": { bg: "#34A853", text: "#fff", label: "Gemini CLI" },
 };
 
 // ═══════════════════════════════════════════
@@ -30,12 +30,12 @@ export const PROVIDER_COLORS = {
 // ═══════════════════════════════════════════
 
 export const PROTOCOL_COLORS = {
-  openai: { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },
-  "openai-responses": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Responses" },
-  claude: { bg: "#D97757", text: "#fff", label: "Claude" },
-  gemini: { bg: "#4285F4", text: "#fff", label: "Gemini" },
-  warmup: { bg: "#F59E0B", text: "#000", label: "Warmup" },
-  bypass: { bg: "#6B7280", text: "#fff", label: "Bypass" },
+	openai: { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Chat" },
+	"openai-responses": { bg: "#1A1A2E", text: "#fff", label: "OpenAI-Responses" },
+	claude: { bg: "#D97757", text: "#fff", label: "Claude" },
+	gemini: { bg: "#4285F4", text: "#fff", label: "Gemini" },
+	warmup: { bg: "#F59E0B", text: "#000", label: "Warmup" },
+	bypass: { bg: "#6B7280", text: "#fff", label: "Bypass" },
 };
 
 // ═══════════════════════════════════════════
@@ -43,9 +43,9 @@ export const PROTOCOL_COLORS = {
 // ═══════════════════════════════════════════
 
 export const TYPE_COLORS = {
-  http: { bg: "#3B82F6", text: "#fff", label: "HTTP" },
-  https: { bg: "#10B981", text: "#fff", label: "HTTPS" },
-  socks5: { bg: "#8B5CF6", text: "#fff", label: "SOCKS5" },
+	http: { bg: "#3B82F6", text: "#fff", label: "HTTP" },
+	https: { bg: "#10B981", text: "#fff", label: "HTTPS" },
+	socks5: { bg: "#8B5CF6", text: "#fff", label: "SOCKS5" },
 };
 
 // ═══════════════════════════════════════════
@@ -53,11 +53,11 @@ export const TYPE_COLORS = {
 // ═══════════════════════════════════════════
 
 export const LEVEL_COLORS = {
-  key: { bg: "#F59E0B", text: "#000", label: "Key" },
-  combo: { bg: "#8B5CF6", text: "#fff", label: "Combo" },
-  provider: { bg: "#3B82F6", text: "#fff", label: "Provider" },
-  global: { bg: "#6B7280", text: "#fff", label: "Global" },
-  direct: { bg: "#374151", text: "#9CA3AF", label: "Direct" },
+	key: { bg: "#F59E0B", text: "#000", label: "Key" },
+	combo: { bg: "#8B5CF6", text: "#fff", label: "Combo" },
+	provider: { bg: "#3B82F6", text: "#fff", label: "Provider" },
+	global: { bg: "#6B7280", text: "#fff", label: "Global" },
+	direct: { bg: "#374151", text: "#9CA3AF", label: "Direct" },
 };
 
 // ═══════════════════════════════════════════
@@ -65,21 +65,21 @@ export const LEVEL_COLORS = {
 // ═══════════════════════════════════════════
 
 export const MODEL_COLORS = [
-  "#D97757",
-  "#60A5FA",
-  "#34D399",
-  "#A78BFA",
-  "#F472B6",
-  "#FBBF24",
-  "#38BDF8",
-  "#FB923C",
-  "#818CF8",
-  "#2DD4BF",
-  "#E879F9",
-  "#F87171",
-  "#4ADE80",
-  "#C084FC",
-  "#FB7185",
+	"#D97757",
+	"#60A5FA",
+	"#34D399",
+	"#A78BFA",
+	"#F472B6",
+	"#FBBF24",
+	"#38BDF8",
+	"#FB923C",
+	"#818CF8",
+	"#2DD4BF",
+	"#E879F9",
+	"#F87171",
+	"#4ADE80",
+	"#C084FC",
+	"#FB7185",
 ];
 
 /**
@@ -88,7 +88,7 @@ export const MODEL_COLORS = [
  * @returns {string} Hex color
  */
 export function getModelColor(index) {
-  return MODEL_COLORS[index % MODEL_COLORS.length];
+	return MODEL_COLORS[index % MODEL_COLORS.length];
 }
 
 // ═══════════════════════════════════════════
@@ -101,11 +101,11 @@ export function getModelColor(index) {
  * @returns {{ bg: string, text: string }}
  */
 export function getHttpStatusStyle(status) {
-  if (status >= 200 && status < 300) return { bg: "#059669", text: "#fff" };
-  if (status >= 400 && status < 500) return { bg: "#D97706", text: "#fff" };
-  if (status >= 500) return { bg: "#DC2626", text: "#fff" };
-  if (status === 0) return { bg: "#6366F1", text: "#fff" }; // pending
-  return { bg: "#6B7280", text: "#fff" };
+	if (status >= 200 && status < 300) return { bg: "#059669", text: "#fff" };
+	if (status >= 400 && status < 500) return { bg: "#D97706", text: "#fff" };
+	if (status >= 500) return { bg: "#DC2626", text: "#fff" };
+	if (status === 0) return { bg: "#6366F1", text: "#fff" }; // pending
+	return { bg: "#6B7280", text: "#fff" };
 }
 
 /**
@@ -114,10 +114,10 @@ export function getHttpStatusStyle(status) {
  * @returns {{ bg: string, text: string }}
  */
 export function getProxyStatusStyle(status) {
-  if (status === "success") return { bg: "#059669", text: "#fff" };
-  if (status === "error") return { bg: "#DC2626", text: "#fff" };
-  if (status === "timeout") return { bg: "#D97706", text: "#fff" };
-  return { bg: "#6B7280", text: "#fff" };
+	if (status === "success") return { bg: "#059669", text: "#fff" };
+	if (status === "error") return { bg: "#DC2626", text: "#fff" };
+	if (status === "timeout") return { bg: "#D97706", text: "#fff" };
+	return { bg: "#6B7280", text: "#fff" };
 }
 
 /**
@@ -126,11 +126,11 @@ export function getProxyStatusStyle(status) {
  * @returns {{ bg: string, text: string, label: string }}
  */
 export function getProviderColor(provider) {
-  return (
-    PROVIDER_COLORS[provider] || {
-      bg: "#374151",
-      text: "#fff",
-      label: (provider || "-").toUpperCase(),
-    }
-  );
+	return (
+		PROVIDER_COLORS[provider] || {
+			bg: "#374151",
+			text: "#fff",
+			label: (provider || "-").toUpperCase(),
+		}
+	);
 }

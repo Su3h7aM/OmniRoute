@@ -8,16 +8,16 @@ import BootstrapBanner from "./BootstrapBanner";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const settings = await getSettings();
-  if (!settings.setupComplete) {
-    redirect("/dashboard/onboarding");
-  }
-  const machineId = await getMachineId();
-  const isBootstrapped = process.env.OMNIROUTE_BOOTSTRAPPED === "true";
-  return (
-    <>
-      {isBootstrapped && <BootstrapBanner />}
-      <HomePageClient machineId={machineId} />
-    </>
-  );
+	const settings = await getSettings();
+	if (!settings.setupComplete) {
+		redirect("/dashboard/onboarding");
+	}
+	const machineId = await getMachineId();
+	const isBootstrapped = process.env.OMNIROUTE_BOOTSTRAPPED === "true";
+	return (
+		<>
+			{isBootstrapped && <BootstrapBanner />}
+			<HomePageClient machineId={machineId} />
+		</>
+	);
 }

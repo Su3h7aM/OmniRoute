@@ -7,35 +7,35 @@ const SAFE_HEADER_TOKEN_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/;
 const SAFE_HEADER_VALUE_PATTERN = /^[\x20-\x7E]{1,200}$/;
 
 function getSafeEnvValue(name: string, pattern: RegExp): string | null {
-  const raw = process.env[name];
-  if (typeof raw !== "string") return null;
-  const normalized = raw.trim();
-  if (!normalized || !pattern.test(normalized)) {
-    return null;
-  }
-  return normalized;
+	const raw = process.env[name];
+	if (typeof raw !== "string") return null;
+	const normalized = raw.trim();
+	if (!normalized || !pattern.test(normalized)) {
+		return null;
+	}
+	return normalized;
 }
 
 export function getCodexClientVersion(): string {
-  return (
-    getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN) ||
-    DEFAULT_CODEX_CLIENT_VERSION
-  );
+	return (
+		getSafeEnvValue(CODEX_VERSION_OVERRIDE_ENV, SAFE_HEADER_TOKEN_PATTERN) ||
+		DEFAULT_CODEX_CLIENT_VERSION
+	);
 }
 
 export function getCodexUserAgent(): string {
-  const override = getSafeEnvValue(CODEX_USER_AGENT_OVERRIDE_ENV, SAFE_HEADER_VALUE_PATTERN);
-  if (override) {
-    return override;
-  }
+	const override = getSafeEnvValue(CODEX_USER_AGENT_OVERRIDE_ENV, SAFE_HEADER_VALUE_PATTERN);
+	if (override) {
+		return override;
+	}
 
-  return `codex-cli/${getCodexClientVersion()} (${DEFAULT_CODEX_USER_AGENT_PLATFORM}; ${DEFAULT_CODEX_USER_AGENT_ARCH})`;
+	return `codex-cli/${getCodexClientVersion()} (${DEFAULT_CODEX_USER_AGENT_PLATFORM}; ${DEFAULT_CODEX_USER_AGENT_ARCH})`;
 }
 
 export function getCodexDefaultHeaders(): Record<string, string> {
-  return {
-    Version: getCodexClientVersion(),
-    "Openai-Beta": "responses=experimental",
-    "User-Agent": getCodexUserAgent(),
-  };
+	return {
+		Version: getCodexClientVersion(),
+		"Openai-Beta": "responses=experimental",
+		"User-Agent": getCodexUserAgent(),
+	};
 }

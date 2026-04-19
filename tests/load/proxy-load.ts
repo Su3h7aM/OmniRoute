@@ -33,38 +33,38 @@ const VUS = parseInt(__ENV.VUS || "10", 10);
 const DURATION = __ENV.DURATION || "60s";
 
 export const options = {
-  scenarios: {
-    // Ramp-up scenario for stress testing
-    chat_stress: {
-      executor: "ramping-vus",
-      startVUs: 1,
-      stages: [
-        { duration: "10s", target: VUS }, // Ramp up
-        { duration: DURATION, target: VUS }, // Sustained load
-        { duration: "10s", target: 0 }, // Ramp down
-      ],
-      exec: "chatCompletions",
-    },
-    // Constant rate for health checks
-    health_check: {
-      executor: "constant-vus",
-      vus: 2,
-      duration: DURATION,
-      exec: "healthCheck",
-    },
-  },
-  thresholds: {
-    http_req_duration: ["p(95)<5000"], // 95% of requests < 5s
-    errors: ["rate<0.1"], // Error rate < 10%
-    chat_latency: ["p(50)<3000", "p(95)<8000"],
-    health_latency: ["p(95)<500"],
-  },
+	scenarios: {
+		// Ramp-up scenario for stress testing
+		chat_stress: {
+			executor: "ramping-vus",
+			startVUs: 1,
+			stages: [
+				{ duration: "10s", target: VUS }, // Ramp up
+				{ duration: DURATION, target: VUS }, // Sustained load
+				{ duration: "10s", target: 0 }, // Ramp down
+			],
+			exec: "chatCompletions",
+		},
+		// Constant rate for health checks
+		health_check: {
+			executor: "constant-vus",
+			vus: 2,
+			duration: DURATION,
+			exec: "healthCheck",
+		},
+	},
+	thresholds: {
+		http_req_duration: ["p(95)<5000"], // 95% of requests < 5s
+		errors: ["rate<0.1"], // Error rate < 10%
+		chat_latency: ["p(50)<3000", "p(95)<8000"],
+		health_latency: ["p(95)<500"],
+	},
 };
 
 // ── Headers ──
 const headers = {
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${API_KEY}`,
+	"Content-Type": "application/json",
+	Authorization: `Bearer ${API_KEY}`,
 };
 
 // ── Scenarios ──
@@ -74,76 +74,76 @@ const headers = {
  * Sends a simple non-streaming chat request.
  */
 export function chatCompletions() {
-  const payload = JSON.stringify({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: "Say hello in one word." }],
-    temperature: 0,
-    max_tokens: 10,
-    stream: false,
-  });
+	const payload = JSON.stringify({
+		model: "gpt-4o-mini",
+		messages: [{ role: "user", content: "Say hello in one word." }],
+		temperature: 0,
+		max_tokens: 10,
+		stream: false,
+	});
 
-  const res = http.post(`${BASE_URL}/v1/chat/completions`, payload, {
-    headers,
-    timeout: "15s",
-  });
+	const res = http.post(`${BASE_URL}/v1/chat/completions`, payload, {
+		headers,
+		timeout: "15s",
+	});
 
-  chatLatency.add(res.timings.duration);
+	chatLatency.add(res.timings.duration);
 
-  const passed = check(res, {
-    "status is 200": (r) => r.status === 200,
-    "has choices": (r) => {
-      try {
-        const body = JSON.parse(r.body);
-        return body.choices && body.choices.length > 0;
-      } catch {
-        return false;
-      }
-    },
-    "response time < 10s": (r) => r.timings.duration < 10000,
-  });
+	const passed = check(res, {
+		"status is 200": (r) => r.status === 200,
+		"has choices": (r) => {
+			try {
+				const body = JSON.parse(r.body);
+				return body.choices && body.choices.length > 0;
+			} catch {
+				return false;
+			}
+		},
+		"response time < 10s": (r) => r.timings.duration < 10000,
+	});
 
-  errorRate.add(!passed);
-  sleep(0.5);
+	errorRate.add(!passed);
+	sleep(0.5);
 }
 
 /**
  * Health Check — lightweight endpoint to measure base latency.
  */
 export function healthCheck() {
-  const res = http.get(`${BASE_URL}/api/monitoring/health`, {
-    headers: { Authorization: `Bearer ${API_KEY}` },
-    timeout: "5s",
-  });
+	const res = http.get(`${BASE_URL}/api/monitoring/health`, {
+		headers: { Authorization: `Bearer ${API_KEY}` },
+		timeout: "5s",
+	});
 
-  healthLatency.add(res.timings.duration);
+	healthLatency.add(res.timings.duration);
 
-  const passed = check(res, {
-    "health status 200": (r) => r.status === 200,
-    "response time < 1s": (r) => r.timings.duration < 1000,
-  });
+	const passed = check(res, {
+		"health status 200": (r) => r.status === 200,
+		"response time < 1s": (r) => r.timings.duration < 1000,
+	});
 
-  errorRate.add(!passed);
-  sleep(2);
+	errorRate.add(!passed);
+	sleep(2);
 }
 
 /**
  * Summary handler — outputs a custom summary.
  */
 export function handleSummary(data) {
-  const summary = {
-    timestamp: new Date().toISOString(),
-    scenarios: Object.keys(options.scenarios),
-    metrics: {
-      http_reqs: data.metrics.http_reqs?.values?.count || 0,
-      avg_duration_ms: Math.round(data.metrics.http_req_duration?.values?.avg || 0),
-      p95_duration_ms: Math.round(data.metrics.http_req_duration?.values?.["p(95)"] || 0),
-      p99_duration_ms: Math.round(data.metrics.http_req_duration?.values?.["p(99)"] || 0),
-      error_rate: (data.metrics.errors?.values?.rate || 0).toFixed(4),
-    },
-  };
+	const summary = {
+		timestamp: new Date().toISOString(),
+		scenarios: Object.keys(options.scenarios),
+		metrics: {
+			http_reqs: data.metrics.http_reqs?.values?.count || 0,
+			avg_duration_ms: Math.round(data.metrics.http_req_duration?.values?.avg || 0),
+			p95_duration_ms: Math.round(data.metrics.http_req_duration?.values?.["p(95)"] || 0),
+			p99_duration_ms: Math.round(data.metrics.http_req_duration?.values?.["p(99)"] || 0),
+			error_rate: (data.metrics.errors?.values?.rate || 0).toFixed(4),
+		},
+	};
 
-  return {
-    stdout: `\n📊 Load Test Summary\n${JSON.stringify(summary, null, 2)}\n`,
-    "tests/load/results.json": JSON.stringify(summary, null, 2),
-  };
+	return {
+		stdout: `\n📊 Load Test Summary\n${JSON.stringify(summary, null, 2)}\n`,
+		"tests/load/results.json": JSON.stringify(summary, null, 2),
+	};
 }

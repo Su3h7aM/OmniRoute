@@ -27,18 +27,18 @@ const gates = new Map();
  * @returns {ModelGate}
  */
 function getGate(modelStr, maxConcurrency = 3) {
-  if (!gates.has(modelStr)) {
-    gates.set(modelStr, {
-      running: 0,
-      max: maxConcurrency,
-      queue: [],
-      rateLimitedUntil: null,
-    });
-  }
-  const gate = gates.get(modelStr);
-  // Update max if config changed
-  gate.max = maxConcurrency;
-  return gate;
+	if (!gates.has(modelStr)) {
+		gates.set(modelStr, {
+			running: 0,
+			max: maxConcurrency,
+			queue: [],
+			rateLimitedUntil: null,
+		});
+	}
+	const gate = gates.get(modelStr);
+	// Update max if config changed
+	gate.max = maxConcurrency;
+	return gate;
 }
 
 /**
@@ -47,12 +47,12 @@ function getGate(modelStr, maxConcurrency = 3) {
  * @returns {boolean}
  */
 function isRateLimited(gate) {
-  if (!gate.rateLimitedUntil) return false;
-  if (Date.now() >= gate.rateLimitedUntil) {
-    gate.rateLimitedUntil = null;
-    return false;
-  }
-  return true;
+	if (!gate.rateLimitedUntil) return false;
+	if (Date.now() >= gate.rateLimitedUntil) {
+		gate.rateLimitedUntil = null;
+		return false;
+	}
+	return true;
 }
 
 /**
@@ -60,15 +60,15 @@ function isRateLimited(gate) {
  * @param {string} modelStr
  */
 function drainQueue(modelStr) {
-  const gate = gates.get(modelStr);
-  if (!gate) return;
+	const gate = gates.get(modelStr);
+	if (!gate) return;
 
-  while (gate.queue.length > 0 && gate.running < gate.max && !isRateLimited(gate)) {
-    const next = gate.queue.shift();
-    clearTimeout(next.timer);
-    gate.running++;
-    next.resolve(createReleaseFn(modelStr));
-  }
+	while (gate.queue.length > 0 && gate.running < gate.max && !isRateLimited(gate)) {
+		const next = gate.queue.shift();
+		clearTimeout(next.timer);
+		gate.running++;
+		next.resolve(createReleaseFn(modelStr));
+	}
 }
 
 /**
@@ -77,16 +77,16 @@ function drainQueue(modelStr) {
  * @returns {Function}
  */
 function createReleaseFn(modelStr) {
-  let released = false;
-  return () => {
-    if (released) return;
-    released = true;
-    const gate = gates.get(modelStr);
-    if (gate && gate.running > 0) {
-      gate.running--;
-      drainQueue(modelStr);
-    }
-  };
+	let released = false;
+	return () => {
+		if (released) return;
+		released = true;
+		const gate = gates.get(modelStr);
+		if (gate && gate.running > 0) {
+			gate.running--;
+			drainQueue(modelStr);
+		}
+	};
 }
 
 /**
@@ -102,29 +102,31 @@ function createReleaseFn(modelStr) {
  * @throws {Error} If queue timeout expires ("SEMAPHORE_TIMEOUT")
  */
 export function acquire(modelStr, { maxConcurrency = 3, timeoutMs = 30000 } = {}) {
-  const gate = getGate(modelStr, maxConcurrency);
+	const gate = getGate(modelStr, maxConcurrency);
 
-  // Fast path: slot available and not rate-limited
-  if (gate.running < gate.max && !isRateLimited(gate)) {
-    gate.running++;
-    return Promise.resolve(createReleaseFn(modelStr));
-  }
+	// Fast path: slot available and not rate-limited
+	if (gate.running < gate.max && !isRateLimited(gate)) {
+		gate.running++;
+		return Promise.resolve(createReleaseFn(modelStr));
+	}
 
-  // Slow path: enqueue and wait
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      // Remove from queue on timeout
-      const idx = gate.queue.findIndex((item) => item.timer === timer);
-      if (idx !== -1) gate.queue.splice(idx, 1);
-      const err = new Error(`Semaphore timeout after ${timeoutMs}ms for ${modelStr}`) as Error & {
-        code?: string;
-      };
-      err.code = "SEMAPHORE_TIMEOUT";
-      reject(err);
-    }, timeoutMs);
+	// Slow path: enqueue and wait
+	return new Promise((resolve, reject) => {
+		const timer = setTimeout(() => {
+			// Remove from queue on timeout
+			const idx = gate.queue.findIndex((item) => item.timer === timer);
+			if (idx !== -1) gate.queue.splice(idx, 1);
+			const err = new Error(
+				`Semaphore timeout after ${timeoutMs}ms for ${modelStr}`
+			) as Error & {
+				code?: string;
+			};
+			err.code = "SEMAPHORE_TIMEOUT";
+			reject(err);
+		}, timeoutMs);
 
-    gate.queue.push({ resolve, reject, timer });
-  });
+		gate.queue.push({ resolve, reject, timer });
+	});
 }
 
 /**
@@ -136,16 +138,16 @@ export function acquire(modelStr, { maxConcurrency = 3, timeoutMs = 30000 } = {}
  * @param {number} cooldownMs - How long to block (milliseconds)
  */
 export function markRateLimited(modelStr, cooldownMs) {
-  const gate = getGate(modelStr);
-  gate.rateLimitedUntil = Date.now() + cooldownMs;
+	const gate = getGate(modelStr);
+	gate.rateLimitedUntil = Date.now() + cooldownMs;
 
-  // Schedule drain after cooldown expires
-  setTimeout(() => {
-    if (gate.rateLimitedUntil && Date.now() >= gate.rateLimitedUntil) {
-      gate.rateLimitedUntil = null;
-      drainQueue(modelStr);
-    }
-  }, cooldownMs + 50); // +50ms buffer
+	// Schedule drain after cooldown expires
+	setTimeout(() => {
+		if (gate.rateLimitedUntil && Date.now() >= gate.rateLimitedUntil) {
+			gate.rateLimitedUntil = null;
+			drainQueue(modelStr);
+		}
+	}, cooldownMs + 50); // +50ms buffer
 }
 
 /**
@@ -153,29 +155,29 @@ export function markRateLimited(modelStr, cooldownMs) {
  * @returns {Object} Map of modelStr → { running, queued, max, rateLimitedUntil }
  */
 export function getStats() {
-  const stats = {};
-  for (const [model, gate] of gates) {
-    stats[model] = {
-      running: gate.running,
-      queued: gate.queue.length,
-      max: gate.max,
-      rateLimitedUntil: gate.rateLimitedUntil
-        ? new Date(gate.rateLimitedUntil).toISOString()
-        : null,
-    };
-  }
-  return stats;
+	const stats = {};
+	for (const [model, gate] of gates) {
+		stats[model] = {
+			running: gate.running,
+			queued: gate.queue.length,
+			max: gate.max,
+			rateLimitedUntil: gate.rateLimitedUntil
+				? new Date(gate.rateLimitedUntil).toISOString()
+				: null,
+		};
+	}
+	return stats;
 }
 
 /**
  * Reset all gates (for testing)
  */
 export function resetAll() {
-  for (const [, gate] of gates) {
-    for (const item of gate.queue) {
-      clearTimeout(item.timer);
-      item.reject(new Error("Semaphore reset"));
-    }
-  }
-  gates.clear();
+	for (const [, gate] of gates) {
+		for (const item of gate.queue) {
+			clearTimeout(item.timer);
+			item.reject(new Error("Semaphore reset"));
+		}
+	}
+	gates.clear();
 }

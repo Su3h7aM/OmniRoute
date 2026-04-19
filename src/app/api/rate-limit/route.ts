@@ -6,13 +6,13 @@ import { NextResponse } from "next/server";
  */
 
 export async function GET(request) {
-  const url = new URL(request.url);
-  url.pathname = "/api/rate-limits";
-  return NextResponse.redirect(url, 308);
+	const url = new URL(request.url);
+	url.pathname = "/api/rate-limits";
+	return NextResponse.redirect(url, 308);
 }
 
 export async function POST(request) {
-  const url = new URL(request.url);
-  url.pathname = "/api/rate-limits";
-  return NextResponse.redirect(url, 308);
+	const url = new URL(request.url);
+	url.pathname = "/api/rate-limits";
+	return NextResponse.redirect(url, 308);
 }

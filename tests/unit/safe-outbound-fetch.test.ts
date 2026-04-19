@@ -1,112 +1,113 @@
 import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
-const { SafeOutboundFetchError, safeOutboundFetch } =
-  await import("../../src/shared/network/safeOutboundFetch.ts");
+const { SafeOutboundFetchError, safeOutboundFetch } = await import(
+	"../../src/shared/network/safeOutboundFetch.ts"
+);
 
 const originalFetch = globalThis.fetch;
 
 afterEach(() => {
-  globalThis.fetch = originalFetch;
+	globalThis.fetch = originalFetch;
 });
 
 test("safeOutboundFetch retries transient failures for idempotent methods", async () => {
-  let attempts = 0;
+	let attempts = 0;
 
-  globalThis.fetch = async () => {
-    attempts += 1;
-    if (attempts === 1) {
-      throw new Error("socket hang up");
-    }
+	globalThis.fetch = async () => {
+		attempts += 1;
+		if (attempts === 1) {
+			throw new Error("socket hang up");
+		}
 
-    return Response.json({ ok: true });
-  };
+		return Response.json({ ok: true });
+	};
 
-  const response = await safeOutboundFetch("https://example.test/models", {
-    method: "GET",
-    timeoutMs: 100,
-    retry: {
-      attempts: 2,
-      backoffMs: [0],
-      methods: ["GET"],
-    },
-  });
+	const response = await safeOutboundFetch("https://example.test/models", {
+		method: "GET",
+		timeoutMs: 100,
+		retry: {
+			attempts: 2,
+			backoffMs: [0],
+			methods: ["GET"],
+		},
+	});
 
-  assert.equal(attempts, 2);
-  assert.deepEqual(await response.json(), { ok: true });
+	assert.equal(attempts, 2);
+	assert.deepEqual(await response.json(), { ok: true });
 });
 
 test("safeOutboundFetch normalizes timeout failures", async () => {
-  globalThis.fetch = async (_url, init = {}) =>
-    new Promise((_resolve, reject) => {
-      init.signal.addEventListener(
-        "abort",
-        () => {
-          const error = new Error("aborted");
-          error.name = "AbortError";
-          reject(error);
-        },
-        { once: true }
-      );
-    });
+	globalThis.fetch = async (_url, init = {}) =>
+		new Promise((_resolve, reject) => {
+			init.signal.addEventListener(
+				"abort",
+				() => {
+					const error = new Error("aborted");
+					error.name = "AbortError";
+					reject(error);
+				},
+				{ once: true }
+			);
+		});
 
-  await assert.rejects(
-    safeOutboundFetch("https://example.test/slow", {
-      method: "GET",
-      timeoutMs: 5,
-      retry: false,
-    }),
-    (error) => {
-      assert.equal(error instanceof SafeOutboundFetchError, true);
-      assert.equal(error.code, "TIMEOUT");
-      assert.equal(error.timeoutMs, 5);
-      assert.equal(error.url, "https://example.test/slow");
-      return true;
-    }
-  );
+	await assert.rejects(
+		safeOutboundFetch("https://example.test/slow", {
+			method: "GET",
+			timeoutMs: 5,
+			retry: false,
+		}),
+		(error) => {
+			assert.equal(error instanceof SafeOutboundFetchError, true);
+			assert.equal(error.code, "TIMEOUT");
+			assert.equal(error.timeoutMs, 5);
+			assert.equal(error.url, "https://example.test/slow");
+			return true;
+		}
+	);
 });
 
 test("safeOutboundFetch blocks redirects when allowRedirect is disabled", async () => {
-  globalThis.fetch = async () =>
-    new Response(null, {
-      status: 302,
-      headers: { location: "https://redirect.example.test/login" },
-    });
+	globalThis.fetch = async () =>
+		new Response(null, {
+			status: 302,
+			headers: { location: "https://redirect.example.test/login" },
+		});
 
-  await assert.rejects(
-    safeOutboundFetch("https://example.test/models", {
-      method: "GET",
-      timeoutMs: 25,
-      retry: false,
-    }),
-    (error) => {
-      assert.equal(error instanceof SafeOutboundFetchError, true);
-      assert.equal(error.code, "REDIRECT_BLOCKED");
-      assert.equal(error.status, 302);
-      assert.equal(error.location, "https://redirect.example.test/login");
-      return true;
-    }
-  );
+	await assert.rejects(
+		safeOutboundFetch("https://example.test/models", {
+			method: "GET",
+			timeoutMs: 25,
+			retry: false,
+		}),
+		(error) => {
+			assert.equal(error instanceof SafeOutboundFetchError, true);
+			assert.equal(error.code, "REDIRECT_BLOCKED");
+			assert.equal(error.status, 302);
+			assert.equal(error.location, "https://redirect.example.test/login");
+			return true;
+		}
+	);
 });
 
 test("safeOutboundFetch blocks private hosts when public-only guard is enabled", async () => {
-  let called = false;
-  globalThis.fetch = async () => {
-    called = true;
-    return Response.json({ ok: true });
-  };
+	let called = false;
+	globalThis.fetch = async () => {
+		called = true;
+		return Response.json({ ok: true });
+	};
 
-  await assert.rejects(
-    safeOutboundFetch("http://127.0.0.1:11434/models", {
-      method: "GET",
-      guard: "public-only",
-      retry: false,
-    }),
-    (error) => {
-      assert.equal(error instanceof SafeOutboundFetchError, true);
-      assert.equal(error.code, "URL_GUARD_BLOCKED");
-      assert.equal(called, false);
-      return true;
-    }
-  );
+	await assert.rejects(
+		safeOutboundFetch("http://127.0.0.1:11434/models", {
+			method: "GET",
+			guard: "public-only",
+			retry: false,
+		}),
+		(error) => {
+			assert.equal(error instanceof SafeOutboundFetchError, true);
+			assert.equal(error.code, "URL_GUARD_BLOCKED");
+			assert.equal(called, false);
+			return true;
+		}
+	);
 });

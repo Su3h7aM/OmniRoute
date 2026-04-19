@@ -14,109 +14,109 @@ const { FORMATS } = await import("../../open-sse/translator/formats.ts");
  */
 
 test("Claude passthrough: stream field must be a boolean (stream=true)", () => {
-  const body = {
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    stream: true,
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
-  };
+	const body = {
+		model: "claude-sonnet-4-6",
+		max_tokens: 1024,
+		stream: true,
+		messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+	};
 
-  // Simulate the claude->openai->claude round-trip from chatCore passthrough
-  const openaiBody = translateRequest(
-    FORMATS.CLAUDE,
-    FORMATS.OPENAI,
-    body.model,
-    structuredClone(body),
-    true,
-    null,
-    null,
-    null
-  );
+	// Simulate the claude->openai->claude round-trip from chatCore passthrough
+	const openaiBody = translateRequest(
+		FORMATS.CLAUDE,
+		FORMATS.OPENAI,
+		body.model,
+		structuredClone(body),
+		true,
+		null,
+		null,
+		null
+	);
 
-  const result = translateRequest(
-    FORMATS.OPENAI,
-    FORMATS.CLAUDE,
-    body.model,
-    { ...openaiBody, _disableToolPrefix: true },
-    true,
-    null,
-    null,
-    null
-  );
+	const result = translateRequest(
+		FORMATS.OPENAI,
+		FORMATS.CLAUDE,
+		body.model,
+		{ ...openaiBody, _disableToolPrefix: true },
+		true,
+		null,
+		null,
+		null
+	);
 
-  assert.equal(typeof result.stream, "boolean", "stream must be a boolean, not an object");
-  assert.equal(result.stream, true);
+	assert.equal(typeof result.stream, "boolean", "stream must be a boolean, not an object");
+	assert.equal(result.stream, true);
 });
 
 test("Claude passthrough: stream field must be a boolean (stream=false)", () => {
-  const body = {
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    stream: false,
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
-  };
+	const body = {
+		model: "claude-sonnet-4-6",
+		max_tokens: 1024,
+		stream: false,
+		messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+	};
 
-  const openaiBody = translateRequest(
-    FORMATS.CLAUDE,
-    FORMATS.OPENAI,
-    body.model,
-    structuredClone(body),
-    false,
-    null,
-    null,
-    null
-  );
+	const openaiBody = translateRequest(
+		FORMATS.CLAUDE,
+		FORMATS.OPENAI,
+		body.model,
+		structuredClone(body),
+		false,
+		null,
+		null,
+		null
+	);
 
-  const result = translateRequest(
-    FORMATS.OPENAI,
-    FORMATS.CLAUDE,
-    body.model,
-    { ...openaiBody, _disableToolPrefix: true },
-    false,
-    null,
-    null,
-    null
-  );
+	const result = translateRequest(
+		FORMATS.OPENAI,
+		FORMATS.CLAUDE,
+		body.model,
+		{ ...openaiBody, _disableToolPrefix: true },
+		false,
+		null,
+		null,
+		null
+	);
 
-  assert.equal(typeof result.stream, "boolean", "stream must be a boolean, not an object");
-  assert.equal(result.stream, false);
+	assert.equal(typeof result.stream, "boolean", "stream must be a boolean, not an object");
+	assert.equal(result.stream, false);
 });
 
 test("Claude passthrough: passing an object as stream propagates invalid type (guard)", () => {
-  const body = {
-    model: "claude-sonnet-4-6",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
-  };
+	const body = {
+		model: "claude-sonnet-4-6",
+		max_tokens: 1024,
+		messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
+	};
 
-  const openaiBody = translateRequest(
-    FORMATS.CLAUDE,
-    FORMATS.OPENAI,
-    body.model,
-    structuredClone(body),
-    true,
-    null,
-    null,
-    null
-  );
+	const openaiBody = translateRequest(
+		FORMATS.CLAUDE,
+		FORMATS.OPENAI,
+		body.model,
+		structuredClone(body),
+		true,
+		null,
+		null,
+		null
+	);
 
-  // Simulate the old bug: passing openaiBody (an object) where stream should be
-  const result = translateRequest(
-    FORMATS.OPENAI,
-    FORMATS.CLAUDE,
-    body.model,
-    { ...openaiBody, _disableToolPrefix: true },
-    openaiBody, // BUG: object instead of boolean
-    null,
-    null,
-    null
-  );
+	// Simulate the old bug: passing openaiBody (an object) where stream should be
+	const result = translateRequest(
+		FORMATS.OPENAI,
+		FORMATS.CLAUDE,
+		body.model,
+		{ ...openaiBody, _disableToolPrefix: true },
+		openaiBody, // BUG: object instead of boolean
+		null,
+		null,
+		null
+	);
 
-  // This test documents the bug: if an object is passed as stream, it ends up
-  // in the translated body as a non-boolean, which Anthropic rejects.
-  assert.notEqual(
-    typeof result.stream,
-    "boolean",
-    "passing an object as stream should produce a non-boolean (documents the bug)"
-  );
+	// This test documents the bug: if an object is passed as stream, it ends up
+	// in the translated body as a non-boolean, which Anthropic rejects.
+	assert.notEqual(
+		typeof result.stream,
+		"boolean",
+		"passing an object as stream should produce a non-boolean (documents the bug)"
+	);
 });

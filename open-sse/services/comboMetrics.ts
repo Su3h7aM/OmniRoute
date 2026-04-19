@@ -5,153 +5,154 @@
  */
 
 interface ModelMetrics {
-  requests: number;
-  successes: number;
-  failures: number;
-  totalLatencyMs: number;
-  lastStatus: "ok" | "error" | null;
-  lastUsedAt: string | null;
+	requests: number;
+	successes: number;
+	failures: number;
+	totalLatencyMs: number;
+	lastStatus: "ok" | "error" | null;
+	lastUsedAt: string | null;
 }
 
 interface ComboTargetMetrics extends ModelMetrics {
-  executionKey: string;
-  stepId: string | null;
-  model: string;
-  provider: string | null;
-  providerId: string | null;
-  connectionId: string | null;
-  label: string | null;
+	executionKey: string;
+	stepId: string | null;
+	model: string;
+	provider: string | null;
+	providerId: string | null;
+	connectionId: string | null;
+	label: string | null;
 }
 
 interface ComboMetricsEntry {
-  totalRequests: number;
-  totalSuccesses: number;
-  totalFailures: number;
-  totalFallbacks: number;
-  totalLatencyMs: number;
-  strategy: string;
-  lastUsedAt: string | null;
-  intentCounts: Record<string, number>;
-  byModel: Record<string, ModelMetrics>;
-  byTarget: Record<string, ComboTargetMetrics>;
+	totalRequests: number;
+	totalSuccesses: number;
+	totalFailures: number;
+	totalFallbacks: number;
+	totalLatencyMs: number;
+	strategy: string;
+	lastUsedAt: string | null;
+	intentCounts: Record<string, number>;
+	byModel: Record<string, ModelMetrics>;
+	byTarget: Record<string, ComboTargetMetrics>;
 }
 
 interface ModelMetricsView extends ModelMetrics {
-  avgLatencyMs: number;
-  successRate: number;
+	avgLatencyMs: number;
+	successRate: number;
 }
 
 interface ComboTargetMetricsView extends ComboTargetMetrics {
-  avgLatencyMs: number;
-  successRate: number;
+	avgLatencyMs: number;
+	successRate: number;
 }
 
 interface ComboMetricsView extends ComboMetricsEntry {
-  avgLatencyMs: number;
-  successRate: number;
-  fallbackRate: number;
-  byModel: Record<string, ModelMetricsView>;
-  byTarget: Record<string, ComboTargetMetricsView>;
+	avgLatencyMs: number;
+	successRate: number;
+	fallbackRate: number;
+	byModel: Record<string, ModelMetricsView>;
+	byTarget: Record<string, ComboTargetMetricsView>;
 }
 
 export interface ComboRequestTargetMeta {
-  executionKey?: string | null;
-  stepId?: string | null;
-  provider?: string | null;
-  providerId?: string | null;
-  connectionId?: string | null;
-  label?: string | null;
+	executionKey?: string | null;
+	stepId?: string | null;
+	provider?: string | null;
+	providerId?: string | null;
+	connectionId?: string | null;
+	label?: string | null;
 }
 
 function toNonEmptyString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+	return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
 function inferProvider(modelStr: string | null): string | null {
-  const model = toNonEmptyString(modelStr);
-  if (!model) return null;
-  const [provider] = model.split("/");
-  return toNonEmptyString(provider);
+	const model = toNonEmptyString(modelStr);
+	if (!model) return null;
+	const [provider] = model.split("/");
+	return toNonEmptyString(provider);
 }
 
 function createModelMetrics(): ModelMetrics {
-  return {
-    requests: 0,
-    successes: 0,
-    failures: 0,
-    totalLatencyMs: 0,
-    lastStatus: null,
-    lastUsedAt: null,
-  };
+	return {
+		requests: 0,
+		successes: 0,
+		failures: 0,
+		totalLatencyMs: 0,
+		lastStatus: null,
+		lastUsedAt: null,
+	};
 }
 
 function createComboEntry(strategy: string): ComboMetricsEntry {
-  return {
-    totalRequests: 0,
-    totalSuccesses: 0,
-    totalFailures: 0,
-    totalFallbacks: 0,
-    totalLatencyMs: 0,
-    strategy,
-    lastUsedAt: null,
-    intentCounts: {},
-    byModel: {},
-    byTarget: {},
-  };
+	return {
+		totalRequests: 0,
+		totalSuccesses: 0,
+		totalFailures: 0,
+		totalFallbacks: 0,
+		totalLatencyMs: 0,
+		strategy,
+		lastUsedAt: null,
+		intentCounts: {},
+		byModel: {},
+		byTarget: {},
+	};
 }
 
 function applyMetricOutcome(
-  metric: ModelMetrics,
-  success: boolean,
-  latencyMs: number,
-  usedAt: string
+	metric: ModelMetrics,
+	success: boolean,
+	latencyMs: number,
+	usedAt: string
 ): void {
-  metric.requests++;
-  metric.totalLatencyMs += latencyMs;
-  metric.lastUsedAt = usedAt;
+	metric.requests++;
+	metric.totalLatencyMs += latencyMs;
+	metric.lastUsedAt = usedAt;
 
-  if (success) {
-    metric.successes++;
-    metric.lastStatus = "ok";
-    return;
-  }
+	if (success) {
+		metric.successes++;
+		metric.lastStatus = "ok";
+		return;
+	}
 
-  metric.failures++;
-  metric.lastStatus = "error";
+	metric.failures++;
+	metric.lastStatus = "error";
 }
 
 function buildTargetMetric(
-  modelStr: string,
-  target: ComboRequestTargetMeta
+	modelStr: string,
+	target: ComboRequestTargetMeta
 ): ComboTargetMetrics | null {
-  const executionKey = toNonEmptyString(target.executionKey) || toNonEmptyString(modelStr);
-  const model = toNonEmptyString(modelStr);
-  if (!executionKey || !model) return null;
+	const executionKey = toNonEmptyString(target.executionKey) || toNonEmptyString(modelStr);
+	const model = toNonEmptyString(modelStr);
+	if (!executionKey || !model) return null;
 
-  return {
-    executionKey,
-    stepId: toNonEmptyString(target.stepId),
-    model,
-    provider: toNonEmptyString(target.provider) || inferProvider(model),
-    providerId: toNonEmptyString(target.providerId),
-    connectionId:
-      target.connectionId === null ? null : (toNonEmptyString(target.connectionId) ?? null),
-    label: target.label === null ? null : (toNonEmptyString(target.label) ?? null),
-    ...createModelMetrics(),
-  };
+	return {
+		executionKey,
+		stepId: toNonEmptyString(target.stepId),
+		model,
+		provider: toNonEmptyString(target.provider) || inferProvider(model),
+		providerId: toNonEmptyString(target.providerId),
+		connectionId:
+			target.connectionId === null ? null : (toNonEmptyString(target.connectionId) ?? null),
+		label: target.label === null ? null : (toNonEmptyString(target.label) ?? null),
+		...createModelMetrics(),
+	};
 }
 
 function toMetricView<T extends ModelMetrics>(
-  metric: T
+	metric: T
 ): T & {
-  avgLatencyMs: number;
-  successRate: number;
+	avgLatencyMs: number;
+	successRate: number;
 } {
-  return {
-    ...metric,
-    avgLatencyMs: metric.requests > 0 ? Math.round(metric.totalLatencyMs / metric.requests) : 0,
-    successRate: metric.requests > 0 ? Math.round((metric.successes / metric.requests) * 100) : 0,
-  };
+	return {
+		...metric,
+		avgLatencyMs: metric.requests > 0 ? Math.round(metric.totalLatencyMs / metric.requests) : 0,
+		successRate:
+			metric.requests > 0 ? Math.round((metric.successes / metric.requests) * 100) : 0,
+	};
 }
 
 // In-memory store
@@ -169,68 +170,68 @@ const metrics = new Map<string, ComboMetricsEntry>();
  * @param {Object} [options.target] - Step/execution metadata for structured combos
  */
 export function recordComboRequest(
-  comboName: string,
-  modelStr: string | null,
-  {
-    success,
-    latencyMs,
-    fallbackCount = 0,
-    strategy = "priority",
-    target,
-  }: {
-    success: boolean;
-    latencyMs: number;
-    fallbackCount?: number;
-    strategy?: string;
-    target?: ComboRequestTargetMeta | null;
-  }
+	comboName: string,
+	modelStr: string | null,
+	{
+		success,
+		latencyMs,
+		fallbackCount = 0,
+		strategy = "priority",
+		target,
+	}: {
+		success: boolean;
+		latencyMs: number;
+		fallbackCount?: number;
+		strategy?: string;
+		target?: ComboRequestTargetMeta | null;
+	}
 ): void {
-  if (!metrics.has(comboName)) {
-    metrics.set(comboName, createComboEntry(strategy));
-  }
+	if (!metrics.has(comboName)) {
+		metrics.set(comboName, createComboEntry(strategy));
+	}
 
-  const combo = metrics.get(comboName);
-  if (!combo) return;
+	const combo = metrics.get(comboName);
+	if (!combo) return;
 
-  const usedAt = new Date().toISOString();
-  combo.totalRequests++;
-  combo.totalLatencyMs += latencyMs;
-  combo.totalFallbacks += fallbackCount;
-  combo.lastUsedAt = usedAt;
-  combo.strategy = strategy;
+	const usedAt = new Date().toISOString();
+	combo.totalRequests++;
+	combo.totalLatencyMs += latencyMs;
+	combo.totalFallbacks += fallbackCount;
+	combo.lastUsedAt = usedAt;
+	combo.strategy = strategy;
 
-  if (success) {
-    combo.totalSuccesses++;
-  } else {
-    combo.totalFailures++;
-  }
+	if (success) {
+		combo.totalSuccesses++;
+	} else {
+		combo.totalFailures++;
+	}
 
-  if (!modelStr) return;
+	if (!modelStr) return;
 
-  if (!combo.byModel[modelStr]) {
-    combo.byModel[modelStr] = createModelMetrics();
-  }
-  applyMetricOutcome(combo.byModel[modelStr], success, latencyMs, usedAt);
+	if (!combo.byModel[modelStr]) {
+		combo.byModel[modelStr] = createModelMetrics();
+	}
+	applyMetricOutcome(combo.byModel[modelStr], success, latencyMs, usedAt);
 
-  const targetMetric = buildTargetMetric(modelStr, target || {});
-  if (!targetMetric) return;
+	const targetMetric = buildTargetMetric(modelStr, target || {});
+	if (!targetMetric) return;
 
-  if (!combo.byTarget[targetMetric.executionKey]) {
-    combo.byTarget[targetMetric.executionKey] = targetMetric;
-  }
+	if (!combo.byTarget[targetMetric.executionKey]) {
+		combo.byTarget[targetMetric.executionKey] = targetMetric;
+	}
 
-  const existingTargetMetric = combo.byTarget[targetMetric.executionKey];
-  existingTargetMetric.stepId = targetMetric.stepId || existingTargetMetric.stepId;
-  existingTargetMetric.provider = targetMetric.provider || existingTargetMetric.provider;
-  existingTargetMetric.providerId = targetMetric.providerId || existingTargetMetric.providerId;
-  existingTargetMetric.connectionId =
-    target?.connectionId === null
-      ? null
-      : (targetMetric.connectionId ?? existingTargetMetric.connectionId);
-  existingTargetMetric.label =
-    target?.label === null ? null : (targetMetric.label ?? existingTargetMetric.label);
+	const existingTargetMetric = combo.byTarget[targetMetric.executionKey];
+	existingTargetMetric.stepId = targetMetric.stepId || existingTargetMetric.stepId;
+	existingTargetMetric.provider = targetMetric.provider || existingTargetMetric.provider;
+	existingTargetMetric.providerId = targetMetric.providerId || existingTargetMetric.providerId;
+	existingTargetMetric.connectionId =
+		target?.connectionId === null
+			? null
+			: (targetMetric.connectionId ?? existingTargetMetric.connectionId);
+	existingTargetMetric.label =
+		target?.label === null ? null : (targetMetric.label ?? existingTargetMetric.label);
 
-  applyMetricOutcome(existingTargetMetric, success, latencyMs, usedAt);
+	applyMetricOutcome(existingTargetMetric, success, latencyMs, usedAt);
 }
 
 /**
@@ -239,28 +240,32 @@ export function recordComboRequest(
  * @returns {Object|null}
  */
 export function getComboMetrics(comboName: string): ComboMetricsView | null {
-  const combo = metrics.get(comboName);
-  if (!combo) return null;
+	const combo = metrics.get(comboName);
+	if (!combo) return null;
 
-  return {
-    ...combo,
-    avgLatencyMs:
-      combo.totalRequests > 0 ? Math.round(combo.totalLatencyMs / combo.totalRequests) : 0,
-    successRate:
-      combo.totalRequests > 0 ? Math.round((combo.totalSuccesses / combo.totalRequests) * 100) : 0,
-    fallbackRate:
-      combo.totalRequests > 0 ? Math.round((combo.totalFallbacks / combo.totalRequests) * 100) : 0,
-    intentCounts: { ...combo.intentCounts },
-    byModel: Object.fromEntries(
-      Object.entries(combo.byModel).map(([model, metric]) => [model, toMetricView(metric)])
-    ),
-    byTarget: Object.fromEntries(
-      Object.entries(combo.byTarget).map(([executionKey, metric]) => [
-        executionKey,
-        toMetricView(metric),
-      ])
-    ),
-  };
+	return {
+		...combo,
+		avgLatencyMs:
+			combo.totalRequests > 0 ? Math.round(combo.totalLatencyMs / combo.totalRequests) : 0,
+		successRate:
+			combo.totalRequests > 0
+				? Math.round((combo.totalSuccesses / combo.totalRequests) * 100)
+				: 0,
+		fallbackRate:
+			combo.totalRequests > 0
+				? Math.round((combo.totalFallbacks / combo.totalRequests) * 100)
+				: 0,
+		intentCounts: { ...combo.intentCounts },
+		byModel: Object.fromEntries(
+			Object.entries(combo.byModel).map(([model, metric]) => [model, toMetricView(metric)])
+		),
+		byTarget: Object.fromEntries(
+			Object.entries(combo.byTarget).map(([executionKey, metric]) => [
+				executionKey,
+				toMetricView(metric),
+			])
+		),
+	};
 }
 
 /**
@@ -268,37 +273,37 @@ export function getComboMetrics(comboName: string): ComboMetricsView | null {
  * @returns {Object} Map of comboName → metrics
  */
 export function getAllComboMetrics(): Record<string, ComboMetricsView | null> {
-  const result: Record<string, ComboMetricsView | null> = {};
-  for (const [name] of metrics) {
-    result[name] = getComboMetrics(name);
-  }
-  return result;
+	const result: Record<string, ComboMetricsView | null> = {};
+	for (const [name] of metrics) {
+		result[name] = getComboMetrics(name);
+	}
+	return result;
 }
 
 /**
  * Record detected prompt intent for a combo (used by multilingual routing analytics).
  */
 export function recordComboIntent(comboName: string, intent: string): void {
-  if (!metrics.has(comboName)) {
-    metrics.set(comboName, createComboEntry("priority"));
-  }
+	if (!metrics.has(comboName)) {
+		metrics.set(comboName, createComboEntry("priority"));
+	}
 
-  const combo = metrics.get(comboName);
-  if (!combo) return;
-  const key = String(intent || "unknown");
-  combo.intentCounts[key] = (combo.intentCounts[key] || 0) + 1;
+	const combo = metrics.get(comboName);
+	if (!combo) return;
+	const key = String(intent || "unknown");
+	combo.intentCounts[key] = (combo.intentCounts[key] || 0) + 1;
 }
 
 /**
  * Reset metrics for a specific combo.
  */
 export function resetComboMetrics(comboName: string): void {
-  metrics.delete(comboName);
+	metrics.delete(comboName);
 }
 
 /**
  * Reset all combo metrics.
  */
 export function resetAllComboMetrics(): void {
-  metrics.clear();
+	metrics.clear();
 }

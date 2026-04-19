@@ -9,58 +9,58 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 const core = await import("../../src/lib/db/core.ts");
 
 async function removeTestDataDir() {
-  let lastError;
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    try {
-      core.resetDbInstance();
-      fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-      return;
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 25));
-    }
-  }
+	let lastError;
+	for (let attempt = 0; attempt < 5; attempt += 1) {
+		try {
+			core.resetDbInstance();
+			fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+			return;
+		} catch (error) {
+			lastError = error;
+			await new Promise((resolve) => setTimeout(resolve, 25));
+		}
+	}
 
-  if (lastError) {
-    throw lastError;
-  }
+	if (lastError) {
+		throw lastError;
+	}
 }
 
 afterAll(async () => {
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
+	if (ORIGINAL_DATA_DIR === undefined) {
+		delete process.env.DATA_DIR;
+	} else {
+		process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+	}
 
-  await removeTestDataDir();
+	await removeTestDataDir();
 });
 
 test("callLogs startup cleanup swallows unexpected rotateCallLogs bootstrap failures", async () => {
-  process.env.DATA_DIR = TEST_DATA_DIR;
-  const expectedCallLogsDir = path.resolve(TEST_DATA_DIR, "call_logs");
+	process.env.DATA_DIR = TEST_DATA_DIR;
+	const expectedCallLogsDir = path.resolve(TEST_DATA_DIR, "call_logs");
 
-  const originalExistsSync = fs.existsSync;
-  const originalConsoleError = console.error;
-  const consoleCalls = [];
+	const originalExistsSync = fs.existsSync;
+	const originalConsoleError = console.error;
+	const consoleCalls = [];
 
-  fs.existsSync = (targetPath, ...args) => {
-    if (path.resolve(String(targetPath)) === expectedCallLogsDir) {
-      throw new Error("simulated startup exists failure");
-    }
-    return originalExistsSync.call(fs, targetPath, ...args);
-  };
-  console.error = (...args) => {
-    consoleCalls.push(args.join(" "));
-  };
+	fs.existsSync = (targetPath, ...args) => {
+		if (path.resolve(String(targetPath)) === expectedCallLogsDir) {
+			throw new Error("simulated startup exists failure");
+		}
+		return originalExistsSync.call(fs, targetPath, ...args);
+	};
+	console.error = (...args) => {
+		consoleCalls.push(args.join(" "));
+	};
 
-  try {
-    const moduleUrl = new URL("../../src/lib/usage/callLogs.ts?startup-catch", import.meta.url);
-    await assert.doesNotReject(() => import(moduleUrl.href));
-  } finally {
-    fs.existsSync = originalExistsSync;
-    console.error = originalConsoleError;
-  }
+	try {
+		const moduleUrl = new URL("../../src/lib/usage/callLogs.ts?startup-catch", import.meta.url);
+		await assert.doesNotReject(() => import(moduleUrl.href));
+	} finally {
+		fs.existsSync = originalExistsSync;
+		console.error = originalConsoleError;
+	}
 
-  assert.ok(consoleCalls.every((line) => typeof line === "string"));
+	assert.ok(consoleCalls.every((line) => typeof line === "string"));
 });

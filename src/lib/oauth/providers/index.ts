@@ -24,18 +24,18 @@ import { kilocode } from "./kilocode";
 import { cline } from "./cline";
 
 export const PROVIDERS = {
-  claude,
-  codex,
-  "gemini-cli": gemini,
-  antigravity,
-  qoder,
-  qwen,
-  "kimi-coding": kimiCoding,
-  github,
-  kiro,
-  cursor,
-  kilocode,
-  cline,
+	claude,
+	codex,
+	"gemini-cli": gemini,
+	antigravity,
+	qoder,
+	qwen,
+	"kimi-coding": kimiCoding,
+	github,
+	kiro,
+	cursor,
+	kilocode,
+	cline,
 };
 
 export default PROVIDERS;

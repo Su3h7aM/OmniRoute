@@ -10,23 +10,23 @@ import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 let initialized = false;
 
 async function ensureInitialized() {
-  if (!initialized) {
-    await initTranslators();
-    initialized = true;
-  }
+	if (!initialized) {
+		await initTranslators();
+		initialized = true;
+	}
 }
 
 /**
  * Handle CORS preflight
  */
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+	return new Response(null, {
+		headers: {
+			"Access-Control-Allow-Origin": CORS_ORIGIN,
+			"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+			"Access-Control-Allow-Headers": "*",
+		},
+	});
 }
 
 /**
@@ -34,62 +34,62 @@ export async function OPTIONS() {
  * Routes to the specified provider, validating model/provider match.
  */
 export async function POST(request, { params }) {
-  const { provider: rawProvider } = await params;
+	const { provider: rawProvider } = await params;
 
-  const providerEntry = getRegistryEntry(rawProvider);
+	const providerEntry = getRegistryEntry(rawProvider);
 
-  if (!providerEntry) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, `Unknown provider: ${rawProvider}`);
-  }
+	if (!providerEntry) {
+		return errorResponse(HTTP_STATUS.BAD_REQUEST, `Unknown provider: ${rawProvider}`);
+	}
 
-  // Resolve provider alias/id for model prefix checks
-  const providerAlias = providerEntry.alias || providerEntry.id;
+	// Resolve provider alias/id for model prefix checks
+	const providerAlias = providerEntry.alias || providerEntry.id;
 
-  await ensureInitialized();
+	await ensureInitialized();
 
-  // Clone request with provider-prefixed model
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
-  }
-  const validation = validateBody(providerChatCompletionSchema, rawBody);
-  if (isValidationFailure(validation)) {
-    return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
-  }
-  const body = validation.data;
+	// Clone request with provider-prefixed model
+	let rawBody;
+	try {
+		rawBody = await request.json();
+	} catch {
+		return errorResponse(HTTP_STATUS.BAD_REQUEST, "Invalid JSON body");
+	}
+	const validation = validateBody(providerChatCompletionSchema, rawBody);
+	if (isValidationFailure(validation)) {
+		return errorResponse(HTTP_STATUS.BAD_REQUEST, validation.error.message);
+	}
+	const body = validation.data;
 
-  // Validate model belongs to this provider
-  if (body.model) {
-    const modelParts = body.model.split("/");
-    const hasProviderPrefix = modelParts.length >= 2;
-    const modelProvider = hasProviderPrefix ? modelParts[0] : null;
+	// Validate model belongs to this provider
+	if (body.model) {
+		const modelParts = body.model.split("/");
+		const hasProviderPrefix = modelParts.length >= 2;
+		const modelProvider = hasProviderPrefix ? modelParts[0] : null;
 
-    if (
-      hasProviderPrefix &&
-      modelProvider !== providerAlias &&
-      modelProvider !== rawProvider &&
-      modelProvider !== providerEntry.id
-    ) {
-      return errorResponse(
-        HTTP_STATUS.BAD_REQUEST,
-        `Model "${body.model}" does not belong to provider "${rawProvider}". Expected prefix: ${providerAlias}/`
-      );
-    }
+		if (
+			hasProviderPrefix &&
+			modelProvider !== providerAlias &&
+			modelProvider !== rawProvider &&
+			modelProvider !== providerEntry.id
+		) {
+			return errorResponse(
+				HTTP_STATUS.BAD_REQUEST,
+				`Model "${body.model}" does not belong to provider "${rawProvider}". Expected prefix: ${providerAlias}/`
+			);
+		}
 
-    // Add provider prefix if missing
-    if (!hasProviderPrefix) {
-      body.model = `${providerAlias}/${body.model}`;
-    }
-  }
+		// Add provider prefix if missing
+		if (!hasProviderPrefix) {
+			body.model = `${providerAlias}/${body.model}`;
+		}
+	}
 
-  // Create a new request with the modified body
-  const newRequest = new Request(request.url, {
-    method: request.method,
-    headers: request.headers,
-    body: JSON.stringify(body),
-  });
+	// Create a new request with the modified body
+	const newRequest = new Request(request.url, {
+		method: request.method,
+		headers: request.headers,
+		body: JSON.stringify(body),
+	});
 
-  return await handleChat(newRequest, buildClientRawRequest(request, rawBody));
+	return await handleChat(newRequest, buildClientRawRequest(request, rawBody));
 }

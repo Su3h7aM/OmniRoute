@@ -16,10 +16,10 @@
  */
 
 import {
-  BaseExecutor,
-  mergeUpstreamExtraHeaders,
-  mergeAbortSignals,
-  type ProviderCredentials,
+	BaseExecutor,
+	mergeUpstreamExtraHeaders,
+	mergeAbortSignals,
+	type ProviderCredentials,
 } from "./base.ts";
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
 
@@ -28,9 +28,9 @@ const DEFAULT_HOST = "127.0.0.1";
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
 
 function resolveCliproxyapiBaseUrl(): string {
-  const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
-  const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
-  return `http://${host}:${port}`;
+	const host = process.env.CLIPROXYAPI_HOST || DEFAULT_HOST;
+	const port = parseInt(process.env.CLIPROXYAPI_PORT || String(DEFAULT_PORT), 10);
+	return `http://${host}:${port}`;
 }
 
 export { resolveCliproxyapiBaseUrl };
@@ -40,130 +40,130 @@ export { resolveCliproxyapiBaseUrl };
  * Used by chatCore's resolveExecutorWithProxy to decide routing.
  */
 export function isCliproxyapiDeepModeEnabled(
-  providerSpecificData?: Record<string, unknown> | null
+	providerSpecificData?: Record<string, unknown> | null
 ): boolean {
-  return providerSpecificData?.cliproxyapiMode === "claude-native";
+	return providerSpecificData?.cliproxyapiMode === "claude-native";
 }
 
 export class CliproxyapiExecutor extends BaseExecutor {
-  private readonly upstreamBaseUrl: string;
+	private readonly upstreamBaseUrl: string;
 
-  constructor(baseUrl?: string) {
-    const effectiveBase = baseUrl ?? resolveCliproxyapiBaseUrl();
-    super("cliproxyapi", {
-      id: "cliproxyapi",
-      baseUrl: effectiveBase + "/v1/chat/completions",
-      headers: { "Content-Type": "application/json" },
-    });
-    this.upstreamBaseUrl = effectiveBase;
-  }
+	constructor(baseUrl?: string) {
+		const effectiveBase = baseUrl ?? resolveCliproxyapiBaseUrl();
+		super("cliproxyapi", {
+			id: "cliproxyapi",
+			baseUrl: effectiveBase + "/v1/chat/completions",
+			headers: { "Content-Type": "application/json" },
+		});
+		this.upstreamBaseUrl = effectiveBase;
+	}
 
-  buildUrl(
-    _model: string,
-    _stream: boolean,
-    _urlIndex = 0,
-    _credentials: ProviderCredentials | null = null
-  ): string {
-    // Always OpenAI-compatible. CLIProxyAPI detects Claude models internally
-    // and applies full emulation (CCH, billing header, system prompt, uTLS).
-    return `${this.upstreamBaseUrl}/v1/chat/completions`;
-  }
+	buildUrl(
+		_model: string,
+		_stream: boolean,
+		_urlIndex = 0,
+		_credentials: ProviderCredentials | null = null
+	): string {
+		// Always OpenAI-compatible. CLIProxyAPI detects Claude models internally
+		// and applies full emulation (CCH, billing header, system prompt, uTLS).
+		return `${this.upstreamBaseUrl}/v1/chat/completions`;
+	}
 
-  buildHeaders(credentials: ProviderCredentials | null, stream = true): Record<string, string> {
-    const key = credentials?.apiKey || credentials?.accessToken;
+	buildHeaders(credentials: ProviderCredentials | null, stream = true): Record<string, string> {
+		const key = credentials?.apiKey || credentials?.accessToken;
 
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
 
-    if (key) {
-      headers["Authorization"] = `Bearer ${key}`;
-    }
-    if (stream) {
-      headers["Accept"] = "text/event-stream";
-    }
+		if (key) {
+			headers["Authorization"] = `Bearer ${key}`;
+		}
+		if (stream) {
+			headers["Accept"] = "text/event-stream";
+		}
 
-    return headers;
-  }
+		return headers;
+	}
 
-  transformRequest(
-    model: string,
-    body: unknown,
-    _stream: boolean,
-    _credentials: ProviderCredentials | null
-  ): unknown {
-    if (!body || typeof body !== "object") return body;
+	transformRequest(
+		model: string,
+		body: unknown,
+		_stream: boolean,
+		_credentials: ProviderCredentials | null
+	): unknown {
+		if (!body || typeof body !== "object") return body;
 
-    const transformed = { ...(body as Record<string, unknown>) };
-    if (transformed.model !== model) {
-      transformed.model = model;
-    }
+		const transformed = { ...(body as Record<string, unknown>) };
+		if (transformed.model !== model) {
+			transformed.model = model;
+		}
 
-    return transformed;
-  }
+		return transformed;
+	}
 
-  async execute(input: {
-    model: string;
-    body: unknown;
-    stream: boolean;
-    credentials: ProviderCredentials;
-    signal?: AbortSignal | null;
-    log?: any;
-    upstreamExtraHeaders?: Record<string, string> | null;
-  }) {
-    const url = this.buildUrl(input.model, input.stream, 0, input.credentials);
-    const headers = this.buildHeaders(input.credentials, input.stream);
-    const transformedBody = this.transformRequest(
-      input.model,
-      input.body,
-      input.stream,
-      input.credentials
-    );
-    mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
+	async execute(input: {
+		model: string;
+		body: unknown;
+		stream: boolean;
+		credentials: ProviderCredentials;
+		signal?: AbortSignal | null;
+		log?: any;
+		upstreamExtraHeaders?: Record<string, string> | null;
+	}) {
+		const url = this.buildUrl(input.model, input.stream, 0, input.credentials);
+		const headers = this.buildHeaders(input.credentials, input.stream);
+		const transformedBody = this.transformRequest(
+			input.model,
+			input.body,
+			input.stream,
+			input.credentials
+		);
+		mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
-    const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
-    const combinedSignal = input.signal
-      ? mergeAbortSignals(input.signal, timeoutSignal)
-      : timeoutSignal;
+		const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+		const combinedSignal = input.signal
+			? mergeAbortSignals(input.signal, timeoutSignal)
+			: timeoutSignal;
 
-    input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model})`);
+		input.log?.info?.("CPA", `CLIProxyAPI → ${url} (model: ${input.model})`);
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(transformedBody),
-      signal: combinedSignal,
-    });
+		const response = await fetch(url, {
+			method: "POST",
+			headers,
+			body: JSON.stringify(transformedBody),
+			signal: combinedSignal,
+		});
 
-    if (response.status === HTTP_STATUS.RATE_LIMITED) {
-      input.log?.warn?.("CPA", `CLIProxyAPI rate limited: ${response.status}`);
-    }
+		if (response.status === HTTP_STATUS.RATE_LIMITED) {
+			input.log?.warn?.("CPA", `CLIProxyAPI rate limited: ${response.status}`);
+		}
 
-    return { response, url, headers, transformedBody };
-  }
+		return { response, url, headers, transformedBody };
+	}
 
-  /**
-   * Health check — verifies CLIProxyAPI is reachable.
-   */
-  async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
-    const start = Date.now();
-    try {
-      const res = await fetch(`${this.upstreamBaseUrl}/health`, {
-        signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
-      });
-      return {
-        ok: res.ok,
-        latencyMs: Date.now() - start,
-        ...(!res.ok ? { error: `HTTP ${res.status}` } : {}),
-      };
-    } catch (err) {
-      return {
-        ok: false,
-        latencyMs: Date.now() - start,
-        error: err instanceof Error ? err.message : String(err),
-      };
-    }
-  }
+	/**
+	 * Health check — verifies CLIProxyAPI is reachable.
+	 */
+	async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
+		const start = Date.now();
+		try {
+			const res = await fetch(`${this.upstreamBaseUrl}/health`, {
+				signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
+			});
+			return {
+				ok: res.ok,
+				latencyMs: Date.now() - start,
+				...(!res.ok ? { error: `HTTP ${res.status}` } : {}),
+			};
+		} catch (err) {
+			return {
+				ok: false,
+				latencyMs: Date.now() - start,
+				error: err instanceof Error ? err.message : String(err),
+			};
+		}
+	}
 }
 
 export default CliproxyapiExecutor;

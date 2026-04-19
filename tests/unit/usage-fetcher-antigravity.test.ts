@@ -6,54 +6,54 @@ const usageFetcher = await import("../../src/lib/usage/fetcher.ts");
 const originalFetch = globalThis.fetch;
 
 afterEach(() => {
-  globalThis.fetch = originalFetch;
+	globalThis.fetch = originalFetch;
 });
 
 test("usage fetcher retries Antigravity quota discovery across shared fallback URLs", async () => {
-  const calls = [];
+	const calls = [];
 
-  globalThis.fetch = async (url, init = {}) => {
-    calls.push({ url: String(url), init });
+	globalThis.fetch = async (url, init = {}) => {
+		calls.push({ url: String(url), init });
 
-    const urlStr = String(url);
-    if (
-      urlStr === "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels" ||
-      urlStr === "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels"
-    ) {
-      return new Response("unavailable", { status: 503 });
-    }
+		const urlStr = String(url);
+		if (
+			urlStr === "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels" ||
+			urlStr === "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels"
+		) {
+			return new Response("unavailable", { status: 503 });
+		}
 
-    return new Response(
-      JSON.stringify({
-        models: {
-          "claude-sonnet-4-6": {
-            quotaInfo: {
-              remainingFraction: 0.4,
-              resetTime: new Date(Date.now() + 60_000).toISOString(),
-            },
-          },
-        },
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
-  };
+		return new Response(
+			JSON.stringify({
+				models: {
+					"claude-sonnet-4-6": {
+						quotaInfo: {
+							remainingFraction: 0.4,
+							resetTime: new Date(Date.now() + 60_000).toISOString(),
+						},
+					},
+				},
+			}),
+			{ status: 200, headers: { "Content-Type": "application/json" } }
+		);
+	};
 
-  const usage: any = await usageFetcher.getUsageForProvider({
-    provider: "antigravity",
-    accessToken: "ag-token",
-    providerSpecificData: { email: "coder@example.com" },
-  });
+	const usage: any = await usageFetcher.getUsageForProvider({
+		provider: "antigravity",
+		accessToken: "ag-token",
+		providerSpecificData: { email: "coder@example.com" },
+	});
 
-  assert.deepEqual(
-    calls.map((call) => call.url),
-    [
-      "https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-      "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
-      "https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
-    ]
-  );
-  assert.match(calls[1].init.headers["User-Agent"], /^antigravity\//);
-  assert.equal(usage.plan, "Antigravity");
-  assert.equal(usage.quotas.models.total, 1);
-  assert.equal(usage.modelQuotas["claude-sonnet-4-6"].remaining, 40);
+	assert.deepEqual(
+		calls.map((call) => call.url),
+		[
+			"https://cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+			"https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels",
+			"https://daily-cloudcode-pa.sandbox.googleapis.com/v1internal:fetchAvailableModels",
+		]
+	);
+	assert.match(calls[1].init.headers["User-Agent"], /^antigravity\//);
+	assert.equal(usage.plan, "Antigravity");
+	assert.equal(usage.quotas.models.total, 1);
+	assert.equal(usage.modelQuotas["claude-sonnet-4-6"].remaining, 40);
 });

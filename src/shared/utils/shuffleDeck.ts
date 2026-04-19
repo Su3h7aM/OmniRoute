@@ -9,9 +9,9 @@
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface ShuffleDeck {
-  order: readonly string[];
-  index: number;
-  idsKey: string;
+	order: readonly string[];
+	index: number;
+	idsKey: string;
 }
 
 // ─── State ──────────────────────────────────────────────────────────────────
@@ -26,14 +26,14 @@ const mutexes = new Map<string, Promise<void>>();
  * Does NOT mutate the original.
  */
 export function fisherYatesShuffle<T>(arr: readonly T[]): T[] {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = result[i];
-    result[i] = result[j];
-    result[j] = tmp;
-  }
-  return result;
+	const result = [...arr];
+	for (let i = result.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		const tmp = result[i];
+		result[i] = result[j];
+		result[j] = tmp;
+	}
+	return result;
 }
 
 // ─── Deck Operations ────────────────────────────────────────────────────────
@@ -48,55 +48,55 @@ export function fisherYatesShuffle<T>(arr: readonly T[]): T[] {
  * - Serialized per namespace via promise-based mutex (no race conditions).
  */
 export async function getNextFromDeck(
-  namespace: string,
-  itemIds: readonly string[]
+	namespace: string,
+	itemIds: readonly string[]
 ): Promise<string> {
-  if (itemIds.length === 0) return "";
-  if (itemIds.length === 1) return itemIds[0];
+	if (itemIds.length === 0) return "";
+	if (itemIds.length === 1) return itemIds[0];
 
-  // Acquire per-namespace mutex
-  const currentMutex = mutexes.get(namespace) ?? Promise.resolve();
-  let resolveMutex: (() => void) | undefined;
-  mutexes.set(
-    namespace,
-    new Promise<void>((resolve) => {
-      resolveMutex = resolve;
-    })
-  );
+	// Acquire per-namespace mutex
+	const currentMutex = mutexes.get(namespace) ?? Promise.resolve();
+	let resolveMutex: (() => void) | undefined;
+	mutexes.set(
+		namespace,
+		new Promise<void>((resolve) => {
+			resolveMutex = resolve;
+		})
+	);
 
-  try {
-    await currentMutex;
+	try {
+		await currentMutex;
 
-    const idsKey = [...itemIds].sort().join(",");
-    const existing = decks.get(namespace);
+		const idsKey = [...itemIds].sort().join(",");
+		const existing = decks.get(namespace);
 
-    // If deck exists, same item set, and not exhausted — advance
-    if (existing && existing.idsKey === idsKey && existing.index < existing.order.length) {
-      const id = existing.order[existing.index];
-      decks.set(namespace, { ...existing, index: existing.index + 1 });
-      return id;
-    }
+		// If deck exists, same item set, and not exhausted — advance
+		if (existing && existing.idsKey === idsKey && existing.index < existing.order.length) {
+			const id = existing.order[existing.index];
+			decks.set(namespace, { ...existing, index: existing.index + 1 });
+			return id;
+		}
 
-    // Reshuffle — ensure last of previous cycle is not first of new cycle
-    const lastUsedId =
-      existing && existing.idsKey === idsKey && existing.order.length > 0
-        ? existing.order[existing.order.length - 1]
-        : undefined;
+		// Reshuffle — ensure last of previous cycle is not first of new cycle
+		const lastUsedId =
+			existing && existing.idsKey === idsKey && existing.order.length > 0
+				? existing.order[existing.order.length - 1]
+				: undefined;
 
-    const newOrder = fisherYatesShuffle(itemIds);
+		const newOrder = fisherYatesShuffle(itemIds);
 
-    if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
-      const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
-      const tmp = newOrder[0];
-      newOrder[0] = newOrder[swapIdx];
-      newOrder[swapIdx] = tmp;
-    }
+		if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
+			const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
+			const tmp = newOrder[0];
+			newOrder[0] = newOrder[swapIdx];
+			newOrder[swapIdx] = tmp;
+		}
 
-    decks.set(namespace, { order: newOrder, index: 1, idsKey });
-    return newOrder[0];
-  } finally {
-    resolveMutex?.();
-  }
+		decks.set(namespace, { order: newOrder, index: 1, idsKey });
+		return newOrder[0];
+	} finally {
+		resolveMutex?.();
+	}
 }
 
 // ─── Sync version (backwards compat for non-concurrent callers) ─────────────
@@ -106,40 +106,40 @@ export async function getNextFromDeck(
  * Only safe when the caller already holds a mutex (e.g. auth.ts getProviderCredentials).
  */
 export function getNextFromDeckSync(namespace: string, itemIds: readonly string[]): string {
-  if (itemIds.length === 0) return "";
-  if (itemIds.length === 1) return itemIds[0];
+	if (itemIds.length === 0) return "";
+	if (itemIds.length === 1) return itemIds[0];
 
-  const idsKey = [...itemIds].sort().join(",");
-  const existing = decks.get(namespace);
+	const idsKey = [...itemIds].sort().join(",");
+	const existing = decks.get(namespace);
 
-  if (existing && existing.idsKey === idsKey && existing.index < existing.order.length) {
-    const id = existing.order[existing.index];
-    decks.set(namespace, { ...existing, index: existing.index + 1 });
-    return id;
-  }
+	if (existing && existing.idsKey === idsKey && existing.index < existing.order.length) {
+		const id = existing.order[existing.index];
+		decks.set(namespace, { ...existing, index: existing.index + 1 });
+		return id;
+	}
 
-  const lastUsedId =
-    existing && existing.idsKey === idsKey && existing.order.length > 0
-      ? existing.order[existing.order.length - 1]
-      : undefined;
+	const lastUsedId =
+		existing && existing.idsKey === idsKey && existing.order.length > 0
+			? existing.order[existing.order.length - 1]
+			: undefined;
 
-  const newOrder = fisherYatesShuffle(itemIds);
+	const newOrder = fisherYatesShuffle(itemIds);
 
-  if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
-    const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
-    const tmp = newOrder[0];
-    newOrder[0] = newOrder[swapIdx];
-    newOrder[swapIdx] = tmp;
-  }
+	if (lastUsedId !== undefined && newOrder[0] === lastUsedId && newOrder.length > 1) {
+		const swapIdx = 1 + Math.floor(Math.random() * (newOrder.length - 1));
+		const tmp = newOrder[0];
+		newOrder[0] = newOrder[swapIdx];
+		newOrder[swapIdx] = tmp;
+	}
 
-  decks.set(namespace, { order: newOrder, index: 1, idsKey });
-  return newOrder[0];
+	decks.set(namespace, { order: newOrder, index: 1, idsKey });
+	return newOrder[0];
 }
 
 // ─── Test helpers ───────────────────────────────────────────────────────────
 
 /** Reset all decks — for testing only. */
 export function _resetAllDecks(): void {
-  decks.clear();
-  mutexes.clear();
+	decks.clear();
+	mutexes.clear();
 }

@@ -8,35 +8,35 @@ import { getWebhook, recordWebhookDelivery } from "@/lib/localDb";
 import { deliverWebhook } from "@/lib/webhookDispatcher";
 
 export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params;
-    const webhook = getWebhook(id);
-    if (!webhook) {
-      return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
-    }
+	try {
+		const { id } = await params;
+		const webhook = getWebhook(id);
+		if (!webhook) {
+			return NextResponse.json({ error: "Webhook not found" }, { status: 404 });
+		}
 
-    const result = await deliverWebhook(
-      webhook.url,
-      {
-        event: "test.ping",
-        timestamp: new Date().toISOString(),
-        data: {
-          message: "Test webhook delivery from OmniRoute",
-          webhookId: webhook.id,
-        },
-      },
-      webhook.secret,
-      0 // No retries for test
-    );
+		const result = await deliverWebhook(
+			webhook.url,
+			{
+				event: "test.ping",
+				timestamp: new Date().toISOString(),
+				data: {
+					message: "Test webhook delivery from OmniRoute",
+					webhookId: webhook.id,
+				},
+			},
+			webhook.secret,
+			0 // No retries for test
+		);
 
-    recordWebhookDelivery(webhook.id, result.status, result.success);
+		recordWebhookDelivery(webhook.id, result.status, result.success);
 
-    return NextResponse.json({
-      delivered: result.success,
-      status: result.status,
-      error: result.error || null,
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+		return NextResponse.json({
+			delivered: result.success,
+			status: result.status,
+			error: result.error || null,
+		});
+	} catch (error: any) {
+		return NextResponse.json({ error: error.message }, { status: 500 });
+	}
 }

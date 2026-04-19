@@ -12,8 +12,8 @@ const MAX_CACHE_ENTRIES = 5000;
 const DEFAULT_TTL_MS = parseInt(process.env.SEARCH_CACHE_TTL_MS || String(5 * 60 * 1000), 10);
 
 interface CacheEntry<T> {
-  data: T;
-  expiresAt: number;
+	data: T;
+	expiresAt: number;
 }
 
 const cache = new Map<string, CacheEntry<unknown>>();
@@ -27,32 +27,32 @@ let misses = 0;
  * NFKC normalization, lowercase, trim, collapse whitespace.
  */
 function normalizeQuery(query: string): string {
-  return query.normalize("NFKC").toLowerCase().trim().replace(/\s+/g, " ");
+	return query.normalize("NFKC").toLowerCase().trim().replace(/\s+/g, " ");
 }
 
 /**
  * Compute a deterministic cache key from search parameters.
  */
 export function computeCacheKey(
-  query: string,
-  provider: string,
-  searchType: string,
-  maxResults: number,
-  country?: string,
-  language?: string,
-  filters?: unknown
+	query: string,
+	provider: string,
+	searchType: string,
+	maxResults: number,
+	country?: string,
+	language?: string,
+	filters?: unknown
 ): string {
-  const normalized = normalizeQuery(query);
-  const payload = JSON.stringify({
-    q: normalized,
-    p: provider,
-    t: searchType,
-    n: maxResults,
-    c: country || null,
-    l: language || null,
-    f: filters || null,
-  });
-  return createHash("sha256").update(payload).digest("hex");
+	const normalized = normalizeQuery(query);
+	const payload = JSON.stringify({
+		q: normalized,
+		p: provider,
+		t: searchType,
+		n: maxResults,
+		c: country || null,
+		l: language || null,
+		f: filters || null,
+	});
+	return createHash("sha256").update(payload).digest("hex");
 }
 
 /**
@@ -60,24 +60,24 @@ export function computeCacheKey(
  * Called lazily on writes. O(n) worst case but amortized O(1).
  */
 function evictIfNeeded(): void {
-  const now = Date.now();
+	const now = Date.now();
 
-  // Remove expired entries first
-  for (const [key, entry] of cache) {
-    if (entry.expiresAt <= now) {
-      cache.delete(key);
-    }
-  }
+	// Remove expired entries first
+	for (const [key, entry] of cache) {
+		if (entry.expiresAt <= now) {
+			cache.delete(key);
+		}
+	}
 
-  // FIFO eviction if still over limit
-  while (cache.size >= MAX_CACHE_ENTRIES) {
-    const firstKey = cache.keys().next().value;
-    if (firstKey !== undefined) {
-      cache.delete(firstKey);
-    } else {
-      break;
-    }
-  }
+	// FIFO eviction if still over limit
+	while (cache.size >= MAX_CACHE_ENTRIES) {
+		const firstKey = cache.keys().next().value;
+		if (firstKey !== undefined) {
+			cache.delete(firstKey);
+		} else {
+			break;
+		}
+	}
 }
 
 /**
@@ -90,58 +90,58 @@ function evictIfNeeded(): void {
  * @returns The cached or freshly fetched data
  */
 export async function getOrCoalesce<T>(
-  key: string,
-  ttlMs: number,
-  fetchFn: () => Promise<T>
+	key: string,
+	ttlMs: number,
+	fetchFn: () => Promise<T>
 ): Promise<{ data: T; cached: boolean }> {
-  // When ttlMs === 0 the caller explicitly wants to bypass the cache.
-  // Skip both the cache lookup AND the inflight-coalescing step so every
-  // concurrent call gets its own independent upstream fetch.  Without this
-  // guard, ttlMs=0 callers still get coalesced results and receive
-  // { cached: true } even though caching was explicitly disabled.
-  if (ttlMs <= 0) {
-    misses++;
-    const data = await fetchFn();
-    return { data, cached: false };
-  }
+	// When ttlMs === 0 the caller explicitly wants to bypass the cache.
+	// Skip both the cache lookup AND the inflight-coalescing step so every
+	// concurrent call gets its own independent upstream fetch.  Without this
+	// guard, ttlMs=0 callers still get coalesced results and receive
+	// { cached: true } even though caching was explicitly disabled.
+	if (ttlMs <= 0) {
+		misses++;
+		const data = await fetchFn();
+		return { data, cached: false };
+	}
 
-  // 1. Check cache
-  const cached = cache.get(key) as CacheEntry<T> | undefined;
-  if (cached && cached.expiresAt > Date.now()) {
-    hits++;
-    return { data: cached.data, cached: true };
-  }
+	// 1. Check cache
+	const cached = cache.get(key) as CacheEntry<T> | undefined;
+	if (cached && cached.expiresAt > Date.now()) {
+		hits++;
+		return { data: cached.data, cached: true };
+	}
 
-  // 2. Join inflight request if one exists (request coalescing)
-  const existing = inflight.get(key) as Promise<T> | undefined;
-  if (existing) {
-    hits++;
-    const data = await existing;
-    return { data, cached: true };
-  }
+	// 2. Join inflight request if one exists (request coalescing)
+	const existing = inflight.get(key) as Promise<T> | undefined;
+	if (existing) {
+		hits++;
+		const data = await existing;
+		return { data, cached: true };
+	}
 
-  // 3. Cache miss — execute fetch
-  misses++;
-  const promise = fetchFn();
-  inflight.set(key, promise);
+	// 3. Cache miss — execute fetch
+	misses++;
+	const promise = fetchFn();
+	inflight.set(key, promise);
 
-  try {
-    const data = await promise;
+	try {
+		const data = await promise;
 
-    evictIfNeeded();
-    cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+		evictIfNeeded();
+		cache.set(key, { data, expiresAt: Date.now() + ttlMs });
 
-    return { data, cached: false };
-  } finally {
-    inflight.delete(key);
-  }
+		return { data, cached: false };
+	} finally {
+		inflight.delete(key);
+	}
 }
 
 /**
  * Get cache statistics for monitoring.
  */
 export function getCacheStats(): { size: number; hits: number; misses: number } {
-  return { size: cache.size, hits, misses };
+	return { size: cache.size, hits, misses };
 }
 
 /**

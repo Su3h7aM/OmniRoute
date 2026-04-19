@@ -11,19 +11,19 @@ import { isIP } from "node:net";
  * @returns The first valid IP address found, or "unknown"
  */
 export function extractClientIp(
-  xForwardedFor: string | null | undefined,
-  remoteAddress: string | undefined
+	xForwardedFor: string | null | undefined,
+	remoteAddress: string | undefined
 ): string {
-  if (xForwardedFor) {
-    const entries = xForwardedFor.split(",");
-    for (const entry of entries) {
-      const trimmed = entry.trim();
-      if (trimmed && isIP(trimmed) !== 0) {
-        return trimmed; // First valid IP wins
-      }
-    }
-  }
-  return remoteAddress?.trim() ?? "unknown";
+	if (xForwardedFor) {
+		const entries = xForwardedFor.split(",");
+		for (const entry of entries) {
+			const trimmed = entry.trim();
+			if (trimmed && isIP(trimmed) !== 0) {
+				return trimmed; // First valid IP wins
+			}
+		}
+	}
+	return remoteAddress?.trim() ?? "unknown";
 }
 
 /**
@@ -31,26 +31,26 @@ export function extractClientIp(
  * Checks X-Forwarded-For, X-Real-IP, CF-Connecting-IP, then socket.
  */
 export function getClientIpFromRequest(req: {
-  headers?: Headers | { get?: (n: string) => string | null };
-  socket?: { remoteAddress?: string };
-  ip?: string;
+	headers?: Headers | { get?: (n: string) => string | null };
+	socket?: { remoteAddress?: string };
+	ip?: string;
 }): string {
-  // Helper to get header value from either Headers object or plain object
-  const getHeader = (name: string): string | null => {
-    if (!req.headers) return null;
-    if (typeof (req.headers as Headers).get === "function") {
-      return (req.headers as Headers).get(name);
-    }
-    return null;
-  };
+	// Helper to get header value from either Headers object or plain object
+	const getHeader = (name: string): string | null => {
+		if (!req.headers) return null;
+		if (typeof (req.headers as Headers).get === "function") {
+			return (req.headers as Headers).get(name);
+		}
+		return null;
+	};
 
-  // Priority: CF-Connecting-IP (Cloudflare) > X-Forwarded-For > X-Real-IP > socket
-  const cfIp = getHeader("cf-connecting-ip");
-  if (cfIp && isIP(cfIp.trim()) !== 0) return cfIp.trim();
+	// Priority: CF-Connecting-IP (Cloudflare) > X-Forwarded-For > X-Real-IP > socket
+	const cfIp = getHeader("cf-connecting-ip");
+	if (cfIp && isIP(cfIp.trim()) !== 0) return cfIp.trim();
 
-  const xff = getHeader("x-forwarded-for");
-  const realIp = getHeader("x-real-ip");
-  const remoteAddress = req.ip ?? req.socket?.remoteAddress;
+	const xff = getHeader("x-forwarded-for");
+	const realIp = getHeader("x-real-ip");
+	const remoteAddress = req.ip ?? req.socket?.remoteAddress;
 
-  return extractClientIp(xff ?? realIp, remoteAddress);
+	return extractClientIp(xff ?? realIp, remoteAddress);
 }

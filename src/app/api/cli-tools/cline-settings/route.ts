@@ -17,251 +17,251 @@ const SECRETS_PATH = path.join(CLINE_DATA_DIR, "secrets.json");
 
 // Read globalState.json
 const readGlobalState = async () => {
-  try {
-    const content = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
-    return JSON.parse(content);
-  } catch (error: any) {
-    if (error.code === "ENOENT") return null;
-    throw error;
-  }
+	try {
+		const content = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
+		return JSON.parse(content);
+	} catch (error: any) {
+		if (error.code === "ENOENT") return null;
+		throw error;
+	}
 };
 
 // Read secrets.json
 const readSecrets = async () => {
-  try {
-    const content = await fs.readFile(SECRETS_PATH, "utf-8");
-    return JSON.parse(content);
-  } catch (error: any) {
-    if (error.code === "ENOENT") return {};
-    throw error;
-  }
+	try {
+		const content = await fs.readFile(SECRETS_PATH, "utf-8");
+		return JSON.parse(content);
+	} catch (error: any) {
+		if (error.code === "ENOENT") return {};
+		throw error;
+	}
 };
 
 // Check if OmniRoute is configured as OpenAI-compatible provider
 const hasOmniRouteConfig = (globalState: any) => {
-  if (!globalState) return false;
-  const isOpenAi =
-    globalState.actModeApiProvider === "openai" || globalState.planModeApiProvider === "openai";
-  const baseUrl = globalState.openAiBaseUrl || "";
-  return (
-    isOpenAi &&
-    (baseUrl.includes("localhost") ||
-      baseUrl.includes("127.0.0.1") ||
-      baseUrl.includes("omniroute"))
-  );
+	if (!globalState) return false;
+	const isOpenAi =
+		globalState.actModeApiProvider === "openai" || globalState.planModeApiProvider === "openai";
+	const baseUrl = globalState.openAiBaseUrl || "";
+	return (
+		isOpenAi &&
+		(baseUrl.includes("localhost") ||
+			baseUrl.includes("127.0.0.1") ||
+			baseUrl.includes("omniroute"))
+	);
 };
 
 // GET - Check cline CLI and read current settings
 export async function GET() {
-  try {
-    const runtime = await getCliRuntimeStatus("cline");
+	try {
+		const runtime = await getCliRuntimeStatus("cline");
 
-    if (!runtime.installed || !runtime.runnable) {
-      return NextResponse.json({
-        installed: runtime.installed,
-        runnable: runtime.runnable,
-        command: runtime.command,
-        commandPath: runtime.commandPath,
-        runtimeMode: runtime.runtimeMode,
-        reason: runtime.reason,
-        settings: null,
-        message:
-          runtime.installed && !runtime.runnable
-            ? "Cline CLI is installed but not runnable"
-            : "Cline CLI is not installed",
-      });
-    }
+		if (!runtime.installed || !runtime.runnable) {
+			return NextResponse.json({
+				installed: runtime.installed,
+				runnable: runtime.runnable,
+				command: runtime.command,
+				commandPath: runtime.commandPath,
+				runtimeMode: runtime.runtimeMode,
+				reason: runtime.reason,
+				settings: null,
+				message:
+					runtime.installed && !runtime.runnable
+						? "Cline CLI is installed but not runnable"
+						: "Cline CLI is not installed",
+			});
+		}
 
-    const globalState = await readGlobalState();
-    const secrets = await readSecrets();
+		const globalState = await readGlobalState();
+		const secrets = await readSecrets();
 
-    return NextResponse.json({
-      installed: runtime.installed,
-      runnable: runtime.runnable,
-      command: runtime.command,
-      commandPath: runtime.commandPath,
-      runtimeMode: runtime.runtimeMode,
-      reason: runtime.reason,
-      settings: {
-        actModeApiProvider: globalState?.actModeApiProvider,
-        planModeApiProvider: globalState?.planModeApiProvider,
-        openAiBaseUrl: globalState?.openAiBaseUrl,
-        openAiModelId: globalState?.openAiModelId,
-        planModeOpenAiModelId: globalState?.planModeOpenAiModelId,
-      },
-      hasOmniRoute: hasOmniRouteConfig(globalState),
-      globalStatePath: GLOBAL_STATE_PATH,
-      secretsPath: SECRETS_PATH,
-    });
-  } catch (error) {
-    console.log("Error checking cline settings:", error);
-    return NextResponse.json({ error: "Failed to check cline settings" }, { status: 500 });
-  }
+		return NextResponse.json({
+			installed: runtime.installed,
+			runnable: runtime.runnable,
+			command: runtime.command,
+			commandPath: runtime.commandPath,
+			runtimeMode: runtime.runtimeMode,
+			reason: runtime.reason,
+			settings: {
+				actModeApiProvider: globalState?.actModeApiProvider,
+				planModeApiProvider: globalState?.planModeApiProvider,
+				openAiBaseUrl: globalState?.openAiBaseUrl,
+				openAiModelId: globalState?.openAiModelId,
+				planModeOpenAiModelId: globalState?.planModeOpenAiModelId,
+			},
+			hasOmniRoute: hasOmniRouteConfig(globalState),
+			globalStatePath: GLOBAL_STATE_PATH,
+			secretsPath: SECRETS_PATH,
+		});
+	} catch (error) {
+		console.log("Error checking cline settings:", error);
+		return NextResponse.json({ error: "Failed to check cline settings" }, { status: 500 });
+	}
 }
 
 // POST - Configure Cline to use OmniRoute as OpenAI-compatible provider
 export async function POST(request: Request) {
-  let rawBody;
-  try {
-    rawBody = await request.json();
-  } catch {
-    return NextResponse.json(
-      {
-        error: {
-          message: "Invalid request",
-          details: [{ field: "body", message: "Invalid JSON body" }],
-        },
-      },
-      { status: 400 }
-    );
-  }
+	let rawBody;
+	try {
+		rawBody = await request.json();
+	} catch {
+		return NextResponse.json(
+			{
+				error: {
+					message: "Invalid request",
+					details: [{ field: "body", message: "Invalid JSON body" }],
+				},
+			},
+			{ status: 400 }
+		);
+	}
 
-  try {
-    const writeGuard = ensureCliConfigWriteAllowed();
-    if (writeGuard) {
-      return NextResponse.json({ error: writeGuard }, { status: 403 });
-    }
+	try {
+		const writeGuard = ensureCliConfigWriteAllowed();
+		if (writeGuard) {
+			return NextResponse.json({ error: writeGuard }, { status: 403 });
+		}
 
-    // (#526) Extract keyId BEFORE validation — Zod strips unknown fields!
-    const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
+		// (#526) Extract keyId BEFORE validation — Zod strips unknown fields!
+		const keyId = typeof rawBody?.keyId === "string" ? rawBody.keyId.trim() : null;
 
-    const validation = validateBody(cliModelConfigSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
-    }
-    let { baseUrl, apiKey, model } = validation.data;
+		const validation = validateBody(cliModelConfigSchema, rawBody);
+		if (isValidationFailure(validation)) {
+			return NextResponse.json({ error: validation.error }, { status: 400 });
+		}
+		let { baseUrl, apiKey, model } = validation.data;
 
-    // Resolve real key from DB by ID
-    if (keyId) {
-      try {
-        const keyRecord = await getApiKeyById(keyId);
-        if (keyRecord?.key) apiKey = keyRecord.key as string;
-      } catch {
-        /* non-critical */
-      }
-    }
+		// Resolve real key from DB by ID
+		if (keyId) {
+			try {
+				const keyRecord = await getApiKeyById(keyId);
+				if (keyRecord?.key) apiKey = keyRecord.key as string;
+			} catch {
+				/* non-critical */
+			}
+		}
 
-    // Ensure directory exists
-    await fs.mkdir(CLINE_DATA_DIR, { recursive: true });
+		// Ensure directory exists
+		await fs.mkdir(CLINE_DATA_DIR, { recursive: true });
 
-    // Backup current files before modifying
-    await createBackup("cline", GLOBAL_STATE_PATH);
-    await createBackup("cline", SECRETS_PATH);
+		// Backup current files before modifying
+		await createBackup("cline", GLOBAL_STATE_PATH);
+		await createBackup("cline", SECRETS_PATH);
 
-    // Read existing globalState or create new
-    let globalState: Record<string, any> = {};
-    try {
-      const existing = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
-      globalState = JSON.parse(existing);
-    } catch {
-      /* No existing config */
-    }
+		// Read existing globalState or create new
+		let globalState: Record<string, any> = {};
+		try {
+			const existing = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
+			globalState = JSON.parse(existing);
+		} catch {
+			/* No existing config */
+		}
 
-    // Normalize baseUrl - Cline expects the base without /v1
-    const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl.slice(0, -3) : baseUrl;
+		// Normalize baseUrl - Cline expects the base without /v1
+		const normalizedBaseUrl = baseUrl.endsWith("/v1") ? baseUrl.slice(0, -3) : baseUrl;
 
-    // Set OpenAI-compatible provider for both act and plan modes
-    globalState.actModeApiProvider = "openai";
-    globalState.planModeApiProvider = "openai";
-    globalState.openAiBaseUrl = normalizedBaseUrl;
-    globalState.openAiModelId = model;
-    globalState.planModeOpenAiModelId = model;
+		// Set OpenAI-compatible provider for both act and plan modes
+		globalState.actModeApiProvider = "openai";
+		globalState.planModeApiProvider = "openai";
+		globalState.openAiBaseUrl = normalizedBaseUrl;
+		globalState.openAiModelId = model;
+		globalState.planModeOpenAiModelId = model;
 
-    // Write globalState
-    await fs.writeFile(GLOBAL_STATE_PATH, JSON.stringify(globalState, null, 2));
+		// Write globalState
+		await fs.writeFile(GLOBAL_STATE_PATH, JSON.stringify(globalState, null, 2));
 
-    // Write API key to secrets
-    let secrets: Record<string, any> = {};
-    try {
-      const existing = await fs.readFile(SECRETS_PATH, "utf-8");
-      secrets = JSON.parse(existing);
-    } catch {
-      /* No existing secrets */
-    }
+		// Write API key to secrets
+		let secrets: Record<string, any> = {};
+		try {
+			const existing = await fs.readFile(SECRETS_PATH, "utf-8");
+			secrets = JSON.parse(existing);
+		} catch {
+			/* No existing secrets */
+		}
 
-    secrets.openAiApiKey = apiKey || "sk_omniroute";
+		secrets.openAiApiKey = apiKey || "sk_omniroute";
 
-    await fs.writeFile(SECRETS_PATH, JSON.stringify(secrets, null, 2));
+		await fs.writeFile(SECRETS_PATH, JSON.stringify(secrets, null, 2));
 
-    // Persist last-configured timestamp
-    try {
-      saveCliToolLastConfigured("cline");
-    } catch {
-      /* non-critical */
-    }
+		// Persist last-configured timestamp
+		try {
+			saveCliToolLastConfigured("cline");
+		} catch {
+			/* non-critical */
+		}
 
-    return NextResponse.json({
-      success: true,
-      message: "Cline settings applied successfully!",
-      globalStatePath: GLOBAL_STATE_PATH,
-    });
-  } catch (error) {
-    console.log("Error updating cline settings:", error);
-    return NextResponse.json({ error: "Failed to update cline settings" }, { status: 500 });
-  }
+		return NextResponse.json({
+			success: true,
+			message: "Cline settings applied successfully!",
+			globalStatePath: GLOBAL_STATE_PATH,
+		});
+	} catch (error) {
+		console.log("Error updating cline settings:", error);
+		return NextResponse.json({ error: "Failed to update cline settings" }, { status: 500 });
+	}
 }
 
 // DELETE - Remove OmniRoute OpenAI-compatible provider config
 export async function DELETE() {
-  try {
-    const writeGuard = ensureCliConfigWriteAllowed();
-    if (writeGuard) {
-      return NextResponse.json({ error: writeGuard }, { status: 403 });
-    }
+	try {
+		const writeGuard = ensureCliConfigWriteAllowed();
+		if (writeGuard) {
+			return NextResponse.json({ error: writeGuard }, { status: 403 });
+		}
 
-    // Backup before reset
-    await createBackup("cline", GLOBAL_STATE_PATH);
-    await createBackup("cline", SECRETS_PATH);
+		// Backup before reset
+		await createBackup("cline", GLOBAL_STATE_PATH);
+		await createBackup("cline", SECRETS_PATH);
 
-    // Read existing state
-    let globalState: Record<string, any> = {};
-    try {
-      const existing = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
-      globalState = JSON.parse(existing);
-    } catch (error: any) {
-      if (error.code === "ENOENT") {
-        return NextResponse.json({ success: true, message: "No settings file to reset" });
-      }
-      throw error;
-    }
+		// Read existing state
+		let globalState: Record<string, any> = {};
+		try {
+			const existing = await fs.readFile(GLOBAL_STATE_PATH, "utf-8");
+			globalState = JSON.parse(existing);
+		} catch (error: any) {
+			if (error.code === "ENOENT") {
+				return NextResponse.json({ success: true, message: "No settings file to reset" });
+			}
+			throw error;
+		}
 
-    // Only reset if currently set to openai mode with our config
-    if (globalState.actModeApiProvider === "openai") {
-      delete globalState.openAiBaseUrl;
-      delete globalState.openAiModelId;
-      delete globalState.planModeOpenAiModelId;
-      // Reset provider to default (cline)
-      globalState.actModeApiProvider = "cline";
-      globalState.planModeApiProvider = "cline";
-    }
+		// Only reset if currently set to openai mode with our config
+		if (globalState.actModeApiProvider === "openai") {
+			delete globalState.openAiBaseUrl;
+			delete globalState.openAiModelId;
+			delete globalState.planModeOpenAiModelId;
+			// Reset provider to default (cline)
+			globalState.actModeApiProvider = "cline";
+			globalState.planModeApiProvider = "cline";
+		}
 
-    await fs.writeFile(GLOBAL_STATE_PATH, JSON.stringify(globalState, null, 2));
+		await fs.writeFile(GLOBAL_STATE_PATH, JSON.stringify(globalState, null, 2));
 
-    // Remove API key from secrets
-    let secrets: Record<string, any> = {};
-    try {
-      const existing = await fs.readFile(SECRETS_PATH, "utf-8");
-      secrets = JSON.parse(existing);
-    } catch {
-      /* ignore */
-    }
+		// Remove API key from secrets
+		let secrets: Record<string, any> = {};
+		try {
+			const existing = await fs.readFile(SECRETS_PATH, "utf-8");
+			secrets = JSON.parse(existing);
+		} catch {
+			/* ignore */
+		}
 
-    delete secrets.openAiApiKey;
-    await fs.writeFile(SECRETS_PATH, JSON.stringify(secrets, null, 2));
+		delete secrets.openAiApiKey;
+		await fs.writeFile(SECRETS_PATH, JSON.stringify(secrets, null, 2));
 
-    // Clear last-configured timestamp
-    try {
-      deleteCliToolLastConfigured("cline");
-    } catch {
-      /* non-critical */
-    }
+		// Clear last-configured timestamp
+		try {
+			deleteCliToolLastConfigured("cline");
+		} catch {
+			/* non-critical */
+		}
 
-    return NextResponse.json({
-      success: true,
-      message: "OmniRoute settings removed from Cline",
-    });
-  } catch (error) {
-    console.log("Error resetting cline settings:", error);
-    return NextResponse.json({ error: "Failed to reset cline settings" }, { status: 500 });
-  }
+		return NextResponse.json({
+			success: true,
+			message: "OmniRoute settings removed from Cline",
+		});
+	} catch (error) {
+		console.log("Error resetting cline settings:", error);
+		return NextResponse.json({ error: "Failed to reset cline settings" }, { status: 500 });
+	}
 }

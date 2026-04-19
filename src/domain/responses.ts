@@ -16,13 +16,13 @@
  * @returns {Response}
  */
 export function successResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-  });
+	return new Response(JSON.stringify(data), {
+		status,
+		headers: {
+			"Content-Type": "application/json",
+			...headers,
+		},
+	});
 }
 
 /**
@@ -35,20 +35,20 @@ export function successResponse(data: unknown, status = 200, headers: Record<str
  * @returns {Response}
  */
 export function apiErrorResponse(status: number, code: string, message: string, details?: unknown) {
-  return new Response(
-    JSON.stringify({
-      error: {
-        status,
-        code,
-        message,
-        ...(details && { details }),
-      },
-    }),
-    {
-      status,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+	return new Response(
+		JSON.stringify({
+			error: {
+				status,
+				code,
+				message,
+				...(details && { details }),
+			},
+		}),
+		{
+			status,
+			headers: { "Content-Type": "application/json" },
+		}
+	);
 }
 
 /**
@@ -59,7 +59,7 @@ export function apiErrorResponse(status: number, code: string, message: string, 
  * @returns {Response}
  */
 export function badRequest(message: string, details?: unknown) {
-  return apiErrorResponse(400, "BAD_REQUEST", message, details);
+	return apiErrorResponse(400, "BAD_REQUEST", message, details);
 }
 
 /**
@@ -69,7 +69,7 @@ export function badRequest(message: string, details?: unknown) {
  * @returns {Response}
  */
 export function unauthorized(message = "Authentication required") {
-  return apiErrorResponse(401, "UNAUTHORIZED", message);
+	return apiErrorResponse(401, "UNAUTHORIZED", message);
 }
 
 /**
@@ -79,7 +79,7 @@ export function unauthorized(message = "Authentication required") {
  * @returns {Response}
  */
 export function forbidden(message = "Access denied") {
-  return apiErrorResponse(403, "FORBIDDEN", message);
+	return apiErrorResponse(403, "FORBIDDEN", message);
 }
 
 /**
@@ -89,7 +89,7 @@ export function forbidden(message = "Access denied") {
  * @returns {Response}
  */
 export function notFound(resource = "Resource") {
-  return apiErrorResponse(404, "NOT_FOUND", `${resource} not found`);
+	return apiErrorResponse(404, "NOT_FOUND", `${resource} not found`);
 }
 
 /**
@@ -99,7 +99,7 @@ export function notFound(resource = "Resource") {
  * @returns {Response}
  */
 export function conflict(message: string) {
-  return apiErrorResponse(409, "CONFLICT", message);
+	return apiErrorResponse(409, "CONFLICT", message);
 }
 
 /**
@@ -109,23 +109,23 @@ export function conflict(message: string) {
  * @returns {Response}
  */
 export function tooManyRequests(retryAfterSec = 60) {
-  return new Response(
-    JSON.stringify({
-      error: {
-        status: 429,
-        code: "RATE_LIMITED",
-        message: "Too many requests, please try again later",
-        retryAfter: retryAfterSec,
-      },
-    }),
-    {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Retry-After": String(retryAfterSec),
-      },
-    }
-  );
+	return new Response(
+		JSON.stringify({
+			error: {
+				status: 429,
+				code: "RATE_LIMITED",
+				message: "Too many requests, please try again later",
+				retryAfter: retryAfterSec,
+			},
+		}),
+		{
+			status: 429,
+			headers: {
+				"Content-Type": "application/json",
+				"Retry-After": String(retryAfterSec),
+			},
+		}
+	);
 }
 
 /**
@@ -135,5 +135,5 @@ export function tooManyRequests(retryAfterSec = 60) {
  * @returns {Response}
  */
 export function internalError(message = "Internal server error") {
-  return apiErrorResponse(500, "INTERNAL_ERROR", message);
+	return apiErrorResponse(500, "INTERNAL_ERROR", message);
 }

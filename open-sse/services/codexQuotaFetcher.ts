@@ -27,14 +27,14 @@ const CACHE_TTL_MS = 60_000; // 60 seconds
 
 // Per-account quota window info (richer than QuotaInfo — includes both windows)
 export interface CodexDualWindowQuota extends QuotaInfo {
-  window5h: { percentUsed: number; resetAt: string | null };
-  window7d: { percentUsed: number; resetAt: string | null };
-  limitReached: boolean;
+	window5h: { percentUsed: number; resetAt: string | null };
+	window7d: { percentUsed: number; resetAt: string | null };
+	limitReached: boolean;
 }
 
 interface CacheEntry {
-  quota: CodexDualWindowQuota;
-  fetchedAt: number;
+	quota: CodexDualWindowQuota;
+	fetchedAt: number;
 }
 
 // In-memory cache: connectionId → { quota, fetchedAt }
@@ -42,16 +42,16 @@ const quotaCache = new Map<string, CacheEntry>();
 
 // Auto-cleanup stale entries every 5 minutes
 const _cacheCleanup = setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of quotaCache) {
-    if (now - entry.fetchedAt > CACHE_TTL_MS * 5) {
-      quotaCache.delete(key);
-    }
-  }
+	const now = Date.now();
+	for (const [key, entry] of quotaCache) {
+		if (now - entry.fetchedAt > CACHE_TTL_MS * 5) {
+			quotaCache.delete(key);
+		}
+	}
 }, 5 * 60_000);
 
 if (typeof _cacheCleanup === "object" && "unref" in _cacheCleanup) {
-  (_cacheCleanup as { unref?: () => void }).unref?.();
+	(_cacheCleanup as { unref?: () => void }).unref?.();
 }
 
 // ─── Connection registry ─────────────────────────────────────────────────────
@@ -59,8 +59,8 @@ if (typeof _cacheCleanup === "object" && "unref" in _cacheCleanup) {
 // chatCore.ts registers connection metadata here before requests.
 
 interface CodexConnectionMeta {
-  accessToken: string;
-  workspaceId?: string;
+	accessToken: string;
+	workspaceId?: string;
 }
 
 const connectionRegistry = new Map<string, CodexConnectionMeta>();
@@ -73,51 +73,51 @@ const connectionRegistry = new Map<string, CodexConnectionMeta>();
  * @param meta - Access token and optional workspace ID
  */
 export function registerCodexConnection(connectionId: string, meta: CodexConnectionMeta): void {
-  connectionRegistry.set(connectionId, meta);
+	connectionRegistry.set(connectionId, meta);
 }
 
 function getCodexConnectionMeta(
-  connectionId: string,
-  connection?: Record<string, unknown>
+	connectionId: string,
+	connection?: Record<string, unknown>
 ): CodexConnectionMeta | null {
-  if (connection && typeof connection === "object") {
-    const providerSpecificData =
-      connection.providerSpecificData &&
-      typeof connection.providerSpecificData === "object" &&
-      !Array.isArray(connection.providerSpecificData)
-        ? (connection.providerSpecificData as Record<string, unknown>)
-        : {};
-    const accessToken =
-      typeof connection.accessToken === "string" && connection.accessToken.trim().length > 0
-        ? connection.accessToken
-        : null;
-    const workspaceId =
-      typeof providerSpecificData.workspaceId === "string" &&
-      providerSpecificData.workspaceId.trim().length > 0
-        ? providerSpecificData.workspaceId
-        : undefined;
+	if (connection && typeof connection === "object") {
+		const providerSpecificData =
+			connection.providerSpecificData &&
+			typeof connection.providerSpecificData === "object" &&
+			!Array.isArray(connection.providerSpecificData)
+				? (connection.providerSpecificData as Record<string, unknown>)
+				: {};
+		const accessToken =
+			typeof connection.accessToken === "string" && connection.accessToken.trim().length > 0
+				? connection.accessToken
+				: null;
+		const workspaceId =
+			typeof providerSpecificData.workspaceId === "string" &&
+			providerSpecificData.workspaceId.trim().length > 0
+				? providerSpecificData.workspaceId
+				: undefined;
 
-    if (accessToken) {
-      const meta = { accessToken, ...(workspaceId ? { workspaceId } : {}) };
-      connectionRegistry.set(connectionId, meta);
-      return meta;
-    }
-  }
+		if (accessToken) {
+			const meta = { accessToken, ...(workspaceId ? { workspaceId } : {}) };
+			connectionRegistry.set(connectionId, meta);
+			return meta;
+		}
+	}
 
-  return connectionRegistry.get(connectionId) || null;
+	return connectionRegistry.get(connectionId) || null;
 }
 
 function getDominantResetAt(quota: {
-  window5h: { percentUsed: number; resetAt: string | null };
-  window7d: { percentUsed: number; resetAt: string | null };
+	window5h: { percentUsed: number; resetAt: string | null };
+	window7d: { percentUsed: number; resetAt: string | null };
 }): string | null {
-  if (quota.window7d.percentUsed > quota.window5h.percentUsed) {
-    return quota.window7d.resetAt || quota.window5h.resetAt;
-  }
-  if (quota.window5h.percentUsed > quota.window7d.percentUsed) {
-    return quota.window5h.resetAt || quota.window7d.resetAt;
-  }
-  return quota.window7d.resetAt || quota.window5h.resetAt;
+	if (quota.window7d.percentUsed > quota.window5h.percentUsed) {
+		return quota.window7d.resetAt || quota.window5h.resetAt;
+	}
+	if (quota.window5h.percentUsed > quota.window7d.percentUsed) {
+		return quota.window5h.resetAt || quota.window7d.resetAt;
+	}
+	return quota.window7d.resetAt || quota.window5h.resetAt;
 }
 
 // ─── Core Fetcher ────────────────────────────────────────────────────────────
@@ -130,137 +130,137 @@ function getDominantResetAt(quota: {
  * @returns QuotaInfo or null if fetch fails / no credentials
  */
 export async function fetchCodexQuota(
-  connectionId: string,
-  connection?: Record<string, unknown>
+	connectionId: string,
+	connection?: Record<string, unknown>
 ): Promise<QuotaInfo | null> {
-  // Check cache first
-  const cached = quotaCache.get(connectionId);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-    return cached.quota;
-  }
+	// Check cache first
+	const cached = quotaCache.get(connectionId);
+	if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
+		return cached.quota;
+	}
 
-  // Look up credentials
-  const meta = getCodexConnectionMeta(connectionId, connection);
-  if (!meta?.accessToken) {
-    // No credentials registered — skip preflight gracefully
-    return null;
-  }
+	// Look up credentials
+	const meta = getCodexConnectionMeta(connectionId, connection);
+	if (!meta?.accessToken) {
+		// No credentials registered — skip preflight gracefully
+		return null;
+	}
 
-  try {
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${meta.accessToken}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
+	try {
+		const headers: Record<string, string> = {
+			Authorization: `Bearer ${meta.accessToken}`,
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		};
 
-    if (meta.workspaceId) {
-      headers["chatgpt-account-id"] = meta.workspaceId;
-    }
+		if (meta.workspaceId) {
+			headers["chatgpt-account-id"] = meta.workspaceId;
+		}
 
-    const response = await fetch(CODEX_USAGE_URL, {
-      method: "GET",
-      headers,
-      signal: AbortSignal.timeout(8_000),
-    });
+		const response = await fetch(CODEX_USAGE_URL, {
+			method: "GET",
+			headers,
+			signal: AbortSignal.timeout(8_000),
+		});
 
-    if (!response.ok) {
-      // Non-2xx: could be token expired or quota API down.
-      // Return null to proceed (fail-open — don't block on API errors).
-      if (response.status === 401 || response.status === 403) {
-        // Token expired — remove from cache so next call re-fetches
-        quotaCache.delete(connectionId);
-        connectionRegistry.delete(connectionId);
-      }
-      return null;
-    }
+		if (!response.ok) {
+			// Non-2xx: could be token expired or quota API down.
+			// Return null to proceed (fail-open — don't block on API errors).
+			if (response.status === 401 || response.status === 403) {
+				// Token expired — remove from cache so next call re-fetches
+				quotaCache.delete(connectionId);
+				connectionRegistry.delete(connectionId);
+			}
+			return null;
+		}
 
-    const data = await response.json();
-    const quota = parseCodexUsageResponse(data);
+		const data = await response.json();
+		const quota = parseCodexUsageResponse(data);
 
-    if (!quota) return null;
+		if (!quota) return null;
 
-    // Store in cache
-    quotaCache.set(connectionId, { quota, fetchedAt: Date.now() });
-    return quota;
-  } catch {
-    // Network error, timeout, etc. — fail open
-    return null;
-  }
+		// Store in cache
+		quotaCache.set(connectionId, { quota, fetchedAt: Date.now() });
+		return quota;
+	} catch {
+		// Network error, timeout, etc. — fail open
+		return null;
+	}
 }
 
 // ─── Response Parser ─────────────────────────────────────────────────────────
 
 function toNumber(value: unknown, fallback = 0): number {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string") {
-    const parsed = parseFloat(value);
-    if (Number.isFinite(parsed)) return parsed;
-  }
-  return fallback;
+	if (typeof value === "number" && Number.isFinite(value)) return value;
+	if (typeof value === "string") {
+		const parsed = parseFloat(value);
+		if (Number.isFinite(parsed)) return parsed;
+	}
+	return fallback;
 }
 
 function toRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
+	return value && typeof value === "object" && !Array.isArray(value)
+		? (value as Record<string, unknown>)
+		: {};
 }
 
 function parseWindowReset(window: Record<string, unknown>): string | null {
-  const resetAt = toNumber(window["reset_at"] ?? window["resetAt"], 0);
-  if (resetAt > 0) {
-    return new Date(resetAt * 1000).toISOString();
-  }
-  const resetAfterSeconds = toNumber(
-    window["reset_after_seconds"] ?? window["resetAfterSeconds"],
-    0
-  );
-  if (resetAfterSeconds > 0) {
-    return new Date(Date.now() + resetAfterSeconds * 1000).toISOString();
-  }
-  return null;
+	const resetAt = toNumber(window["reset_at"] ?? window["resetAt"], 0);
+	if (resetAt > 0) {
+		return new Date(resetAt * 1000).toISOString();
+	}
+	const resetAfterSeconds = toNumber(
+		window["reset_after_seconds"] ?? window["resetAfterSeconds"],
+		0
+	);
+	if (resetAfterSeconds > 0) {
+		return new Date(Date.now() + resetAfterSeconds * 1000).toISOString();
+	}
+	return null;
 }
 
 function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
-  const obj = toRecord(data);
-  const rateLimit = toRecord(obj["rate_limit"] ?? obj["rateLimit"]);
-  const primaryWindow = toRecord(rateLimit["primary_window"] ?? rateLimit["primaryWindow"]);
-  const secondaryWindow = toRecord(rateLimit["secondary_window"] ?? rateLimit["secondaryWindow"]);
+	const obj = toRecord(data);
+	const rateLimit = toRecord(obj["rate_limit"] ?? obj["rateLimit"]);
+	const primaryWindow = toRecord(rateLimit["primary_window"] ?? rateLimit["primaryWindow"]);
+	const secondaryWindow = toRecord(rateLimit["secondary_window"] ?? rateLimit["secondaryWindow"]);
 
-  // Require at least one window to be present
-  const hasPrimary = Object.keys(primaryWindow).length > 0;
-  const hasSecondary = Object.keys(secondaryWindow).length > 0;
-  if (!hasPrimary && !hasSecondary) return null;
+	// Require at least one window to be present
+	const hasPrimary = Object.keys(primaryWindow).length > 0;
+	const hasSecondary = Object.keys(secondaryWindow).length > 0;
+	if (!hasPrimary && !hasSecondary) return null;
 
-  // Parse 5h window
-  const usedPercent5h = hasPrimary
-    ? toNumber(primaryWindow["used_percent"] ?? primaryWindow["usedPercent"], 0)
-    : 0;
-  const resetAt5h = hasPrimary ? parseWindowReset(primaryWindow) : null;
+	// Parse 5h window
+	const usedPercent5h = hasPrimary
+		? toNumber(primaryWindow["used_percent"] ?? primaryWindow["usedPercent"], 0)
+		: 0;
+	const resetAt5h = hasPrimary ? parseWindowReset(primaryWindow) : null;
 
-  // Parse 7d window
-  const usedPercent7d = hasSecondary
-    ? toNumber(secondaryWindow["used_percent"] ?? secondaryWindow["usedPercent"], 0)
-    : 0;
-  const resetAt7d = hasSecondary ? parseWindowReset(secondaryWindow) : null;
+	// Parse 7d window
+	const usedPercent7d = hasSecondary
+		? toNumber(secondaryWindow["used_percent"] ?? secondaryWindow["usedPercent"], 0)
+		: 0;
+	const resetAt7d = hasSecondary ? parseWindowReset(secondaryWindow) : null;
 
-  // Worst-case across both windows (triggers switch when EITHER is at 95%)
-  const worstPercentUsed = Math.max(usedPercent5h, usedPercent7d);
-  const percentUsedNormalized = worstPercentUsed / 100; // QuotaInfo uses 0..1
+	// Worst-case across both windows (triggers switch when EITHER is at 95%)
+	const worstPercentUsed = Math.max(usedPercent5h, usedPercent7d);
+	const percentUsedNormalized = worstPercentUsed / 100; // QuotaInfo uses 0..1
 
-  const limitReached = Boolean(rateLimit["limit_reached"] ?? rateLimit["limitReached"]);
+	const limitReached = Boolean(rateLimit["limit_reached"] ?? rateLimit["limitReached"]);
 
-  return {
-    used: worstPercentUsed,
-    total: 100,
-    percentUsed: percentUsedNormalized,
-    resetAt: getDominantResetAt({
-      window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
-      window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
-    }),
-    window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
-    window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
-    limitReached,
-  };
+	return {
+		used: worstPercentUsed,
+		total: 100,
+		percentUsed: percentUsedNormalized,
+		resetAt: getDominantResetAt({
+			window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
+			window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
+		}),
+		window5h: { percentUsed: usedPercent5h / 100, resetAt: resetAt5h },
+		window7d: { percentUsed: usedPercent7d / 100, resetAt: resetAt7d },
+		limitReached,
+	};
 }
 
 // ─── Quota-Aware Reset Time ───────────────────────────────────────────────────
@@ -278,21 +278,21 @@ function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
  * @returns Cooldown duration in milliseconds
  */
 export function getCodexQuotaCooldownMs(quota: CodexDualWindowQuota, threshold = 0.95): number {
-  const now = Date.now();
+	const now = Date.now();
 
-  // 7d window takes priority (if exhausted, must wait longer)
-  if (quota.window7d.percentUsed >= threshold && quota.window7d.resetAt) {
-    const resetTime = new Date(quota.window7d.resetAt).getTime();
-    if (resetTime > now) return resetTime - now;
-  }
+	// 7d window takes priority (if exhausted, must wait longer)
+	if (quota.window7d.percentUsed >= threshold && quota.window7d.resetAt) {
+		const resetTime = new Date(quota.window7d.resetAt).getTime();
+		if (resetTime > now) return resetTime - now;
+	}
 
-  // 5h window
-  if (quota.window5h.percentUsed >= threshold && quota.window5h.resetAt) {
-    const resetTime = new Date(quota.window5h.resetAt).getTime();
-    if (resetTime > now) return resetTime - now;
-  }
+	// 5h window
+	if (quota.window5h.percentUsed >= threshold && quota.window5h.resetAt) {
+		const resetTime = new Date(quota.window5h.resetAt).getTime();
+		if (resetTime > now) return resetTime - now;
+	}
 
-  return 0;
+	return 0;
 }
 
 // ─── Invalidation ────────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ export function getCodexQuotaCooldownMs(quota: CodexDualWindowQuota, threshold =
  * Ensures the next preflight call fetches fresh data.
  */
 export function invalidateCodexQuotaCache(connectionId: string): void {
-  quotaCache.delete(connectionId);
+	quotaCache.delete(connectionId);
 }
 
 // ─── Registration ─────────────────────────────────────────────────────────────
@@ -312,6 +312,6 @@ export function invalidateCodexQuotaCache(connectionId: string): void {
  * Call this once at server startup (in chatCore.ts or app entry point).
  */
 export function registerCodexQuotaFetcher(): void {
-  registerQuotaFetcher("codex", fetchCodexQuota);
-  registerMonitorFetcher("codex", fetchCodexQuota);
+	registerQuotaFetcher("codex", fetchCodexQuota);
+	registerMonitorFetcher("codex", fetchCodexQuota);
 }

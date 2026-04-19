@@ -5,16 +5,16 @@ import { checkForUpdates } from "@/lib/versionManager";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 
 export async function GET(request: Request) {
-  const authError = await requireManagementAuth(request);
-  if (authError) return authError;
+	const authError = await requireManagementAuth(request);
+	if (authError) return authError;
 
-  try {
-    const { searchParams } = new URL(request.url);
-    const tool = searchParams.get("tool") || "cliproxyapi";
-    const result = await checkForUpdates(tool);
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("[version-manager] check-update error:", error);
-    return NextResponse.json({ error: "Failed to check for updates" }, { status: 500 });
-  }
+	try {
+		const { searchParams } = new URL(request.url);
+		const tool = searchParams.get("tool") || "cliproxyapi";
+		const result = await checkForUpdates(tool);
+		return NextResponse.json(result);
+	} catch (error) {
+		console.error("[version-manager] check-update error:", error);
+		return NextResponse.json({ error: "Failed to check for updates" }, { status: 500 });
+	}
 }

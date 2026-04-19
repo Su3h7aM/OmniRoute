@@ -13,15 +13,15 @@
  */
 
 export interface ConnectionLike {
-  id?: string | null;
-  name?: string | null;
-  displayName?: string | null;
-  email?: string | null;
+	id?: string | null;
+	name?: string | null;
+	displayName?: string | null;
+	email?: string | null;
 }
 
 export interface ProviderNodeLike {
-  name?: string | null;
-  prefix?: string | null;
+	name?: string | null;
+	prefix?: string | null;
 }
 
 /**
@@ -30,16 +30,16 @@ export interface ProviderNodeLike {
  * Priority: name → displayName → email → "Account #<6-char ID>"
  */
 export function getAccountDisplayName(conn: ConnectionLike): string {
-  if (!conn) return "Unknown Account";
-  const name =
-    (typeof conn.name === "string" && conn.name.trim()) ||
-    (typeof conn.displayName === "string" && conn.displayName.trim()) ||
-    (typeof conn.email === "string" && conn.email.trim());
-  if (name) return name;
-  if (typeof conn.id === "string" && conn.id) {
-    return `Account #${conn.id.slice(0, 6)}`;
-  }
-  return "Unknown Account";
+	if (!conn) return "Unknown Account";
+	const name =
+		(typeof conn.name === "string" && conn.name.trim()) ||
+		(typeof conn.displayName === "string" && conn.displayName.trim()) ||
+		(typeof conn.email === "string" && conn.email.trim());
+	if (name) return name;
+	if (typeof conn.id === "string" && conn.id) {
+		return `Account #${conn.id.slice(0, 6)}`;
+	}
+	return "Unknown Account";
 }
 
 /**
@@ -52,22 +52,22 @@ export function getAccountDisplayName(conn: ConnectionLike): string {
  * are rendered as "Compatible (openai)".
  */
 export function getProviderDisplayName(
-  providerId: string | null | undefined,
-  providerNode?: ProviderNodeLike | null
+	providerId: string | null | undefined,
+	providerNode?: ProviderNodeLike | null
 ): string {
-  if (providerNode?.name?.trim()) return providerNode.name.trim();
-  if (providerNode?.prefix?.trim()) return providerNode.prefix.trim();
-  if (!providerId) return "Unknown Provider";
+	if (providerNode?.name?.trim()) return providerNode.name.trim();
+	if (providerNode?.prefix?.trim()) return providerNode.prefix.trim();
+	if (!providerId) return "Unknown Provider";
 
-  // Simplify dynamic compatible provider IDs
-  const match = providerId.match(
-    /^(openai|anthropic)-compatible-(?:chat|responses)-[0-9a-f-]{10,}$/i
-  );
-  if (match) return `Compatible (${match[1]})`;
+	// Simplify dynamic compatible provider IDs
+	const match = providerId.match(
+		/^(openai|anthropic)-compatible-(?:chat|responses)-[0-9a-f-]{10,}$/i
+	);
+	if (match) return `Compatible (${match[1]})`;
 
-  if (/^anthropic-compatible-cc-[0-9a-f-]{10,}$/i.test(providerId)) {
-    return "CC Compatible";
-  }
+	if (/^anthropic-compatible-cc-[0-9a-f-]{10,}$/i.test(providerId)) {
+		return "CC Compatible";
+	}
 
-  return providerId;
+	return providerId;
 }

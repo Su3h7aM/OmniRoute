@@ -10,29 +10,29 @@ import { copyToClipboard } from "@/shared/utils/clipboard";
  * @returns {{ copied: string|null, copy: (text: string, id?: string) => Promise<boolean> }}
  */
 export function useCopyToClipboard(resetDelay = 2000) {
-  const [copied, setCopied] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [copied, setCopied] = useState<string | null>(null);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const copy = useCallback(
-    async (text: string, id = "default"): Promise<boolean> => {
-      const success = await copyToClipboard(text);
+	const copy = useCallback(
+		async (text: string, id = "default"): Promise<boolean> => {
+			const success = await copyToClipboard(text);
 
-      if (success) {
-        setCopied(id);
+			if (success) {
+				setCopied(id);
 
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
+				if (timeoutRef.current) {
+					clearTimeout(timeoutRef.current);
+				}
 
-        timeoutRef.current = setTimeout(() => {
-          setCopied(null);
-        }, resetDelay);
-      }
+				timeoutRef.current = setTimeout(() => {
+					setCopied(null);
+				}, resetDelay);
+			}
 
-      return success;
-    },
-    [resetDelay]
-  );
+			return success;
+		},
+		[resetDelay]
+	);
 
-  return { copied, copy };
+	return { copied, copy };
 }

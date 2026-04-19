@@ -4,10 +4,10 @@ import { getDiversityReport } from "../../../../../open-sse/services/autoCombo/p
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    const report = getDiversityReport();
-    return NextResponse.json(report);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+	try {
+		const report = getDiversityReport();
+		return NextResponse.json(report);
+	} catch (error: any) {
+		return NextResponse.json({ error: error.message }, { status: 500 });
+	}
 }

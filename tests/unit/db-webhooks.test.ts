@@ -12,85 +12,85 @@ const coreDb = await import("../../src/lib/db/core.ts");
 const webhooksDb = await import("../../src/lib/db/webhooks.ts");
 
 async function resetStorage() {
-  coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	coreDb.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 beforeEach(async () => {
-  await resetStorage();
+	await resetStorage();
 });
 
 afterAll(() => {
-  coreDb.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
+	coreDb.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	if (ORIGINAL_DATA_DIR === undefined) {
+		delete process.env.DATA_DIR;
+	} else {
+		process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+	}
 });
 
 test("webhooks create, update, query enabled hooks and delete records", () => {
-  const created = webhooksDb.createWebhook({
-    url: "https://example.com/hook",
-    events: ["request.completed"],
-    description: "Primary webhook",
-  });
+	const created = webhooksDb.createWebhook({
+		url: "https://example.com/hook",
+		events: ["request.completed"],
+		description: "Primary webhook",
+	});
 
-  assert.match(created.secret, /^whsec_/);
-  assert.equal(webhooksDb.getWebhooks().length, 1);
-  assert.equal(webhooksDb.getEnabledWebhooks().length, 1);
+	assert.match(created.secret, /^whsec_/);
+	assert.equal(webhooksDb.getWebhooks().length, 1);
+	assert.equal(webhooksDb.getEnabledWebhooks().length, 1);
 
-  const updated = webhooksDb.updateWebhook(created.id, {
-    enabled: false,
-    events: ["request.failed"],
-    secret: "custom-secret",
-    description: "Updated webhook",
-  });
+	const updated = webhooksDb.updateWebhook(created.id, {
+		enabled: false,
+		events: ["request.failed"],
+		secret: "custom-secret",
+		description: "Updated webhook",
+	});
 
-  assert.equal(updated.enabled, false);
-  assert.deepEqual(updated.events, ["request.failed"]);
-  assert.equal(updated.secret, "custom-secret");
-  assert.equal(webhooksDb.getEnabledWebhooks().length, 0);
+	assert.equal(updated.enabled, false);
+	assert.deepEqual(updated.events, ["request.failed"]);
+	assert.equal(updated.secret, "custom-secret");
+	assert.equal(webhooksDb.getEnabledWebhooks().length, 0);
 
-  assert.equal(webhooksDb.deleteWebhook(created.id), true);
-  assert.equal(webhooksDb.deleteWebhook(created.id), false);
+	assert.equal(webhooksDb.deleteWebhook(created.id), true);
+	assert.equal(webhooksDb.deleteWebhook(created.id), false);
 });
 
 test("webhooks record delivery success and failures", () => {
-  const created = webhooksDb.createWebhook({
-    url: "https://example.com/hook",
-  });
+	const created = webhooksDb.createWebhook({
+		url: "https://example.com/hook",
+	});
 
-  webhooksDb.recordWebhookDelivery(created.id, 500, false);
-  webhooksDb.recordWebhookDelivery(created.id, 502, false);
-  let stored = webhooksDb.getWebhook(created.id);
+	webhooksDb.recordWebhookDelivery(created.id, 500, false);
+	webhooksDb.recordWebhookDelivery(created.id, 502, false);
+	let stored = webhooksDb.getWebhook(created.id);
 
-  assert.equal(stored.failure_count, 2);
-  assert.equal(stored.last_status, 502);
+	assert.equal(stored.failure_count, 2);
+	assert.equal(stored.last_status, 502);
 
-  webhooksDb.recordWebhookDelivery(created.id, 200, true);
-  stored = webhooksDb.getWebhook(created.id);
+	webhooksDb.recordWebhookDelivery(created.id, 200, true);
+	stored = webhooksDb.getWebhook(created.id);
 
-  assert.equal(stored.failure_count, 0);
-  assert.equal(stored.last_status, 200);
-  assert.ok(stored.last_triggered_at);
+	assert.equal(stored.failure_count, 0);
+	assert.equal(stored.last_status, 200);
+	assert.ok(stored.last_triggered_at);
 });
 
 test("webhooks disable only hooks above the failure threshold", () => {
-  const a = webhooksDb.createWebhook({ url: "https://example.com/a" });
-  const b = webhooksDb.createWebhook({ url: "https://example.com/b" });
+	const a = webhooksDb.createWebhook({ url: "https://example.com/a" });
+	const b = webhooksDb.createWebhook({ url: "https://example.com/b" });
 
-  for (let i = 0; i < 3; i++) {
-    webhooksDb.recordWebhookDelivery(a.id, 500, false);
-  }
-  webhooksDb.recordWebhookDelivery(b.id, 500, false);
+	for (let i = 0; i < 3; i++) {
+		webhooksDb.recordWebhookDelivery(a.id, 500, false);
+	}
+	webhooksDb.recordWebhookDelivery(b.id, 500, false);
 
-  const disabled = webhooksDb.disableWebhooksWithHighFailures(2);
+	const disabled = webhooksDb.disableWebhooksWithHighFailures(2);
 
-  assert.equal(disabled, 1);
-  assert.equal(webhooksDb.getWebhook(a.id).enabled, false);
-  assert.equal(webhooksDb.getWebhook(b.id).enabled, true);
-  assert.equal(webhooksDb.updateWebhook("ghost", { enabled: false }), null);
+	assert.equal(disabled, 1);
+	assert.equal(webhooksDb.getWebhook(a.id).enabled, false);
+	assert.equal(webhooksDb.getWebhook(b.id).enabled, true);
+	assert.equal(webhooksDb.updateWebhook("ghost", { enabled: false }), null);
 });

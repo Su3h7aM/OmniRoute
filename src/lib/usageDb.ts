@@ -19,13 +19,13 @@ import "./usage/migrations";
 
 // Re-export everything for backward compatibility
 export {
-  trackPendingRequest,
-  getUsageDb,
-  saveRequestUsage,
-  getUsageHistory,
-  getModelLatencyStats,
-  appendRequestLog,
-  getRecentLogs,
+	trackPendingRequest,
+	getUsageDb,
+	saveRequestUsage,
+	getUsageHistory,
+	getModelLatencyStats,
+	appendRequestLog,
+	getRecentLogs,
 } from "./usage/usageHistory";
 
 export { calculateCost } from "./usage/costCalculator";

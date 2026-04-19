@@ -30,15 +30,13 @@ scripts/
 .env*
 app/.env
 app/.env*
-eslint.config.mjs
-prettier.config.mjs
+biome.jsonc
 postcss.config.mjs
 next.config.mjs
 tsconfig.json
 tsconfig.typecheck-core.json
 tsconfig.typecheck-noimplicit-core.json
 playwright.config.ts
-vitest.config.ts
 next-env.d.ts
 llm.txt
 

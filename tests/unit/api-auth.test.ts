@@ -18,181 +18,181 @@ const ORIGINAL_JWT_SECRET = process.env.JWT_SECRET;
 const ORIGINAL_INITIAL_PASSWORD = process.env.INITIAL_PASSWORD;
 
 async function resetStorage() {
-  core.resetDbInstance();
-  apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-  delete process.env.JWT_SECRET;
-  delete process.env.INITIAL_PASSWORD;
+	core.resetDbInstance();
+	apiKeysDb.resetApiKeyState();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	delete process.env.JWT_SECRET;
+	delete process.env.INITIAL_PASSWORD;
 }
 
 function makeCookieRequest(token) {
-  return {
-    cookies: {
-      get(name) {
-        return name === "auth_token" && token ? { value: token } : undefined;
-      },
-    },
-    headers: new Headers(),
-  };
+	return {
+		cookies: {
+			get(name) {
+				return name === "auth_token" && token ? { value: token } : undefined;
+			},
+		},
+		headers: new Headers(),
+	};
 }
 
 beforeEach(async () => {
-  await resetStorage();
+	await resetStorage();
 });
 
 afterAll(() => {
-  core.resetDbInstance();
-  apiKeysDb.resetApiKeyState();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	core.resetDbInstance();
+	apiKeysDb.resetApiKeyState();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 
-  if (ORIGINAL_JWT_SECRET === undefined) {
-    delete process.env.JWT_SECRET;
-  } else {
-    process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
-  }
+	if (ORIGINAL_JWT_SECRET === undefined) {
+		delete process.env.JWT_SECRET;
+	} else {
+		process.env.JWT_SECRET = ORIGINAL_JWT_SECRET;
+	}
 
-  if (ORIGINAL_INITIAL_PASSWORD === undefined) {
-    delete process.env.INITIAL_PASSWORD;
-  } else {
-    process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
-  }
+	if (ORIGINAL_INITIAL_PASSWORD === undefined) {
+		delete process.env.INITIAL_PASSWORD;
+	} else {
+		process.env.INITIAL_PASSWORD = ORIGINAL_INITIAL_PASSWORD;
+	}
 });
 
 test("isPublicRoute recognizes allowed API prefixes", () => {
-  assert.equal(apiAuth.isPublicRoute("/api/auth/login"), true);
-  assert.equal(apiAuth.isPublicRoute("/api/v1/chat/completions"), true);
-  assert.equal(apiAuth.isPublicRoute("/api/sync/bundle"), true);
-  assert.equal(apiAuth.isPublicRoute("/api/settings"), false);
+	assert.equal(apiAuth.isPublicRoute("/api/auth/login"), true);
+	assert.equal(apiAuth.isPublicRoute("/api/v1/chat/completions"), true);
+	assert.equal(apiAuth.isPublicRoute("/api/sync/bundle"), true);
+	assert.equal(apiAuth.isPublicRoute("/api/settings"), false);
 });
 
 test("verifyAuth accepts a valid JWT session cookie", async () => {
-  process.env.JWT_SECRET = "jwt-secret-for-tests";
-  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-  const token = await new SignJWT({ authenticated: true })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("1h")
-    .sign(secret);
+	process.env.JWT_SECRET = "jwt-secret-for-tests";
+	const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+	const token = await new SignJWT({ authenticated: true })
+		.setProtectedHeader({ alg: "HS256" })
+		.setIssuedAt()
+		.setExpirationTime("1h")
+		.sign(secret);
 
-  const result = await apiAuth.verifyAuth(makeCookieRequest(token));
+	const result = await apiAuth.verifyAuth(makeCookieRequest(token));
 
-  assert.equal(result, null);
+	assert.equal(result, null);
 });
 
 test("verifyAuth falls back to bearer API key validation after a bad JWT", async () => {
-  process.env.JWT_SECRET = "jwt-secret-for-tests";
-  const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
-  const request = {
-    cookies: {
-      get() {
-        return { value: "definitely-not-a-valid-jwt" };
-      },
-    },
-    headers: new Headers({ authorization: `Bearer ${key.key}` }),
-    url: "https://example.com/api/v1/models",
-  };
+	process.env.JWT_SECRET = "jwt-secret-for-tests";
+	const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
+	const request = {
+		cookies: {
+			get() {
+				return { value: "definitely-not-a-valid-jwt" };
+			},
+		},
+		headers: new Headers({ authorization: `Bearer ${key.key}` }),
+		url: "https://example.com/api/v1/models",
+	};
 
-  const result = await apiAuth.verifyAuth(request);
+	const result = await apiAuth.verifyAuth(request);
 
-  assert.equal(result, null);
+	assert.equal(result, null);
 });
 
 test("verifyAuth rejects bearer API keys on management routes", async () => {
-  const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
-  const result = await apiAuth.verifyAuth({
-    cookies: {
-      get() {
-        return undefined;
-      },
-    },
-    headers: new Headers({ authorization: `Bearer ${key.key}` }),
-    url: "https://example.com/api/providers",
-  });
+	const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
+	const result = await apiAuth.verifyAuth({
+		cookies: {
+			get() {
+				return undefined;
+			},
+		},
+		headers: new Headers({ authorization: `Bearer ${key.key}` }),
+		url: "https://example.com/api/providers",
+	});
 
-  assert.equal(result, "Invalid management token");
+	assert.equal(result, "Invalid management token");
 });
 
 test("verifyAuth rejects requests without valid credentials", async () => {
-  const result = await apiAuth.verifyAuth({
-    cookies: {
-      get() {
-        return undefined;
-      },
-    },
-    headers: new Headers({ authorization: "Bearer sk-invalid" }),
-    url: "https://example.com/api/v1/models",
-  });
+	const result = await apiAuth.verifyAuth({
+		cookies: {
+			get() {
+				return undefined;
+			},
+		},
+		headers: new Headers({ authorization: "Bearer sk-invalid" }),
+		url: "https://example.com/api/v1/models",
+	});
 
-  assert.equal(result, "Authentication required");
+	assert.equal(result, "Authentication required");
 });
 
 test("isAuthenticated accepts bearer API keys on client-facing routes", async () => {
-  const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
-  const request = new Request("https://example.com/api/v1/models", {
-    headers: { authorization: `Bearer ${key.key}` },
-  });
+	const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
+	const request = new Request("https://example.com/api/v1/models", {
+		headers: { authorization: `Bearer ${key.key}` },
+	});
 
-  const result = await apiAuth.isAuthenticated(request);
+	const result = await apiAuth.isAuthenticated(request);
 
-  assert.equal(result, true);
+	assert.equal(result, true);
 });
 
 test("isAuthenticated rejects bearer API keys on management routes", async () => {
-  process.env.INITIAL_PASSWORD = "bootstrap-password";
-  await localDb.updateSettings({ requireLogin: true, password: "" });
+	process.env.INITIAL_PASSWORD = "bootstrap-password";
+	await localDb.updateSettings({ requireLogin: true, password: "" });
 
-  const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
-  const request = new Request("https://example.com/api/providers", {
-    headers: { authorization: `Bearer ${key.key}` },
-  });
+	const key = await apiKeysDb.createApiKey("integration", "machine1234567890");
+	const request = new Request("https://example.com/api/providers", {
+		headers: { authorization: `Bearer ${key.key}` },
+	});
 
-  const result = await apiAuth.isAuthenticated(request);
+	const result = await apiAuth.isAuthenticated(request);
 
-  assert.equal(result, false);
+	assert.equal(result, false);
 });
 
 test("isAuthenticated returns false when auth is required without valid credentials", async () => {
-  // Force requireLogin to be active
-  process.env.INITIAL_PASSWORD = "bootstrap-password";
-  await localDb.updateSettings({ requireLogin: true, password: "" });
+	// Force requireLogin to be active
+	process.env.INITIAL_PASSWORD = "bootstrap-password";
+	await localDb.updateSettings({ requireLogin: true, password: "" });
 
-  const request = new Request("https://example.com/api/providers");
+	const request = new Request("https://example.com/api/providers");
 
-  const result = await apiAuth.isAuthenticated(request);
+	const result = await apiAuth.isAuthenticated(request);
 
-  assert.equal(result, false);
+	assert.equal(result, false);
 });
 
 test("isAuthRequired is disabled when requireLogin is false", async () => {
-  await localDb.updateSettings({ requireLogin: false });
+	await localDb.updateSettings({ requireLogin: false });
 
-  const result = await apiAuth.isAuthRequired();
+	const result = await apiAuth.isAuthRequired();
 
-  assert.equal(result, false);
+	assert.equal(result, false);
 });
 
 test("isAuthRequired is disabled while no password exists", async () => {
-  await localDb.updateSettings({ requireLogin: true, password: "" });
+	await localDb.updateSettings({ requireLogin: true, password: "" });
 
-  const result = await apiAuth.isAuthRequired();
+	const result = await apiAuth.isAuthRequired();
 
-  assert.equal(result, false);
+	assert.equal(result, false);
 });
 
 test("isAuthRequired stays enabled when a password exists", async () => {
-  await localDb.updateSettings({ requireLogin: true, password: "hashed-password" });
+	await localDb.updateSettings({ requireLogin: true, password: "hashed-password" });
 
-  const result = await apiAuth.isAuthRequired();
+	const result = await apiAuth.isAuthRequired();
 
-  assert.equal(result, true);
+	assert.equal(result, true);
 });
 
 test("isAuthRequired stays enabled when INITIAL_PASSWORD is present", async () => {
-  process.env.INITIAL_PASSWORD = "bootstrap-password";
-  await localDb.updateSettings({ requireLogin: true, password: "" });
+	process.env.INITIAL_PASSWORD = "bootstrap-password";
+	await localDb.updateSettings({ requireLogin: true, password: "" });
 
-  const result = await apiAuth.isAuthRequired();
+	const result = await apiAuth.isAuthRequired();
 
-  assert.equal(result, true);
+	assert.equal(result, true);
 });

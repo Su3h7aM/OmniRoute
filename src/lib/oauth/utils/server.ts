@@ -8,19 +8,19 @@ import { URL } from "url";
  * @returns {Promise<{server: http.Server, port: number, close: Function}>}
  */
 export function startLocalServer(
-  onCallback: (params: Record<string, string>) => void,
-  fixedPort: number | null = null
+	onCallback: (params: Record<string, string>) => void,
+	fixedPort: number | null = null
 ): Promise<{ server: any; port: number; close: () => void }> {
-  return new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      const url = new URL(req.url || "/", `http://localhost`);
+	return new Promise((resolve, reject) => {
+		const server = http.createServer((req, res) => {
+			const url = new URL(req.url || "/", `http://localhost`);
 
-      if (url.pathname === "/callback" || url.pathname === "/auth/callback") {
-        const params = Object.fromEntries(url.searchParams);
+			if (url.pathname === "/callback" || url.pathname === "/auth/callback") {
+				const params = Object.fromEntries(url.searchParams);
 
-        // Send success response to browser with auto-close attempt
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        res.end(`<!DOCTYPE html>
+				// Send success response to browser with auto-close attempt
+				res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+				res.end(`<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -59,37 +59,37 @@ export function startLocalServer(
 </body>
 </html>`);
 
-        // Call callback with params
-        onCallback(params);
-      } else {
-        res.writeHead(404);
-        res.end("Not found");
-      }
-    });
+				// Call callback with params
+				onCallback(params);
+			} else {
+				res.writeHead(404);
+				res.end("Not found");
+			}
+		});
 
-    // Listen on fixed port or find available port
-    const portToUse = fixedPort || 0;
-    server.listen(portToUse, "0.0.0.0", () => {
-      const addr = server.address() as { port: number };
-      resolve({
-        server,
-        port: addr.port,
-        close: () => server.close(),
-      });
-    });
+		// Listen on fixed port or find available port
+		const portToUse = fixedPort || 0;
+		server.listen(portToUse, "0.0.0.0", () => {
+			const addr = server.address() as { port: number };
+			resolve({
+				server,
+				port: addr.port,
+				close: () => server.close(),
+			});
+		});
 
-    server.on("error", (err: any) => {
-      if (err.code === "EADDRINUSE" && fixedPort) {
-        reject(
-          new Error(
-            `Port ${fixedPort} is already in use. Please close other applications using this port.`
-          )
-        );
-      } else {
-        reject(err);
-      }
-    });
-  });
+		server.on("error", (err: any) => {
+			if (err.code === "EADDRINUSE" && fixedPort) {
+				reject(
+					new Error(
+						`Port ${fixedPort} is already in use. Please close other applications using this port.`
+					)
+				);
+			} else {
+				reject(err);
+			}
+		});
+	});
 }
 
 /**
@@ -98,25 +98,25 @@ export function startLocalServer(
  * @returns {Promise<Object>} - Callback params
  */
 export function waitForCallback(timeoutMs = 300000) {
-  return new Promise((resolve, reject) => {
-    let resolved = false;
+	return new Promise((resolve, reject) => {
+		let resolved = false;
 
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        reject(new Error("Authentication timeout"));
-      }
-    }, timeoutMs);
+		const timeout = setTimeout(() => {
+			if (!resolved) {
+				resolved = true;
+				reject(new Error("Authentication timeout"));
+			}
+		}, timeoutMs);
 
-    const onCallback = (params: Record<string, string>) => {
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timeout);
-        resolve(params);
-      }
-    };
+		const onCallback = (params: Record<string, string>) => {
+			if (!resolved) {
+				resolved = true;
+				clearTimeout(timeout);
+				resolve(params);
+			}
+		};
 
-    // Return the callback function
-    (resolve as any).__onCallback = onCallback;
-  });
+		// Return the callback function
+		(resolve as any).__onCallback = onCallback;
+	});
 }

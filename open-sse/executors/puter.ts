@@ -24,36 +24,36 @@ import { PROVIDERS } from "../config/constants.ts";
  * Only text chat completions (with streaming SSE) are available via REST.
  */
 export class PuterExecutor extends BaseExecutor {
-  constructor() {
-    super("puter", PROVIDERS["puter"] || { format: "openai" });
-  }
+	constructor() {
+		super("puter", PROVIDERS["puter"] || { format: "openai" });
+	}
 
-  buildUrl(_model: string, _stream: boolean, _urlIndex = 0, _credentials = null): string {
-    return "https://api.puter.com/puterai/openai/v1/chat/completions";
-  }
+	buildUrl(_model: string, _stream: boolean, _urlIndex = 0, _credentials = null): string {
+		return "https://api.puter.com/puterai/openai/v1/chat/completions";
+	}
 
-  buildHeaders(credentials: any, stream = true): Record<string, string> {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+	buildHeaders(credentials: any, stream = true): Record<string, string> {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
 
-    const key = credentials?.apiKey || credentials?.accessToken;
-    if (key) {
-      headers["Authorization"] = `Bearer ${key}`;
-    }
+		const key = credentials?.apiKey || credentials?.accessToken;
+		if (key) {
+			headers["Authorization"] = `Bearer ${key}`;
+		}
 
-    if (stream) {
-      headers["Accept"] = "text/event-stream";
-    }
+		if (stream) {
+			headers["Accept"] = "text/event-stream";
+		}
 
-    return headers;
-  }
+		return headers;
+	}
 
-  transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
-    // Puter accepts model IDs directly from its catalog.
-    // No transformation required — model string is passed as-is.
-    return body;
-  }
+	transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
+		// Puter accepts model IDs directly from its catalog.
+		// No transformation required — model string is passed as-is.
+		return body;
+	}
 }
 
 export default PuterExecutor;

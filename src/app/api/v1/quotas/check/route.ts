@@ -9,25 +9,30 @@ import { checkQuota } from "@/lib/db/registeredKeys";
  * without actually issuing one. Use this to pre-validate before POST /registered-keys.
  */
 export async function GET(request: Request) {
-  if (!(await isAuthenticated(request))) {
-    return NextResponse.json({ error: { message: "Authentication required" } }, { status: 401 });
-  }
+	if (!(await isAuthenticated(request))) {
+		return NextResponse.json(
+			{ error: { message: "Authentication required" } },
+			{ status: 401 }
+		);
+	}
 
-  const { searchParams } = new URL(request.url);
-  const provider = searchParams.get("provider") ?? "";
-  const accountId = searchParams.get("accountId") ?? "";
+	const { searchParams } = new URL(request.url);
+	const provider = searchParams.get("provider") ?? "";
+	const accountId = searchParams.get("accountId") ?? "";
 
-  try {
-    const result = checkQuota(provider, accountId);
-    return NextResponse.json({
-      allowed: result.allowed,
-      ...(result.errorCode ? { errorCode: result.errorCode, reason: result.errorMessage } : {}),
-      provider: provider || null,
-      accountId: accountId || null,
-      checkedAt: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.error("[quotas/check] error:", err);
-    return NextResponse.json({ error: "Quota check failed" }, { status: 500 });
-  }
+	try {
+		const result = checkQuota(provider, accountId);
+		return NextResponse.json({
+			allowed: result.allowed,
+			...(result.errorCode
+				? { errorCode: result.errorCode, reason: result.errorMessage }
+				: {}),
+			provider: provider || null,
+			accountId: accountId || null,
+			checkedAt: new Date().toISOString(),
+		});
+	} catch (err) {
+		console.error("[quotas/check] error:", err);
+		return NextResponse.json({ error: "Quota check failed" }, { status: 500 });
+	}
 }

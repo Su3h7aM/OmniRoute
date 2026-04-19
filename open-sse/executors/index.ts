@@ -16,40 +16,40 @@ import { PerplexityWebExecutor } from "./perplexity-web.ts";
 import { GrokWebExecutor } from "./grok-web.ts";
 
 const executors = {
-  antigravity: new AntigravityExecutor(),
-  "gemini-cli": new GeminiCLIExecutor(),
-  github: new GithubExecutor(),
-  qoder: new QoderExecutor(),
-  kiro: new KiroExecutor(),
-  codex: new CodexExecutor(),
-  cursor: new CursorExecutor(),
-  cu: new CursorExecutor(), // Alias for cursor
-  pollinations: new PollinationsExecutor(),
-  pol: new PollinationsExecutor(), // Alias
-  "cloudflare-ai": new CloudflareAIExecutor(),
-  cf: new CloudflareAIExecutor(), // Alias
-  "opencode-zen": new OpencodeExecutor("opencode-zen"),
-  "opencode-go": new OpencodeExecutor("opencode-go"),
-  puter: new PuterExecutor(),
-  pu: new PuterExecutor(), // Alias
-  vertex: new VertexExecutor(),
-  cliproxyapi: new CliproxyapiExecutor(),
-  cpa: new CliproxyapiExecutor(), // Alias
-  "perplexity-web": new PerplexityWebExecutor(),
-  "pplx-web": new PerplexityWebExecutor(), // Alias
-  "grok-web": new GrokWebExecutor(),
+	antigravity: new AntigravityExecutor(),
+	"gemini-cli": new GeminiCLIExecutor(),
+	github: new GithubExecutor(),
+	qoder: new QoderExecutor(),
+	kiro: new KiroExecutor(),
+	codex: new CodexExecutor(),
+	cursor: new CursorExecutor(),
+	cu: new CursorExecutor(), // Alias for cursor
+	pollinations: new PollinationsExecutor(),
+	pol: new PollinationsExecutor(), // Alias
+	"cloudflare-ai": new CloudflareAIExecutor(),
+	cf: new CloudflareAIExecutor(), // Alias
+	"opencode-zen": new OpencodeExecutor("opencode-zen"),
+	"opencode-go": new OpencodeExecutor("opencode-go"),
+	puter: new PuterExecutor(),
+	pu: new PuterExecutor(), // Alias
+	vertex: new VertexExecutor(),
+	cliproxyapi: new CliproxyapiExecutor(),
+	cpa: new CliproxyapiExecutor(), // Alias
+	"perplexity-web": new PerplexityWebExecutor(),
+	"pplx-web": new PerplexityWebExecutor(), // Alias
+	"grok-web": new GrokWebExecutor(),
 };
 
 const defaultCache = new Map();
 
 export function getExecutor(provider) {
-  if (executors[provider]) return executors[provider];
-  if (!defaultCache.has(provider)) defaultCache.set(provider, new DefaultExecutor(provider));
-  return defaultCache.get(provider);
+	if (executors[provider]) return executors[provider];
+	if (!defaultCache.has(provider)) defaultCache.set(provider, new DefaultExecutor(provider));
+	return defaultCache.get(provider);
 }
 
 export function hasSpecializedExecutor(provider) {
-  return !!executors[provider];
+	return !!executors[provider];
 }
 
 export { BaseExecutor } from "./base.ts";

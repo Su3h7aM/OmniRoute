@@ -6,11 +6,11 @@ import { getDefaultPricing } from "@/shared/constants/pricing";
  * Get default pricing configuration
  */
 export async function GET() {
-  try {
-    const defaultPricing = getDefaultPricing();
-    return NextResponse.json(defaultPricing);
-  } catch (error) {
-    console.error("Error fetching default pricing:", error);
-    return NextResponse.json({ error: "Failed to fetch default pricing" }, { status: 500 });
-  }
+	try {
+		const defaultPricing = getDefaultPricing();
+		return NextResponse.json(defaultPricing);
+	} catch (error) {
+		console.error("Error fetching default pricing:", error);
+		return NextResponse.json({ error: "Failed to fetch default pricing" }, { status: 500 });
+	}
 }

@@ -17,87 +17,87 @@ const localDb = await import("../../src/lib/localDb.ts");
 const wsRoute = await import("../../src/app/api/v1/ws/route.ts");
 
 function resetStorage() {
-  apiKeysDb.resetApiKeyState();
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-  fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	apiKeysDb.resetApiKeyState();
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
 
 beforeEach(async () => {
-  resetStorage();
-  await localDb.updateSettings({
-    wsAuth: false,
-    requireLogin: true,
-    password: "hashed-password",
-  });
+	resetStorage();
+	await localDb.updateSettings({
+		wsAuth: false,
+		requireLogin: true,
+		password: "hashed-password",
+	});
 });
 
 afterAll(() => {
-  apiKeysDb.resetApiKeyState();
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	apiKeysDb.resetApiKeyState();
+	core.resetDbInstance();
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 
-  if (ORIGINAL_DATA_DIR === undefined) {
-    delete process.env.DATA_DIR;
-  } else {
-    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-  }
+	if (ORIGINAL_DATA_DIR === undefined) {
+		delete process.env.DATA_DIR;
+	} else {
+		process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+	}
 
-  if (ORIGINAL_API_KEY_SECRET === undefined) {
-    delete process.env.API_KEY_SECRET;
-  } else {
-    process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
-  }
+	if (ORIGINAL_API_KEY_SECRET === undefined) {
+		delete process.env.API_KEY_SECRET;
+	} else {
+		process.env.API_KEY_SECRET = ORIGINAL_API_KEY_SECRET;
+	}
 });
 
 test("v1 ws handshake succeeds without credentials when wsAuth is disabled", async () => {
-  await localDb.updateSettings({ wsAuth: false });
+	await localDb.updateSettings({ wsAuth: false });
 
-  const response = await wsRoute.GET(
-    new Request("http://localhost/api/v1/ws?handshake=1", {
-      headers: { origin: "http://localhost" },
-    })
-  );
+	const response = await wsRoute.GET(
+		new Request("http://localhost/api/v1/ws?handshake=1", {
+			headers: { origin: "http://localhost" },
+		})
+	);
 
-  assert.equal(response.status, 200);
-  const body = await response.json();
-  assert.equal(body.ok, true);
-  assert.equal(body.wsAuth, false);
-  assert.equal(body.authenticated, false);
-  assert.equal(body.path, "/v1/ws");
+	assert.equal(response.status, 200);
+	const body = await response.json();
+	assert.equal(body.ok, true);
+	assert.equal(body.wsAuth, false);
+	assert.equal(body.authenticated, false);
+	assert.equal(body.path, "/v1/ws");
 });
 
 test("v1 ws handshake requires credentials when wsAuth is enabled", async () => {
-  await localDb.updateSettings({ wsAuth: true });
+	await localDb.updateSettings({ wsAuth: true });
 
-  const response = await wsRoute.GET(new Request("http://localhost/api/v1/ws?handshake=1"));
+	const response = await wsRoute.GET(new Request("http://localhost/api/v1/ws?handshake=1"));
 
-  assert.equal(response.status, 401);
-  const body = await response.json();
-  assert.equal(body.error.code, "ws_auth_required");
-  assert.equal(body.wsAuth, true);
+	assert.equal(response.status, 401);
+	const body = await response.json();
+	assert.equal(body.error.code, "ws_auth_required");
+	assert.equal(body.wsAuth, true);
 });
 
 test("v1 ws handshake accepts valid API key query credentials when wsAuth is enabled", async () => {
-  await localDb.updateSettings({ wsAuth: true });
-  const key = await apiKeysDb.createApiKey("ws client", "machine-ws-route");
+	await localDb.updateSettings({ wsAuth: true });
+	const key = await apiKeysDb.createApiKey("ws client", "machine-ws-route");
 
-  const response = await wsRoute.GET(
-    new Request(`http://localhost/api/v1/ws?handshake=1&api_key=${encodeURIComponent(key.key)}`)
-  );
+	const response = await wsRoute.GET(
+		new Request(`http://localhost/api/v1/ws?handshake=1&api_key=${encodeURIComponent(key.key)}`)
+	);
 
-  assert.equal(response.status, 200);
-  const body = await response.json();
-  assert.equal(body.ok, true);
-  assert.equal(body.authenticated, true);
-  assert.equal(body.authType, "api_key");
+	assert.equal(response.status, 200);
+	const body = await response.json();
+	assert.equal(body.ok, true);
+	assert.equal(body.authenticated, true);
+	assert.equal(body.authType, "api_key");
 });
 
 test("v1 ws HTTP GET reports upgrade required outside handshake mode", async () => {
-  const response = await wsRoute.GET(new Request("http://localhost/api/v1/ws"));
+	const response = await wsRoute.GET(new Request("http://localhost/api/v1/ws"));
 
-  assert.equal(response.status, 426);
-  assert.equal(response.headers.get("upgrade"), "websocket");
-  const body = await response.json();
-  assert.equal(body.error.code, "upgrade_required");
+	assert.equal(response.status, 426);
+	assert.equal(response.headers.get("upgrade"), "websocket");
+	const body = await response.json();
+	assert.equal(body.error.code, "upgrade_required");
 });

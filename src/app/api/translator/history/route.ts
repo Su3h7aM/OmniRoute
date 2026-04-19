@@ -7,14 +7,14 @@ import { getTranslationEvents } from "@/lib/translatorEvents";
  */
 
 export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const limit = searchParams.get("limit");
-    const { events, total } = getTranslationEvents(limit ? Number(limit) : undefined);
+	try {
+		const { searchParams } = new URL(request.url);
+		const limit = searchParams.get("limit");
+		const { events, total } = getTranslationEvents(limit ? Number(limit) : undefined);
 
-    return NextResponse.json({ success: true, events, total });
-  } catch (error) {
-    console.error("Error fetching history:", error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
+		return NextResponse.json({ success: true, events, total });
+	} catch (error) {
+		console.error("Error fetching history:", error);
+		return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+	}
 }

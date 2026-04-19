@@ -115,16 +115,13 @@ Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, 
 ## Running Tests
 
 ```bash
-# All tests (unit + vitest + ecosystem + e2e)
+# All tests (unit + integration + ecosystem + e2e)
 npm run test:all
 
 # Single test file (Node.js native test runner — most tests use this)
 bun test ./tests/unit/your-file.test.ts
 # or use repo wrapper (skips deprecated desktop/CLI suites)
 node scripts/run-bun-tests.mjs ./tests/unit/your-file.test.ts
-
-# Vitest (MCP server, autoCombo, cache)
-npm run test:vitest
 
 # E2E tests (requires Playwright)
 npm run test:e2e
@@ -182,11 +179,11 @@ Current test status: **122 unit test files** covering:
 
 ## Code Style
 
-- **ESLint** — Run `npm run lint` before committing
-- **Prettier** — Auto-formatted via `lint-staged` on commit (2 spaces, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **Biome** — Run `npm run lint` before committing
+- **Biome formatter** — Auto-formatted via `lint-staged` on commit (tabs, width 4, semicolons, double quotes, 100 char width, es5 trailing commas)
 - **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
 - **tsgo** — Project type-check scripts use `tsgo` (`@typescript/native-preview`) instead of `tsc`
-- **No `eval()`** — ESLint enforces `no-eval`, `no-implied-eval`, `no-new-func`
+- **No `eval()`** — Biome migration preserves security restrictions around `eval`-style dynamic execution
 - **Zod validation** — Use Zod v4 schemas for all API input validation
 - **Naming**: Files = camelCase/kebab-case, components = PascalCase, constants = UPPER_SNAKE
 

@@ -20,11 +20,11 @@ import { resolveDataDir } from "../../src/lib/dataPaths";
 
 // Fields that can be overridden per provider
 const CREDENTIAL_FIELDS = [
-  "clientId",
-  "clientSecret",
-  "tokenUrl",
-  "authUrl",
-  "refreshUrl",
+	"clientId",
+	"clientSecret",
+	"tokenUrl",
+	"authUrl",
+	"refreshUrl",
 ] as const;
 type CredentialField = (typeof CREDENTIAL_FIELDS)[number];
 type ProviderCredentialOverrides = Partial<Record<CredentialField, unknown>>;
@@ -38,7 +38,7 @@ let cachedProviders: Record<string, unknown> | null = null;
 // Survives Next.js dev HMR: module-level cache resets but process is the same (V4 pattern).
 type CredGlobals = typeof globalThis & { __omnirouteCredNoFileLogged?: boolean };
 function credGlobals(): CredGlobals {
-  return globalThis as CredGlobals;
+	return globalThis as CredGlobals;
 }
 
 /**
@@ -49,7 +49,7 @@ function credGlobals(): CredGlobals {
  * previous: Priority: DATA_DIR env → ./data (project root)
  */
 function resolveCredentialsPath(): string {
-  return join(resolveDataDir(), "provider-credentials.json");
+	return join(resolveDataDir(), "provider-credentials.json");
 }
 
 /**
@@ -61,68 +61,68 @@ function resolveCredentialsPath(): string {
  * @returns {object} The same PROVIDERS object (mutated in place)
  */
 export function loadProviderCredentials<T extends Record<string, unknown>>(providers: T): T {
-  // Return cached result if within TTL
-  if (cachedProviders && Date.now() - lastLoadTime < CONFIG_TTL_MS) {
-    return cachedProviders as T;
-  }
+	// Return cached result if within TTL
+	if (cachedProviders && Date.now() - lastLoadTime < CONFIG_TTL_MS) {
+		return cachedProviders as T;
+	}
 
-  const credPath = resolveCredentialsPath();
+	const credPath = resolveCredentialsPath();
 
-  if (!existsSync(credPath)) {
-    if (!credGlobals().__omnirouteCredNoFileLogged) {
-      console.log("[CREDENTIALS] No external credentials file found, using defaults.");
-      credGlobals().__omnirouteCredNoFileLogged = true;
-    }
-    cachedProviders = providers;
-    lastLoadTime = Date.now();
-    return providers;
-  }
+	if (!existsSync(credPath)) {
+		if (!credGlobals().__omnirouteCredNoFileLogged) {
+			console.log("[CREDENTIALS] No external credentials file found, using defaults.");
+			credGlobals().__omnirouteCredNoFileLogged = true;
+		}
+		cachedProviders = providers;
+		lastLoadTime = Date.now();
+		return providers;
+	}
 
-  try {
-    const raw = readFileSync(credPath, "utf-8");
-    const external = JSON.parse(raw) as Record<string, unknown>;
+	try {
+		const raw = readFileSync(credPath, "utf-8");
+		const external = JSON.parse(raw) as Record<string, unknown>;
 
-    let overrideCount = 0;
+		let overrideCount = 0;
 
-    const mutableProviders = providers as MutableProviderRecord;
+		const mutableProviders = providers as MutableProviderRecord;
 
-    for (const [providerKey, creds] of Object.entries(external)) {
-      if (!mutableProviders[providerKey]) {
-        console.log(
-          `[CREDENTIALS] Warning: unknown provider "${providerKey}" in credentials file, skipping.`
-        );
-        continue;
-      }
+		for (const [providerKey, creds] of Object.entries(external)) {
+			if (!mutableProviders[providerKey]) {
+				console.log(
+					`[CREDENTIALS] Warning: unknown provider "${providerKey}" in credentials file, skipping.`
+				);
+				continue;
+			}
 
-      if (!creds || typeof creds !== "object") {
-        console.log(
-          `[CREDENTIALS] Warning: provider "${providerKey}" value must be an object, got ${typeof creds}. Skipping.`
-        );
-        continue;
-      }
+			if (!creds || typeof creds !== "object") {
+				console.log(
+					`[CREDENTIALS] Warning: provider "${providerKey}" value must be an object, got ${typeof creds}. Skipping.`
+				);
+				continue;
+			}
 
-      const credentialOverrides = creds as ProviderCredentialOverrides;
-      for (const field of CREDENTIAL_FIELDS) {
-        if (credentialOverrides[field] !== undefined) {
-          mutableProviders[providerKey][field] = credentialOverrides[field];
-          overrideCount++;
-        }
-      }
-    }
+			const credentialOverrides = creds as ProviderCredentialOverrides;
+			for (const field of CREDENTIAL_FIELDS) {
+				if (credentialOverrides[field] !== undefined) {
+					mutableProviders[providerKey][field] = credentialOverrides[field];
+					overrideCount++;
+				}
+			}
+		}
 
-    const isReload = cachedProviders !== null;
-    console.log(
-      `[CREDENTIALS] ${isReload ? "Reloaded" : "Loaded"} external credentials: ${overrideCount} field(s) from ${credPath}`
-    );
-  } catch (err) {
-    const reason =
-      err instanceof SyntaxError
-        ? "Invalid JSON format"
-        : (err as NodeJS.ErrnoException).code || "read error";
-    console.log(`[CREDENTIALS] Error reading credentials file (${reason}). Using defaults.`);
-  }
+		const isReload = cachedProviders !== null;
+		console.log(
+			`[CREDENTIALS] ${isReload ? "Reloaded" : "Loaded"} external credentials: ${overrideCount} field(s) from ${credPath}`
+		);
+	} catch (err) {
+		const reason =
+			err instanceof SyntaxError
+				? "Invalid JSON format"
+				: (err as NodeJS.ErrnoException).code || "read error";
+		console.log(`[CREDENTIALS] Error reading credentials file (${reason}). Using defaults.`);
+	}
 
-  cachedProviders = providers;
-  lastLoadTime = Date.now();
-  return providers;
+	cachedProviders = providers;
+	lastLoadTime = Date.now();
+	return providers;
 }

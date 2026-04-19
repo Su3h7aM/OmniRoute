@@ -15,17 +15,17 @@
  * @returns {boolean}
  */
 export function wildcardMatch(model, pattern) {
-  if (!model || !pattern) return false;
-  if (pattern === "*") return true;
-  if (pattern === model) return true;
+	if (!model || !pattern) return false;
+	if (pattern === "*") return true;
+	if (pattern === model) return true;
 
-  // Convert glob pattern to regex
-  const regexStr = pattern
-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-    .replace(/\*/g, ".*")
-    .replace(/\?/g, ".");
-  const regex = new RegExp(`^${regexStr}$`, "i");
-  return regex.test(model);
+	// Convert glob pattern to regex
+	const regexStr = pattern
+		.replace(/[.+^${}()|[\]\\]/g, "\\$&")
+		.replace(/\*/g, ".*")
+		.replace(/\?/g, ".");
+	const regex = new RegExp(`^${regexStr}$`, "i");
+	return regex.test(model);
 }
 
 /**
@@ -37,23 +37,23 @@ export function wildcardMatch(model, pattern) {
  * @returns {number} Specificity score (higher = more specific)
  */
 export function getSpecificity(pattern) {
-  if (!pattern) return 0;
+	if (!pattern) return 0;
 
-  let score = 0;
-  // Exact segments (no wildcards) contribute most
-  const segments = pattern.split(/[/*?]/);
-  for (const seg of segments) {
-    if (seg.length > 0) score += seg.length * 10;
-  }
-  // Wildcards reduce specificity
-  const wildcardCount = (pattern.match(/\*/g) || []).length;
-  const questionCount = (pattern.match(/\?/g) || []).length;
-  score -= wildcardCount * 50;
-  score -= questionCount * 5;
-  // Longer patterns tend to be more specific
-  score += pattern.length;
+	let score = 0;
+	// Exact segments (no wildcards) contribute most
+	const segments = pattern.split(/[/*?]/);
+	for (const seg of segments) {
+		if (seg.length > 0) score += seg.length * 10;
+	}
+	// Wildcards reduce specificity
+	const wildcardCount = (pattern.match(/\*/g) || []).length;
+	const questionCount = (pattern.match(/\?/g) || []).length;
+	score -= wildcardCount * 50;
+	score -= questionCount * 5;
+	// Longer patterns tend to be more specific
+	score += pattern.length;
 
-  return score;
+	return score;
 }
 
 /**
@@ -65,32 +65,32 @@ export function getSpecificity(pattern) {
  * @returns {{ pattern: string, target: string, specificity: number } | null}
  */
 export function resolveWildcardAlias(
-  model: string,
-  aliases: WildcardAliasEntry[]
+	model: string,
+	aliases: WildcardAliasEntry[]
 ): ResolvedWildcardAlias | null {
-  if (!model || !aliases || !Array.isArray(aliases)) return null;
+	if (!model || !aliases || !Array.isArray(aliases)) return null;
 
-  const matches: ResolvedWildcardAlias[] = [];
-  for (const alias of aliases) {
-    const pattern = alias.pattern || alias.alias || alias.from;
-    const target = alias.target || alias.model || alias.to;
-    if (!pattern || !target) continue;
+	const matches: ResolvedWildcardAlias[] = [];
+	for (const alias of aliases) {
+		const pattern = alias.pattern || alias.alias || alias.from;
+		const target = alias.target || alias.model || alias.to;
+		if (!pattern || !target) continue;
 
-    if (wildcardMatch(model, pattern)) {
-      matches.push({
-        pattern,
-        target,
-        specificity: getSpecificity(pattern),
-        ...alias,
-      });
-    }
-  }
+		if (wildcardMatch(model, pattern)) {
+			matches.push({
+				pattern,
+				target,
+				specificity: getSpecificity(pattern),
+				...alias,
+			});
+		}
+	}
 
-  if (matches.length === 0) return null;
+	if (matches.length === 0) return null;
 
-  // Sort by specificity (highest first)
-  matches.sort((a, b) => b.specificity - a.specificity);
-  return matches[0];
+	// Sort by specificity (highest first)
+	matches.sort((a, b) => b.specificity - a.specificity);
+	return matches[0];
 }
 
 /**
@@ -103,34 +103,34 @@ export function resolveWildcardAlias(
  * @returns {string} Resolved model name
  */
 export function resolveModel(model, exactAliases = {}, wildcardAliases = []) {
-  if (!model) return model;
+	if (!model) return model;
 
-  // 1. Check exact aliases first (fastest)
-  if (exactAliases instanceof Map) {
-    if (exactAliases.has(model)) return exactAliases.get(model);
-  } else if (exactAliases[model]) {
-    return exactAliases[model];
-  }
+	// 1. Check exact aliases first (fastest)
+	if (exactAliases instanceof Map) {
+		if (exactAliases.has(model)) return exactAliases.get(model);
+	} else if (exactAliases[model]) {
+		return exactAliases[model];
+	}
 
-  // 2. Check wildcard aliases
-  const match = resolveWildcardAlias(model, wildcardAliases);
-  if (match) return match.target;
+	// 2. Check wildcard aliases
+	const match = resolveWildcardAlias(model, wildcardAliases);
+	if (match) return match.target;
 
-  // 3. Return original
-  return model;
+	// 3. Return original
+	return model;
 }
 type WildcardAliasEntry = {
-  pattern?: string;
-  alias?: string;
-  from?: string;
-  target?: string;
-  model?: string;
-  to?: string;
-  [key: string]: unknown;
+	pattern?: string;
+	alias?: string;
+	from?: string;
+	target?: string;
+	model?: string;
+	to?: string;
+	[key: string]: unknown;
 };
 
 type ResolvedWildcardAlias = WildcardAliasEntry & {
-  pattern: string;
-  target: string;
-  specificity: number;
+	pattern: string;
+	target: string;
+	specificity: number;
 };

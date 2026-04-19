@@ -14,46 +14,46 @@ import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
  * 🔒 Auth-guarded: requires JWT cookie or Bearer API key (finding #258-2).
  */
 export async function GET(request: Request) {
-  if (await isAuthRequired()) {
-    if (!(await isAuthenticated(request))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
-  try {
-    if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) {
-      return NextResponse.json({ error: "Database file not found" }, { status: 404 });
-    }
+	if (await isAuthRequired()) {
+		if (!(await isAuthenticated(request))) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+	}
+	try {
+		if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) {
+			return NextResponse.json({ error: "Database file not found" }, { status: 404 });
+		}
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const exportFilename = `omniroute-backup-${timestamp}.sqlite`;
-    const tmpDir = os.tmpdir();
-    const tmpPath = path.join(tmpDir, exportFilename);
+		const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+		const exportFilename = `omniroute-backup-${timestamp}.sqlite`;
+		const tmpDir = os.tmpdir();
+		const tmpPath = path.join(tmpDir, exportFilename);
 
-    // Use checkpoint + file copy for a consistent Bun SQLite snapshot
-    const db = getDbInstance();
-    db.run("PRAGMA wal_checkpoint(TRUNCATE)");
-    fs.copyFileSync(SQLITE_FILE, tmpPath);
+		// Use checkpoint + file copy for a consistent Bun SQLite snapshot
+		const db = getDbInstance();
+		db.run("PRAGMA wal_checkpoint(TRUNCATE)");
+		fs.copyFileSync(SQLITE_FILE, tmpPath);
 
-    const fileBuffer = fs.readFileSync(tmpPath);
+		const fileBuffer = fs.readFileSync(tmpPath);
 
-    // Cleanup temp file
-    try {
-      fs.unlinkSync(tmpPath);
-    } catch {
-      /* best effort */
-    }
+		// Cleanup temp file
+		try {
+			fs.unlinkSync(tmpPath);
+		} catch {
+			/* best effort */
+		}
 
-    return new Response(fileBuffer, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${exportFilename}"`,
-        "Content-Length": String(fileBuffer.length),
-        "Cache-Control": "no-cache, no-store",
-      },
-    });
-  } catch (error) {
-    console.error("[API] Error exporting database:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+		return new Response(fileBuffer, {
+			status: 200,
+			headers: {
+				"Content-Type": "application/octet-stream",
+				"Content-Disposition": `attachment; filename="${exportFilename}"`,
+				"Content-Length": String(fileBuffer.length),
+				"Cache-Control": "no-cache, no-store",
+			},
+		});
+	} catch (error) {
+		console.error("[API] Error exporting database:", error);
+		return NextResponse.json({ error: error.message }, { status: 500 });
+	}
 }

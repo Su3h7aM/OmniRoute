@@ -11,13 +11,13 @@ import { handleChat } from "@/sse/handlers/chat";
 // so /v1/responses just delegates to handleChat which handles everything.
 
 export async function OPTIONS() {
-  return new Response(null, {
-    headers: {
-      "Access-Control-Allow-Origin": CORS_ORIGIN,
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-    },
-  });
+	return new Response(null, {
+		headers: {
+			"Access-Control-Allow-Origin": CORS_ORIGIN,
+			"Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+			"Access-Control-Allow-Headers": "*",
+		},
+	});
 }
 
 /**
@@ -25,5 +25,5 @@ export async function OPTIONS() {
  * Handled by the unified chat handler (openai-responses format auto-detected).
  */
 export async function POST(request) {
-  return await handleChat(request);
+	return await handleChat(request);
 }

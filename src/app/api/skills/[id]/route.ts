@@ -5,43 +5,43 @@ import { z } from "zod";
 import { validateBody, isValidationFailure } from "@/shared/validation/helpers";
 
 const updateSkillSchema = z.object({
-  enabled: z.boolean(),
+	enabled: z.boolean(),
 });
 
 export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await props.params;
-    const deleted = await skillRegistry.unregisterById(id);
-    if (!deleted) {
-      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
-    }
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error }, { status: 500 });
-  }
+	try {
+		const { id } = await props.params;
+		const deleted = await skillRegistry.unregisterById(id);
+		if (!deleted) {
+			return NextResponse.json({ error: "Skill not found" }, { status: 404 });
+		}
+		return NextResponse.json({ success: true });
+	} catch (err: unknown) {
+		const error = err instanceof Error ? err.message : String(err);
+		return NextResponse.json({ error }, { status: 500 });
+	}
 }
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await props.params;
-    const rawBody = await request.json();
-    const validation = validateBody(updateSkillSchema, rawBody);
-    if (isValidationFailure(validation)) {
-      return NextResponse.json(validation.error, { status: 400 });
-    }
+	try {
+		const { id } = await props.params;
+		const rawBody = await request.json();
+		const validation = validateBody(updateSkillSchema, rawBody);
+		if (isValidationFailure(validation)) {
+			return NextResponse.json(validation.error, { status: 400 });
+		}
 
-    const db = getDbInstance();
-    db.prepare("UPDATE skills SET enabled = ? WHERE id = ?").run(
-      validation.data.enabled ? 1 : 0,
-      id
-    );
+		const db = getDbInstance();
+		db.prepare("UPDATE skills SET enabled = ? WHERE id = ?").run(
+			validation.data.enabled ? 1 : 0,
+			id
+		);
 
-    await skillRegistry.loadFromDatabase();
+		await skillRegistry.loadFromDatabase();
 
-    return NextResponse.json({ success: true, enabled: validation.data.enabled });
-  } catch (err: unknown) {
-    const error = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error }, { status: 500 });
-  }
+		return NextResponse.json({ success: true, enabled: validation.data.enabled });
+	} catch (err: unknown) {
+		const error = err instanceof Error ? err.message : String(err);
+		return NextResponse.json({ error }, { status: 500 });
+	}
 }

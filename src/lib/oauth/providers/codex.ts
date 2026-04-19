@@ -5,16 +5,16 @@ import { CODEX_CONFIG } from "../constants/oauth";
  * The JWT claims contain a custom claim at "https://api.openai.com/auth"
  */
 interface CodexAuthInfo {
-  chatgpt_account_id: string;
-  chatgpt_plan_type: string;
-  chatgpt_user_id: string;
-  user_id: string;
-  organizations: Array<{
-    id: string;
-    is_default: boolean;
-    role: string;
-    title: string;
-  }>;
+	chatgpt_account_id: string;
+	chatgpt_plan_type: string;
+	chatgpt_user_id: string;
+	user_id: string;
+	organizations: Array<{
+		id: string;
+		is_default: boolean;
+		role: string;
+		title: string;
+	}>;
 }
 
 /**
@@ -22,31 +22,31 @@ interface CodexAuthInfo {
  * atob() doesn't handle multi-byte UTF-8 characters correctly.
  */
 function base64Decode(str: string): string {
-  // Add padding if necessary
-  let base64 = str;
-  switch (base64.length % 4) {
-    case 2:
-      base64 += "==";
-      break;
-    case 3:
-      base64 += "=";
-      break;
-  }
+	// Add padding if necessary
+	let base64 = str;
+	switch (base64.length % 4) {
+		case 2:
+			base64 += "==";
+			break;
+		case 3:
+			base64 += "=";
+			break;
+	}
 
-  // Replace URL-safe characters with standard base64 characters
-  base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
+	// Replace URL-safe characters with standard base64 characters
+	base64 = base64.replace(/-/g, "+").replace(/_/g, "/");
 
-  // Decode using atob, then handle UTF-8
-  const binary = atob(base64);
+	// Decode using atob, then handle UTF-8
+	const binary = atob(base64);
 
-  // Convert binary string to bytes, then to UTF-8 string
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+	// Convert binary string to bytes, then to UTF-8 string
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
 
-  // Use TextDecoder for proper UTF-8 decoding
-  return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+	// Use TextDecoder for proper UTF-8 decoding
+	return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
 }
 
 /**
@@ -57,158 +57,158 @@ function base64Decode(str: string): string {
  * We only extract metadata (workspace info) from the already-validated token.
  */
 function parseIdToken(idToken: string): { email: string | null; authInfo: CodexAuthInfo | null } {
-  try {
-    const parts = idToken.split(".");
-    if (parts.length !== 3) {
-      return { email: null, authInfo: null };
-    }
+	try {
+		const parts = idToken.split(".");
+		if (parts.length !== 3) {
+			return { email: null, authInfo: null };
+		}
 
-    // Decode payload with proper UTF-8 handling
-    const decoded = JSON.parse(base64Decode(parts[1]));
+		// Decode payload with proper UTF-8 handling
+		const decoded = JSON.parse(base64Decode(parts[1]));
 
-    const email = decoded.email || null;
+		const email = decoded.email || null;
 
-    // Extract Codex auth info from custom claim
-    const authInfo = decoded["https://api.openai.com/auth"] || null;
+		// Extract Codex auth info from custom claim
+		const authInfo = decoded["https://api.openai.com/auth"] || null;
 
-    return { email, authInfo };
-  } catch (e) {
-    return { email: null, authInfo: null };
-  }
+		return { email, authInfo };
+	} catch (e) {
+		return { email: null, authInfo: null };
+	}
 }
 
 export const codex = {
-  config: CODEX_CONFIG,
-  flowType: "authorization_code_pkce",
-  fixedPort: 1455,
-  callbackPath: "/auth/callback",
+	config: CODEX_CONFIG,
+	flowType: "authorization_code_pkce",
+	fixedPort: 1455,
+	callbackPath: "/auth/callback",
 
-  buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
-    const params = {
-      response_type: "code",
-      client_id: config.clientId,
-      redirect_uri: redirectUri,
-      scope: config.scope,
-      code_challenge: codeChallenge,
-      code_challenge_method: config.codeChallengeMethod,
-      ...config.extraParams,
-      state: state,
-    };
-    const queryString = Object.entries(params)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value as string)}`)
-      .join("&");
-    return `${config.authorizeUrl}?${queryString}`;
-  },
+	buildAuthUrl: (config, redirectUri, state, codeChallenge) => {
+		const params = {
+			response_type: "code",
+			client_id: config.clientId,
+			redirect_uri: redirectUri,
+			scope: config.scope,
+			code_challenge: codeChallenge,
+			code_challenge_method: config.codeChallengeMethod,
+			...config.extraParams,
+			state: state,
+		};
+		const queryString = Object.entries(params)
+			.map(([key, value]) => `${key}=${encodeURIComponent(value as string)}`)
+			.join("&");
+		return `${config.authorizeUrl}?${queryString}`;
+	},
 
-  exchangeToken: async (config, code, redirectUri, codeVerifier) => {
-    const response = await fetch(config.tokenUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        client_id: config.clientId,
-        code: code,
-        redirect_uri: redirectUri,
-        code_verifier: codeVerifier,
-      }),
-    });
+	exchangeToken: async (config, code, redirectUri, codeVerifier) => {
+		const response = await fetch(config.tokenUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				Accept: "application/json",
+			},
+			body: new URLSearchParams({
+				grant_type: "authorization_code",
+				client_id: config.clientId,
+				code: code,
+				redirect_uri: redirectUri,
+				code_verifier: codeVerifier,
+			}),
+		});
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Token exchange failed: ${error}`);
-    }
+		if (!response.ok) {
+			const error = await response.text();
+			throw new Error(`Token exchange failed: ${error}`);
+		}
 
-    return await response.json();
-  },
+		return await response.json();
+	},
 
-  /**
-   * Post-exchange hook: Parse id_token to extract workspace info.
-   * The workspace selected by the user during OAuth is embedded in the id_token.
-   */
-  postExchange: async (tokens) => {
-    if (!tokens.id_token) {
-      return { authInfo: null };
-    }
+	/**
+	 * Post-exchange hook: Parse id_token to extract workspace info.
+	 * The workspace selected by the user during OAuth is embedded in the id_token.
+	 */
+	postExchange: async (tokens) => {
+		if (!tokens.id_token) {
+			return { authInfo: null };
+		}
 
-    const { authInfo } = parseIdToken(tokens.id_token);
-    return { authInfo };
-  },
+		const { authInfo } = parseIdToken(tokens.id_token);
+		return { authInfo };
+	},
 
-  mapTokens: (tokens, extra) => {
-    // Parse id_token for email and auth info
-    let email = null;
-    let authInfo = extra?.authInfo || null;
+	mapTokens: (tokens, extra) => {
+		// Parse id_token for email and auth info
+		let email = null;
+		let authInfo = extra?.authInfo || null;
 
-    if (tokens.id_token) {
-      const parsed = parseIdToken(tokens.id_token);
-      email = parsed.email;
-      // Use authInfo from postExchange if available, otherwise from parsing
-      if (!authInfo && parsed.authInfo) {
-        authInfo = parsed.authInfo;
-      }
-    }
+		if (tokens.id_token) {
+			const parsed = parseIdToken(tokens.id_token);
+			email = parsed.email;
+			// Use authInfo from postExchange if available, otherwise from parsing
+			if (!authInfo && parsed.authInfo) {
+				authInfo = parsed.authInfo;
+			}
+		}
 
-    // Determine the correct workspace to use
-    //
-    // IMPORTANT: A user can have both Team and Personal workspaces.
-    // The JWT's chatgpt_account_id may not always reflect the workspace
-    // the user selected during OAuth. We need to be smart about selection.
-    //
-    // Selection logic:
-    // 1. If plan_type indicates team/business, use chatgpt_account_id
-    // 2. If plan_type is "free" but organizations has team workspace, use team
-    // 3. Otherwise use chatgpt_account_id as fallback
-    let workspaceId = authInfo?.chatgpt_account_id || null;
-    let planType = (authInfo?.chatgpt_plan_type || "").toLowerCase();
+		// Determine the correct workspace to use
+		//
+		// IMPORTANT: A user can have both Team and Personal workspaces.
+		// The JWT's chatgpt_account_id may not always reflect the workspace
+		// the user selected during OAuth. We need to be smart about selection.
+		//
+		// Selection logic:
+		// 1. If plan_type indicates team/business, use chatgpt_account_id
+		// 2. If plan_type is "free" but organizations has team workspace, use team
+		// 3. Otherwise use chatgpt_account_id as fallback
+		let workspaceId = authInfo?.chatgpt_account_id || null;
+		let planType = (authInfo?.chatgpt_plan_type || "").toLowerCase();
 
-    // Check if we should use a team workspace instead
-    const organizations = authInfo?.organizations || [];
-    if (organizations.length > 0) {
-      // Find team/business workspace (non-default usually means team)
-      const teamOrg = organizations.find((org) => {
-        const title = (org.title || "").toLowerCase();
-        const role = (org.role || "").toLowerCase();
-        // Team workspaces typically have role like "member" or "admin" and non-personal titles
-        return (
-          !org.is_default &&
-          (title.includes("team") ||
-            title.includes("business") ||
-            title.includes("workspace") ||
-            title.includes("org") ||
-            role === "admin" ||
-            role === "member")
-        );
-      });
+		// Check if we should use a team workspace instead
+		const organizations = authInfo?.organizations || [];
+		if (organizations.length > 0) {
+			// Find team/business workspace (non-default usually means team)
+			const teamOrg = organizations.find((org) => {
+				const title = (org.title || "").toLowerCase();
+				const role = (org.role || "").toLowerCase();
+				// Team workspaces typically have role like "member" or "admin" and non-personal titles
+				return (
+					!org.is_default &&
+					(title.includes("team") ||
+						title.includes("business") ||
+						title.includes("workspace") ||
+						title.includes("org") ||
+						role === "admin" ||
+						role === "member")
+				);
+			});
 
-      // If user's plan_type is "team" or we found a team org, prefer it
-      if (planType.includes("team") || planType.includes("chatgptteam")) {
-        // User authenticated via Team, use the chatgpt_account_id from JWT
-      } else if (teamOrg && (planType === "free" || planType === "")) {
-        // User has a team org but plan_type shows free - use team org instead
-        workspaceId = teamOrg.id;
-        planType = "team";
-      }
-    }
+			// If user's plan_type is "team" or we found a team org, prefer it
+			if (planType.includes("team") || planType.includes("chatgptteam")) {
+				// User authenticated via Team, use the chatgpt_account_id from JWT
+			} else if (teamOrg && (planType === "free" || planType === "")) {
+				// User has a team org but plan_type shows free - use team org instead
+				workspaceId = teamOrg.id;
+				planType = "team";
+			}
+		}
 
-    const providerSpecificData = {
-      workspaceId,
-      workspacePlanType: planType,
-      // Also store the full authInfo for future reference
-      chatgptUserId: authInfo?.chatgpt_user_id || null,
-      organizations: organizations.length > 0 ? organizations : null,
-    };
+		const providerSpecificData = {
+			workspaceId,
+			workspacePlanType: planType,
+			// Also store the full authInfo for future reference
+			chatgptUserId: authInfo?.chatgpt_user_id || null,
+			organizations: organizations.length > 0 ? organizations : null,
+		};
 
-    return {
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      idToken: tokens.id_token,
-      expiresIn: tokens.expires_in,
-      email,
-      // Persist workspace binding to prevent fallback to wrong workspace
-      providerSpecificData,
-    };
-  },
+		return {
+			accessToken: tokens.access_token,
+			refreshToken: tokens.refresh_token,
+			idToken: tokens.id_token,
+			expiresIn: tokens.expires_in,
+			email,
+			// Persist workspace binding to prevent fallback to wrong workspace
+			providerSpecificData,
+		};
+	},
 };

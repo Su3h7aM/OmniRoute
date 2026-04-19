@@ -7,29 +7,29 @@ import { clearQuotaMonitors, startQuotaMonitor } from "../../open-sse/services/q
 import { clearSessions, touchSession } from "../../open-sse/services/sessionManager.ts";
 
 afterEach(() => {
-  clearQuotaMonitors();
-  clearSessions();
+	clearQuotaMonitors();
+	clearSessions();
 });
 
 test("telemetry summary route includes totalRequests alias plus session/quota monitor signals", async () => {
-  const telemetry = new RequestTelemetry("telemetry-route");
-  telemetry.startPhase("parse");
-  telemetry.endPhase();
-  recordTelemetry(telemetry);
+	const telemetry = new RequestTelemetry("telemetry-route");
+	telemetry.startPhase("parse");
+	telemetry.endPhase();
+	recordTelemetry(telemetry);
 
-  touchSession("sess-route", "conn-route");
-  startQuotaMonitor("sess-route", "codex", "conn-route", {
-    providerSpecificData: { quotaMonitorEnabled: true },
-  });
+	touchSession("sess-route", "conn-route");
+	startQuotaMonitor("sess-route", "codex", "conn-route", {
+		providerSpecificData: { quotaMonitorEnabled: true },
+	});
 
-  const response = await GET(
-    new Request("http://localhost:20128/api/telemetry/summary?windowMs=600000")
-  );
-  const payload = await response.json();
+	const response = await GET(
+		new Request("http://localhost:20128/api/telemetry/summary?windowMs=600000")
+	);
+	const payload = await response.json();
 
-  assert.equal(response.status, 200);
-  assert.ok(payload.totalRequests >= 1);
-  assert.equal(payload.sessions.activeCount, 1);
-  assert.equal(payload.sessions.stickyBoundCount, 1);
-  assert.equal(payload.quotaMonitor.active, 1);
+	assert.equal(response.status, 200);
+	assert.ok(payload.totalRequests >= 1);
+	assert.equal(payload.sessions.activeCount, 1);
+	assert.equal(payload.sessions.stickyBoundCount, 1);
+	assert.equal(payload.quotaMonitor.active, 1);
 });

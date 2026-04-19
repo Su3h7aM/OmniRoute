@@ -4,27 +4,27 @@ import { z } from "zod";
  * Pagination query parameters
  */
 export interface PaginationParams {
-  page: number;
-  limit: number;
+	page: number;
+	limit: number;
 }
 
 /**
  * Paginated response wrapper for any data type
  */
 export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+	data: T[];
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
 }
 
 /**
  * Zod schema for validating pagination parameters from URL search params
  */
 const PaginationParamsSchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(200).default(50),
+	page: z.coerce.number().int().min(1).default(1),
+	limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 
 /**
@@ -33,10 +33,10 @@ const PaginationParamsSchema = z.object({
  * @returns Validated pagination parameters
  */
 export function parsePaginationParams(searchParams: URLSearchParams): PaginationParams {
-  return PaginationParamsSchema.parse({
-    page: searchParams.get("page") ?? undefined,
-    limit: searchParams.get("limit") ?? undefined,
-  });
+	return PaginationParamsSchema.parse({
+		page: searchParams.get("page") ?? undefined,
+		limit: searchParams.get("limit") ?? undefined,
+	});
 }
 
 /**
@@ -47,15 +47,15 @@ export function parsePaginationParams(searchParams: URLSearchParams): Pagination
  * @returns Paginated response object
  */
 export function buildPaginatedResponse<T>(
-  data: T[],
-  total: number,
-  params: PaginationParams
+	data: T[],
+	total: number,
+	params: PaginationParams
 ): PaginatedResponse<T> {
-  return {
-    data,
-    total,
-    page: params.page,
-    limit: params.limit,
-    totalPages: Math.ceil(total / params.limit),
-  };
+	return {
+		data,
+		total,
+		page: params.page,
+		limit: params.limit,
+		totalPages: Math.ceil(total / params.limit),
+	};
 }

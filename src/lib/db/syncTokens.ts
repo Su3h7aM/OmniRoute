@@ -5,51 +5,53 @@ import { backupDbFile } from "./backup";
 type JsonRecord = Record<string, unknown>;
 
 export interface SyncTokenRecord {
-  id: string;
-  name: string;
-  tokenHash: string;
-  syncApiKeyId: string | null;
-  revokedAt: string | null;
-  lastUsedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+	id: string;
+	name: string;
+	tokenHash: string;
+	syncApiKeyId: string | null;
+	revokedAt: string | null;
+	lastUsedAt: string | null;
+	createdAt: string;
+	updatedAt: string;
 }
 
 interface StatementLike<TRow = unknown> {
-  all: (...params: unknown[]) => TRow[];
-  get: (...params: unknown[]) => TRow | undefined;
-  run: (...params: unknown[]) => { changes?: number };
+	all: (...params: unknown[]) => TRow[];
+	get: (...params: unknown[]) => TRow | undefined;
+	run: (...params: unknown[]) => { changes?: number };
 }
 
 interface DbLike {
-  prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
-  exec: (sql: string) => void;
+	prepare: <TRow = unknown>(sql: string) => StatementLike<TRow>;
+	exec: (sql: string) => void;
 }
 
 function asRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+	return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
 function toSyncTokenRecord(value: unknown): SyncTokenRecord | null {
-  const record = asRecord(rowToCamel(value));
-  if (typeof record.id !== "string" || typeof record.name !== "string") {
-    return null;
-  }
+	const record = asRecord(rowToCamel(value));
+	if (typeof record.id !== "string" || typeof record.name !== "string") {
+		return null;
+	}
 
-  return {
-    id: record.id,
-    name: record.name,
-    tokenHash: typeof record.tokenHash === "string" ? record.tokenHash : "",
-    syncApiKeyId: typeof record.syncApiKeyId === "string" ? record.syncApiKeyId : null,
-    revokedAt: typeof record.revokedAt === "string" ? record.revokedAt : null,
-    lastUsedAt: typeof record.lastUsedAt === "string" ? record.lastUsedAt : null,
-    createdAt: typeof record.createdAt === "string" ? record.createdAt : new Date().toISOString(),
-    updatedAt: typeof record.updatedAt === "string" ? record.updatedAt : new Date().toISOString(),
-  };
+	return {
+		id: record.id,
+		name: record.name,
+		tokenHash: typeof record.tokenHash === "string" ? record.tokenHash : "",
+		syncApiKeyId: typeof record.syncApiKeyId === "string" ? record.syncApiKeyId : null,
+		revokedAt: typeof record.revokedAt === "string" ? record.revokedAt : null,
+		lastUsedAt: typeof record.lastUsedAt === "string" ? record.lastUsedAt : null,
+		createdAt:
+			typeof record.createdAt === "string" ? record.createdAt : new Date().toISOString(),
+		updatedAt:
+			typeof record.updatedAt === "string" ? record.updatedAt : new Date().toISOString(),
+	};
 }
 
 function ensureSyncTokensTable(db: DbLike) {
-  db.exec(`
+	db.exec(`
     CREATE TABLE IF NOT EXISTS sync_tokens (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -69,95 +71,95 @@ function ensureSyncTokensTable(db: DbLike) {
 }
 
 export async function listSyncTokens() {
-  const db = getDbInstance() as unknown as DbLike;
-  ensureSyncTokensTable(db);
-  const rows = db
-    .prepare(
-      "SELECT * FROM sync_tokens ORDER BY datetime(created_at) DESC, name COLLATE NOCASE ASC"
-    )
-    .all();
+	const db = getDbInstance() as unknown as DbLike;
+	ensureSyncTokensTable(db);
+	const rows = db
+		.prepare(
+			"SELECT * FROM sync_tokens ORDER BY datetime(created_at) DESC, name COLLATE NOCASE ASC"
+		)
+		.all();
 
-  return rows
-    .map((row) => toSyncTokenRecord(row))
-    .filter((row): row is SyncTokenRecord => row !== null);
+	return rows
+		.map((row) => toSyncTokenRecord(row))
+		.filter((row): row is SyncTokenRecord => row !== null);
 }
 
 export async function getSyncTokenById(id: string) {
-  const db = getDbInstance() as unknown as DbLike;
-  ensureSyncTokensTable(db);
-  const row = db.prepare("SELECT * FROM sync_tokens WHERE id = ?").get(id);
-  return toSyncTokenRecord(row);
+	const db = getDbInstance() as unknown as DbLike;
+	ensureSyncTokensTable(db);
+	const row = db.prepare("SELECT * FROM sync_tokens WHERE id = ?").get(id);
+	return toSyncTokenRecord(row);
 }
 
 export async function getSyncTokenByHash(tokenHash: string) {
-  const db = getDbInstance() as unknown as DbLike;
-  ensureSyncTokensTable(db);
-  const row = db.prepare("SELECT * FROM sync_tokens WHERE token_hash = ?").get(tokenHash);
-  return toSyncTokenRecord(row);
+	const db = getDbInstance() as unknown as DbLike;
+	ensureSyncTokensTable(db);
+	const row = db.prepare("SELECT * FROM sync_tokens WHERE token_hash = ?").get(tokenHash);
+	return toSyncTokenRecord(row);
 }
 
 export async function createSyncTokenRecord(data: {
-  name: string;
-  tokenHash: string;
-  syncApiKeyId?: string | null;
+	name: string;
+	tokenHash: string;
+	syncApiKeyId?: string | null;
 }) {
-  const db = getDbInstance() as unknown as DbLike;
-  ensureSyncTokensTable(db);
+	const db = getDbInstance() as unknown as DbLike;
+	ensureSyncTokensTable(db);
 
-  const now = new Date().toISOString();
-  const record: SyncTokenRecord = {
-    id: uuidv4(),
-    name: data.name,
-    tokenHash: data.tokenHash,
-    syncApiKeyId: data.syncApiKeyId || null,
-    revokedAt: null,
-    lastUsedAt: null,
-    createdAt: now,
-    updatedAt: now,
-  };
+	const now = new Date().toISOString();
+	const record: SyncTokenRecord = {
+		id: uuidv4(),
+		name: data.name,
+		tokenHash: data.tokenHash,
+		syncApiKeyId: data.syncApiKeyId || null,
+		revokedAt: null,
+		lastUsedAt: null,
+		createdAt: now,
+		updatedAt: now,
+	};
 
-  db.prepare(
-    `INSERT INTO sync_tokens (
+	db.prepare(
+		`INSERT INTO sync_tokens (
       id, name, token_hash, sync_api_key_id, revoked_at, last_used_at, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    record.id,
-    record.name,
-    record.tokenHash,
-    record.syncApiKeyId,
-    record.revokedAt,
-    record.lastUsedAt,
-    record.createdAt,
-    record.updatedAt
-  );
+	).run(
+		record.id,
+		record.name,
+		record.tokenHash,
+		record.syncApiKeyId,
+		record.revokedAt,
+		record.lastUsedAt,
+		record.createdAt,
+		record.updatedAt
+	);
 
-  backupDbFile("pre-write");
-  return record;
+	backupDbFile("pre-write");
+	return record;
 }
 
 export async function revokeSyncToken(id: string) {
-  const db = getDbInstance() as unknown as DbLike;
-  ensureSyncTokensTable(db);
+	const db = getDbInstance() as unknown as DbLike;
+	ensureSyncTokensTable(db);
 
-  const existing = await getSyncTokenById(id);
-  if (!existing) return null;
-  if (existing.revokedAt) return existing;
+	const existing = await getSyncTokenById(id);
+	if (!existing) return null;
+	if (existing.revokedAt) return existing;
 
-  const now = new Date().toISOString();
-  db.prepare("UPDATE sync_tokens SET revoked_at = ?, updated_at = ? WHERE id = ?").run(
-    now,
-    now,
-    id
-  );
-  backupDbFile("pre-write");
-  return await getSyncTokenById(id);
+	const now = new Date().toISOString();
+	db.prepare("UPDATE sync_tokens SET revoked_at = ?, updated_at = ? WHERE id = ?").run(
+		now,
+		now,
+		id
+	);
+	backupDbFile("pre-write");
+	return await getSyncTokenById(id);
 }
 
 export async function touchSyncTokenLastUsed(id: string, usedAt = new Date().toISOString()) {
-  const db = getDbInstance() as unknown as DbLike;
-  ensureSyncTokensTable(db);
-  const result = db
-    .prepare("UPDATE sync_tokens SET last_used_at = ?, updated_at = ? WHERE id = ?")
-    .run(usedAt, usedAt, id);
-  return Number(result.changes || 0) > 0;
+	const db = getDbInstance() as unknown as DbLike;
+	ensureSyncTokensTable(db);
+	const result = db
+		.prepare("UPDATE sync_tokens SET last_used_at = ?, updated_at = ? WHERE id = ?")
+		.run(usedAt, usedAt, id);
+	return Number(result.changes || 0) > 0;
 }
