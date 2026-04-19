@@ -25,12 +25,10 @@ export default function Sidebar({
 	onClose,
 	collapsed = false,
 	onToggleCollapse,
-	isMacElectron = false,
 }: {
 	onClose?: any;
 	collapsed?: boolean;
 	onToggleCollapse?: any;
-	isMacElectron?: boolean;
 }) {
 	const pathname = usePathname();
 	const t = useTranslations("sidebar");
@@ -200,9 +198,6 @@ export default function Sidebar({
 					"flex h-full min-h-0 flex-col border-r border-black/5 bg-sidebar transition-all duration-300 ease-in-out dark:border-white/5",
 					collapsed ? "w-16" : "w-80"
 				)}
-				style={{
-					paddingTop: isMacElectron ? "var(--desktop-safe-top)" : undefined,
-				}}
 			>
 				<a
 					href="#main-content"
@@ -210,43 +205,35 @@ export default function Sidebar({
 				>
 					Skip to content
 				</a>
-				{(onToggleCollapse || !isMacElectron) && (
+				{onToggleCollapse && (
 					<div
 						className={cn(
-							"flex items-center gap-2 pb-2",
-							isMacElectron ? "pt-3" : "pt-5",
+							"flex items-center gap-2 pb-2 pt-5",
 							collapsed ? "px-3 justify-center" : "px-6"
 						)}
 						aria-hidden="true"
 					>
-						{!isMacElectron && (
-							<>
-								<div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-								<div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-								<div className="w-3 h-3 rounded-full bg-[#27C93F]" />
-							</>
-						)}
+						<div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
+						<div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
+						<div className="w-3 h-3 rounded-full bg-[#27C93F]" />
 						{!collapsed && <div className="flex-1" />}
-						{onToggleCollapse && (
-							<button
-								onClick={onToggleCollapse}
-								title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-								aria-expanded={!collapsed}
-								aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-								className={cn(
-									"rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
-									collapsed && !isMacElectron && "mt-2",
-									isMacElectron && "ml-auto"
-								)}
+						<button
+							onClick={onToggleCollapse}
+							title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+							aria-expanded={!collapsed}
+							aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+							className={cn(
+								"rounded-md p-1 text-text-muted/50 transition-colors hover:bg-black/5 hover:text-text-muted dark:hover:bg-white/5",
+								collapsed && "mt-2"
+							)}
+						>
+							<span
+								className="material-symbols-outlined text-[16px]"
+								aria-hidden="true"
 							>
-								<span
-									className="material-symbols-outlined text-[16px]"
-									aria-hidden="true"
-								>
-									{collapsed ? "chevron_right" : "chevron_left"}
-								</span>
-							</button>
-						)}
+								{collapsed ? "chevron_right" : "chevron_left"}
+							</span>
+						</button>
 					</div>
 				)}
 
@@ -312,11 +299,6 @@ export default function Sidebar({
 						"shrink-0 border-t border-black/5 dark:border-white/5",
 						collapsed ? "p-2 flex flex-col gap-1" : "p-3 flex gap-2"
 					)}
-					style={{
-						paddingBottom: isMacElectron
-							? "calc(0.75rem + var(--desktop-safe-bottom))"
-							: undefined,
-					}}
 				>
 					<button
 						onClick={() => setShowRestartModal(true)}
@@ -397,5 +379,4 @@ Sidebar.propTypes = {
 	onClose: PropTypes.func,
 	collapsed: PropTypes.bool,
 	onToggleCollapse: PropTypes.func,
-	isMacElectron: PropTypes.bool,
 };

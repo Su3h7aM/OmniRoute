@@ -93,7 +93,7 @@ OmniRoute uses **SQLite** (via `better-sqlite3`) for all persistence. These vari
 | `DASHBOARD_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | When set, serves the Dashboard UI on this separate port.                               |
 | `PROD_DASHBOARD_PORT` | `20130`      | `docker-compose.prod.yml`  | Host-side published port for the Dashboard in Docker production mode.                  |
 | `PROD_API_PORT`       | `20131`      | `docker-compose.prod.yml`  | Host-side published port for the API in Docker production mode.                        |
-| `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Takes precedence over `PORT` when running inside Electron or other wrappers.           |
+| `OMNIROUTE_PORT`      | _(unset)_    | `src/lib/runtime/ports.ts` | Optional override for wrapper-managed launches and custom runtime entrypoints.         |
 | `NODE_ENV`            | `production` | Next.js core               | Controls logging verbosity, caching, error detail exposure, and Next.js optimizations. |
 
 ### Port Modes

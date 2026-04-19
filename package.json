@@ -67,11 +67,6 @@
 		"lint:unsafe": "biome check . --write --unsafe",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
-		"electron:dev": "echo 'Electron desktop app is deprecated and will be removed in a future Bun-only migration.'",
-		"electron:build": "echo 'Electron desktop app is deprecated and will be removed in a future Bun-only migration.'",
-		"electron:build:win": "echo 'Electron desktop app is deprecated and will be removed in a future Bun-only migration.'",
-		"electron:build:mac": "echo 'Electron desktop app is deprecated and will be removed in a future Bun-only migration.'",
-		"electron:build:linux": "echo 'Electron desktop app is deprecated and will be removed in a future Bun-only migration.'",
 		"test": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true bun scripts/run-bun-tests.mjs ./tests/unit",
 		"test:unit": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true bun scripts/run-bun-tests.mjs ./tests/unit",
 		"test:plan3": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true bun test ./tests/unit/plan3-p0.test.ts",
@@ -141,9 +136,6 @@
 		"zod": "^4.3.6",
 		"zustand": "^5.0.10"
 	},
-	"optionalDependencies": {
-		"keytar": "^7.9.0"
-	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.12",
 		"@playwright/test": "^1.58.2",
@@ -151,7 +143,6 @@
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
 		"@types/bcryptjs": "^3.0.0",
-		"@types/keytar": "^4.4.0",
 		"@types/node": "^25.2.3",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",

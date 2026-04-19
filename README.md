@@ -2,7 +2,7 @@
 
 ### Never stop coding. Smart routing to **FREE & low-cost AI models** with automatic fallback.
 
-_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, **Memory/Skills Systems** & **Electron Desktop App**._
+_Your universal API proxy — one endpoint, 100+ providers, zero downtime. Now with **MCP Server (25 tools)**, **A2A Protocol**, and **Memory/Skills Systems**._
 
 **Chat Completions • Embeddings • Image Generation • Video • Music • Audio • Reranking • **Web Search** • MCP Server • A2A Protocol • 100% TypeScript**
 
@@ -405,7 +405,6 @@ Installing, configuring, and maintaining an AI proxy across different environmen
 - **npm global install** — `npm install -g omniroute && omniroute` — done
 - **Docker Multi-Platform** — AMD64 + ARM64 native (Apple Silicon, AWS Graviton, Raspberry Pi)
 - **Docker Compose Profiles** — `base` (no CLI tools) and `cli` (with Claude Code, Codex, OpenClaw)
-- **Electron Desktop App** — Native app for Windows/macOS/Linux with system tray, auto-start, offline mode
 - **Split-Port Mode** — API and Dashboard on separate ports for advanced scenarios (reverse proxy, container networking)
 - **Cloud Sync** — Config synchronization across devices via Cloudflare Workers
 - **DB Backups** — Automatic backup, restore, export and import of all settings, with `DISABLE_SQLITE_AUTO_BACKUP` for externally managed backups
@@ -1097,43 +1096,6 @@ volumes:
 
 ---
 
-## 🖥️ Desktop App — Offline & Always-On
-
-> 🆕 **NEW!** OmniRoute is now available as a **native desktop application** for Windows, macOS, and Linux.
-
-Run OmniRoute as a standalone desktop app — no terminal, no browser, no internet required for local models. The Electron-based app includes:
-
-- 🖥️ **Native Window** — Dedicated app window with system tray integration
-- 🔄 **Auto-Start** — Launch OmniRoute on system login
-- 🔔 **Native Notifications** — Get alerts for quota exhaustion or provider issues
-- ⚡ **One-Click Install** — NSIS (Windows), DMG (macOS), AppImage (Linux)
-- 🌐 **Offline Mode** — Works fully offline with bundled server
-
-### Quick Start
-
-```bash
-# Development mode
-npm run electron:dev
-
-# Build for your platform
-npm run electron:build         # Current platform
-npm run electron:build:win     # Windows (.exe)
-npm run electron:build:mac     # macOS (.dmg) — x64 & arm64
-npm run electron:build:linux   # Linux (.AppImage)
-```
-
-### System Tray
-
-When minimized, OmniRoute lives in your system tray with quick actions:
-
-- Open dashboard
-- Change server port
-- Quit application
-
-📖 Full documentation: [`electron/README.md`](electron/README.md)
-
----
-
 ## 💰 Pricing at a Glance
 
 | Tier                | Provider                    | Cost                      | Quota Reset      | Best For                          |
@@ -1358,7 +1320,6 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🔐 **TPS Log Metric**              | Log details modal shows Tokens Per Second (TPS) — quick performance at-a-glance for every request                                                 |
 | 🗑️ **Uninstall / Full Uninstall**  | `npm run uninstall` keeps data, `npm run uninstall:full` removes everything — clean removal for all install methods                               |
 | 🔧 **OAuth Env Repair**            | One-click "Repair env" action for OAuth providers restores missing env vars and fixes broken auth state                                           |
-| 🔒 **Graceful Electron Shutdown**  | Electron `before-quit` shuts down Next.js gracefully, preventing SQLite WAL database locks on desktop close                                       |
 | 👁️ **Model Visibility Toggle**     | Per-model visibility toggle (👁 icon) with search filter and active-count badge (`N/M active`) on provider pages                                  |
 | 📧 **Email Privacy Masking**       | OAuth account emails masked (`di*****@g****.com`), full address visible on hover                                                                  |
 | 🔗 **Context Relay Strategy**      | Combo strategy preserving session continuity via structured handoff summaries when accounts rotate mid-conversation                               |
@@ -1390,7 +1351,6 @@ OmniRoute v3.6 is built as an operational platform, not just a relay proxy.
 | 🤖 **ACP Agents Dashboard**                | Debug › Agents page — grid of 14 agents with install status, version, custom agent form for any CLI tool. **OpenCode** users get a "Download opencode.json" button that auto-generates a ready-to-use config with all available models. |
 | 🔧 **Custom Model `apiFormat` Routing**    | Custom models with `apiFormat: "responses"` now correctly route to the Responses API translator                                                                                                                                         |
 | 🏢 **Codex Workspace Isolation**           | Multiple Codex workspaces per email — OAuth correctly separates connections by workspace ID                                                                                                                                             |
-| 🔄 **Electron Auto-Update**                | Desktop app checks for updates + auto-install on restart                                                                                                                                                                                |
 
 ### 🤖 Agent & Protocol Operations (v2.0)
 

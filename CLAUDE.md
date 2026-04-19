@@ -57,7 +57,6 @@ npm run test:vitest
 OmniRoute/              # Root package
 ├── src/                # Next.js 16 app (TypeScript)
 ├── open-sse/           # @omniroute/open-sse workspace (streaming engine)
-├── electron/           # Desktop app (Electron)
 ├── tests/              # All test suites
 ├── docs/               # Documentation
 └── bin/                # CLI entry point
