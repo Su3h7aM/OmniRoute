@@ -1,6 +1,5 @@
-// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "bun:test";
-import { render, screen, waitFor, cleanup, fireEvent } from "@testing-library/react";
+import { render, waitFor, cleanup, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
 import CachePage from "../page";
@@ -109,17 +108,18 @@ vi.mock("@/store/notificationStore", () => ({
 
 describe("CachePage", () => {
   const fetchMock = vi.fn();
+  const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
     fetchMock.mockReset();
     notifications.success.mockReset();
     notifications.error.mockReset();
-    vi.stubGlobal("fetch", fetchMock);
+    globalThis.fetch = fetchMock as typeof globalThis.fetch;
   });
 
   afterEach(() => {
     cleanup();
-    vi.unstubAllGlobals();
+    globalThis.fetch = originalFetch;
   });
 
   it("switches between prompt and semantic cache views", async () => {
@@ -187,24 +187,24 @@ describe("CachePage", () => {
       };
     });
 
-    render(<CachePage />);
+    const { getByText, getAllByText, queryByText, getByRole } = render(<CachePage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Prompt Cache (Provider-Side)")).toBeInTheDocument();
+      expect(getByText("Prompt Cache (Provider-Side)")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Breakdown by Provider")).toBeInTheDocument();
-    expect(screen.getByText("claude")).toBeInTheDocument();
-    expect(screen.getAllByText("60.0%").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Semantic cache is disabled.")).not.toBeInTheDocument();
+    expect(getByText("Breakdown by Provider")).toBeInTheDocument();
+    expect(getByText("claude")).toBeInTheDocument();
+    expect(getAllByText("60.0%").length).toBeGreaterThan(0);
+    expect(queryByText("Semantic cache is disabled.")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Semantic Cache" }));
+    fireEvent.click(getByRole("button", { name: "Semantic Cache" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Semantic cache is disabled.")).toBeInTheDocument();
+      expect(getByText("Semantic cache is disabled.")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Entries")).toBeInTheDocument();
-    expect(screen.getByText("Active Dedup Keys")).toBeInTheDocument();
+    expect(getByText("Entries")).toBeInTheDocument();
+    expect(getByText("Active Dedup Keys")).toBeInTheDocument();
   });
 });

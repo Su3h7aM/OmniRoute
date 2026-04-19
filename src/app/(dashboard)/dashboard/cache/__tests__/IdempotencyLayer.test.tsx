@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
 import { describe, it, expect, vi } from "bun:test";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import React from "react";
+import "@testing-library/jest-dom";
 import IdempotencyLayer from "../components/IdempotencyLayer";
 
 vi.mock("next-intl", () => ({
@@ -19,23 +19,23 @@ describe("IdempotencyLayer", () => {
 
   describe("renders with data", () => {
     it("renders deduplicated request count", () => {
-      render(<IdempotencyLayer {...defaultProps} />);
-      expect(screen.getByText("47")).toBeInTheDocument();
+      const { getByText } = render(<IdempotencyLayer {...defaultProps} />);
+      expect(getByText("deduplicatedRequests").previousElementSibling).toHaveTextContent("47");
     });
 
     it("renders deduplication window duration", () => {
-      render(<IdempotencyLayer {...defaultProps} />);
-      expect(screen.getByText("5000")).toBeInTheDocument();
+      const { getByText } = render(<IdempotencyLayer {...defaultProps} />);
+      expect(getByText("5000")).toBeInTheDocument();
     });
 
     it("renders active idempotency key count", () => {
-      render(<IdempotencyLayer {...defaultProps} />);
-      expect(screen.getByText("12")).toBeInTheDocument();
+      const { getByText } = render(<IdempotencyLayer {...defaultProps} />);
+      expect(getByText("12")).toBeInTheDocument();
     });
 
     it("renders total processed requests", () => {
-      render(<IdempotencyLayer {...defaultProps} />);
-      expect(screen.getByText("1200")).toBeInTheDocument();
+      const { getByText } = render(<IdempotencyLayer {...defaultProps} />);
+      expect(getByText("1200")).toBeInTheDocument();
     });
   });
 
@@ -47,19 +47,19 @@ describe("IdempotencyLayer", () => {
     });
 
     it("hides data values during loading", () => {
-      render(<IdempotencyLayer {...defaultProps} loading={true} />);
-      expect(screen.queryByText("47")).not.toBeInTheDocument();
+      const { queryByText } = render(<IdempotencyLayer {...defaultProps} loading={true} />);
+      expect(queryByText("47")).not.toBeInTheDocument();
     });
 
     it("displays values once loading is complete", () => {
-      render(<IdempotencyLayer {...defaultProps} loading={false} />);
-      expect(screen.getByText("47")).toBeInTheDocument();
+      const { getByText } = render(<IdempotencyLayer {...defaultProps} loading={false} />);
+      expect(getByText("deduplicatedRequests").previousElementSibling).toHaveTextContent("47");
     });
   });
 
   describe("handles empty state", () => {
     it("renders with zero deduplicated requests", () => {
-      render(
+      const { getAllByText } = render(
         <IdempotencyLayer
           deduplicatedRequests={0}
           windowMs={5000}
@@ -68,7 +68,7 @@ describe("IdempotencyLayer", () => {
           savedCalls={0}
         />
       );
-      expect(screen.getAllByText("0").length).toBeGreaterThan(0);
+      expect(getAllByText("0").length).toBeGreaterThan(0);
     });
 
     it("renders gracefully when stats is null", () => {
@@ -84,19 +84,25 @@ describe("IdempotencyLayer", () => {
 
   describe("handles API errors", () => {
     it("shows error message when error prop provided", () => {
-      render(<IdempotencyLayer {...defaultProps} error="Failed to load idempotency data" />);
-      expect(screen.getByText(/failed to load idempotency data/i)).toBeInTheDocument();
+      const { getByText } = render(
+        <IdempotencyLayer {...defaultProps} error="Failed to load idempotency data" />
+      );
+      expect(getByText(/failed to load idempotency data/i)).toBeInTheDocument();
     });
 
     it("renders retry button on error", () => {
-      render(<IdempotencyLayer {...defaultProps} error="API unavailable" onRetry={vi.fn()} />);
-      expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+      const { getByRole } = render(
+        <IdempotencyLayer {...defaultProps} error="API unavailable" onRetry={vi.fn()} />
+      );
+      expect(getByRole("button", { name: /retry/i })).toBeInTheDocument();
     });
 
     it("calls onRetry handler when retry is clicked", () => {
       const onRetry = vi.fn();
-      render(<IdempotencyLayer {...defaultProps} error="API unavailable" onRetry={onRetry} />);
-      screen.getByRole("button", { name: /retry/i }).click();
+      const { getByRole } = render(
+        <IdempotencyLayer {...defaultProps} error="API unavailable" onRetry={onRetry} />
+      );
+      getByRole("button", { name: /retry/i }).click();
       expect(onRetry).toHaveBeenCalledOnce();
     });
   });

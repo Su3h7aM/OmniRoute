@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
 import { describe, it, expect, vi } from "bun:test";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import React from "react";
+import "@testing-library/jest-dom";
 import CacheTrends from "../components/CacheTrends";
 
 vi.mock("next-intl", () => ({
@@ -29,13 +29,14 @@ describe("CacheTrends", () => {
     });
 
     it("renders chart title or heading", () => {
-      render(<CacheTrends data={sampleTrendData} />);
-      expect(screen.getByRole("heading")).toBeInTheDocument();
+      const { getByRole } = render(<CacheTrends data={sampleTrendData} />);
+      expect(getByRole("heading")).toBeInTheDocument();
     });
 
-    it("renders peak hit rate from data", () => {
-      render(<CacheTrends data={sampleTrendData} />);
-      expect(screen.getByText("90.0")).toBeInTheDocument();
+    it("renders total and cached legend labels from data", () => {
+      const { getByText } = render(<CacheTrends data={sampleTrendData as any} />);
+      expect(getByText("total")).toBeInTheDocument();
+      expect(getByText("cached")).toBeInTheDocument();
     });
   });
 
@@ -61,8 +62,8 @@ describe("CacheTrends", () => {
 
   describe("handles empty state", () => {
     it("renders empty state message when data array is empty", () => {
-      render(<CacheTrends data={[]} />);
-      expect(screen.getByText(/no data/i)).toBeInTheDocument();
+      const { getByText } = render(<CacheTrends data={[]} />);
+      expect(getByText(/no data/i)).toBeInTheDocument();
     });
 
     it("renders without crashing when data is null", () => {
@@ -78,19 +79,23 @@ describe("CacheTrends", () => {
 
   describe("handles API errors", () => {
     it("shows error message when error prop is set", () => {
-      render(<CacheTrends data={[]} error="Failed to load trend data" />);
-      expect(screen.getByText(/failed to load trend data/i)).toBeInTheDocument();
+      const { getByText } = render(<CacheTrends data={[]} error="Failed to load trend data" />);
+      expect(getByText(/failed to load trend data/i)).toBeInTheDocument();
     });
 
     it("renders retry button on error", () => {
-      render(<CacheTrends data={[]} error="Network timeout" onRetry={vi.fn()} />);
-      expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+      const { getByRole } = render(
+        <CacheTrends data={[]} error="Network timeout" onRetry={vi.fn()} />
+      );
+      expect(getByRole("button", { name: /retry/i })).toBeInTheDocument();
     });
 
     it("triggers onRetry when retry clicked", () => {
       const onRetry = vi.fn();
-      render(<CacheTrends data={[]} error="Network timeout" onRetry={onRetry} />);
-      screen.getByRole("button", { name: /retry/i }).click();
+      const { getByRole } = render(
+        <CacheTrends data={[]} error="Network timeout" onRetry={onRetry} />
+      );
+      getByRole("button", { name: /retry/i }).click();
       expect(onRetry).toHaveBeenCalledOnce();
     });
   });

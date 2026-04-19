@@ -1,7 +1,7 @@
-// @vitest-environment jsdom
 import { describe, it, expect, vi } from "bun:test";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import React from "react";
+import "@testing-library/jest-dom";
 import CachePerformance from "../components/CachePerformance";
 
 vi.mock("next-intl", () => ({
@@ -20,28 +20,28 @@ describe("CachePerformance", () => {
 
   describe("renders with data", () => {
     it("renders hit count", () => {
-      render(<CachePerformance {...defaultProps} />);
-      expect(screen.getByText("850")).toBeInTheDocument();
+      const { getByText } = render(<CachePerformance {...defaultProps} />);
+      expect(getByText("850")).toBeInTheDocument();
     });
 
     it("renders miss count", () => {
-      render(<CachePerformance {...defaultProps} />);
-      expect(screen.getByText("150")).toBeInTheDocument();
+      const { getByText } = render(<CachePerformance {...defaultProps} />);
+      expect(getByText("150")).toBeInTheDocument();
     });
 
     it("renders hit rate percentage", () => {
-      render(<CachePerformance {...defaultProps} />);
-      expect(screen.getByText("85.0%")).toBeInTheDocument();
+      const { getAllByText } = render(<CachePerformance {...defaultProps} />);
+      expect(getAllByText("85.0%").length).toBeGreaterThan(0);
     });
 
     it("renders total requests", () => {
-      render(<CachePerformance {...defaultProps} />);
-      expect(screen.getByText("1000")).toBeInTheDocument();
+      const { getByText } = render(<CachePerformance {...defaultProps} />);
+      expect(getByText("1000")).toBeInTheDocument();
     });
 
     it("renders average latency", () => {
-      render(<CachePerformance {...defaultProps} />);
-      expect(screen.getByText("45")).toBeInTheDocument();
+      const { getByText } = render(<CachePerformance {...defaultProps} />);
+      expect(getByText("45")).toBeInTheDocument();
     });
   });
 
@@ -53,19 +53,19 @@ describe("CachePerformance", () => {
     });
 
     it("hides values when loading", () => {
-      render(<CachePerformance {...defaultProps} loading={true} />);
-      expect(screen.queryByText("850")).not.toBeInTheDocument();
+      const { queryByText } = render(<CachePerformance {...defaultProps} loading={true} />);
+      expect(queryByText("850")).not.toBeInTheDocument();
     });
 
     it("shows values after loading completes", () => {
-      render(<CachePerformance {...defaultProps} loading={false} />);
-      expect(screen.getByText("850")).toBeInTheDocument();
+      const { getByText } = render(<CachePerformance {...defaultProps} loading={false} />);
+      expect(getByText("850")).toBeInTheDocument();
     });
   });
 
   describe("handles empty state", () => {
     it("renders with zero hits and misses", () => {
-      render(
+      const { getAllByText } = render(
         <CachePerformance
           hits={0}
           misses={0}
@@ -75,7 +75,7 @@ describe("CachePerformance", () => {
           totalRequests={0}
         />
       );
-      expect(screen.getAllByText("0").length).toBeGreaterThan(0);
+      expect(getAllByText("0").length).toBeGreaterThan(0);
     });
 
     it("renders gracefully when stats is null", () => {
@@ -91,19 +91,25 @@ describe("CachePerformance", () => {
 
   describe("handles API errors", () => {
     it("displays error message", () => {
-      render(<CachePerformance {...defaultProps} error="Failed to load performance data" />);
-      expect(screen.getByText(/failed to load performance data/i)).toBeInTheDocument();
+      const { getByText } = render(
+        <CachePerformance {...defaultProps} error="Failed to load performance data" />
+      );
+      expect(getByText(/failed to load performance data/i)).toBeInTheDocument();
     });
 
     it("shows retry button on error state", () => {
-      render(<CachePerformance {...defaultProps} error="Timeout" onRetry={vi.fn()} />);
-      expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+      const { getByRole } = render(
+        <CachePerformance {...defaultProps} error="Timeout" onRetry={vi.fn()} />
+      );
+      expect(getByRole("button", { name: /retry/i })).toBeInTheDocument();
     });
 
     it("invokes onRetry callback on click", () => {
       const onRetry = vi.fn();
-      render(<CachePerformance {...defaultProps} error="Timeout" onRetry={onRetry} />);
-      screen.getByRole("button", { name: /retry/i }).click();
+      const { getByRole } = render(
+        <CachePerformance {...defaultProps} error="Timeout" onRetry={onRetry} />
+      );
+      getByRole("button", { name: /retry/i }).click();
       expect(onRetry).toHaveBeenCalledOnce();
     });
   });
