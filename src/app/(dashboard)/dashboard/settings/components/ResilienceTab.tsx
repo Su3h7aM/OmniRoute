@@ -290,7 +290,7 @@ function RateLimitCard({ rateLimitStatus, defaults, onSaveDefaults, saving }) {
 						</h3>
 						{rateLimitStatus.map((rl, i) => (
 							<div
-								key={i}
+								key={`${rl.provider || rl.key}-${rl.reservoir ?? "na"}-${rl.running ?? i}`}
 								className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/5 dark:bg-white/5"
 							>
 								<span className="text-sm font-medium">{rl.provider || rl.key}</span>

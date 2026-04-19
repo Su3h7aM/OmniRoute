@@ -65,6 +65,16 @@ export default function ProxyConfigModal({
 		return "8080";
 	};
 
+	const resetFields = useCallback(() => {
+		setProxyType(PROXY_TYPES[0]?.value || "http");
+		setHost("");
+		setPort("");
+		setUsername("");
+		setPassword("");
+		setShowAuth(false);
+		setFormError(null);
+	}, []);
+
 	// Load existing proxy config when modal opens
 	useEffect(() => {
 		if (!isOpen) return;
@@ -173,16 +183,6 @@ export default function ProxyConfigModal({
 
 		loadProxy();
 	}, [isOpen, level, levelId, t, resetFields]);
-
-	const resetFields = useCallback(() => {
-		setProxyType(PROXY_TYPES[0]?.value || "http");
-		setHost("");
-		setPort("");
-		setUsername("");
-		setPassword("");
-		setShowAuth(false);
-		setFormError(null);
-	}, []);
 
 	const handleSave = async () => {
 		if (mode === "saved" && !selectedProxyId) {

@@ -139,25 +139,7 @@ export default function ApiManagerPageClient() {
 		}
 	}, []);
 
-	const fetchData = useCallback(async () => {
-		try {
-			const res = await fetch("/api/keys");
-			if (res.ok) {
-				const data = await res.json();
-				setKeys(data.keys || []);
-				setAllowKeyReveal(data.allowKeyReveal === true);
-				// Fetch usage stats after keys are loaded
-				fetchUsageStats(data.keys || []);
-				fetchSessionCounts(data.keys || []);
-			}
-		} catch (error) {
-			console.log("Error fetching keys:", error);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
-	const fetchUsageStats = async (apiKeys: ApiKey[]) => {
+	const fetchUsageStats = useCallback(async (apiKeys: ApiKey[]) => {
 		if (apiKeys.length === 0) return;
 		try {
 			// Fetch analytics (accurate aggregated counts) and recent call-logs
@@ -193,9 +175,9 @@ export default function ApiManagerPageClient() {
 		} catch (e) {
 			console.log("Error fetching usage stats:", e);
 		}
-	};
+	}, []);
 
-	const fetchSessionCounts = async (apiKeys: ApiKey[]) => {
+	const fetchSessionCounts = useCallback(async (apiKeys: ApiKey[]) => {
 		if (apiKeys.length === 0) {
 			setSessionCounts({});
 			return;
@@ -218,7 +200,25 @@ export default function ApiManagerPageClient() {
 		} catch (error) {
 			console.log("Error fetching session counts:", error);
 		}
-	};
+	}, []);
+
+	const fetchData = useCallback(async () => {
+		try {
+			const res = await fetch("/api/keys");
+			if (res.ok) {
+				const data = await res.json();
+				setKeys(data.keys || []);
+				setAllowKeyReveal(data.allowKeyReveal === true);
+				// Fetch usage stats after keys are loaded
+				fetchUsageStats(data.keys || []);
+				fetchSessionCounts(data.keys || []);
+			}
+		} catch (error) {
+			console.log("Error fetching keys:", error);
+		} finally {
+			setLoading(false);
+		}
+	}, [fetchSessionCounts, fetchUsageStats]);
 
 	useEffect(() => {
 		fetchData();
@@ -825,10 +825,14 @@ export default function ApiManagerPageClient() {
 			>
 				<div className="flex flex-col gap-4">
 					<div>
-						<label className="text-sm font-medium text-text-main mb-1.5 block">
+						<label
+							htmlFor="api-manager-key-name"
+							className="text-sm font-medium text-text-main mb-1.5 block"
+						>
 							{t("keyName")}
 						</label>
 						<Input
+							id="api-manager-key-name"
 							value={newKeyName}
 							onChange={(e) => setNewKeyName(e.target.value)}
 							placeholder={t("keyNamePlaceholder")}
@@ -1239,10 +1243,14 @@ const PermissionsModal = memo(function PermissionsModal({
 						<div className="flex flex-col gap-3 pt-1">
 							<div className="grid grid-cols-2 gap-2">
 								<div>
-									<label className="text-xs text-text-muted mb-1 block">
+									<label
+										htmlFor="api-manager-schedule-from"
+										className="text-xs text-text-muted mb-1 block"
+									>
 										{t("scheduleFrom")}
 									</label>
 									<input
+										id="api-manager-schedule-from"
 										type="time"
 										value={scheduleFrom}
 										onChange={(e) => setScheduleFrom(e.target.value)}
@@ -1250,10 +1258,14 @@ const PermissionsModal = memo(function PermissionsModal({
 									/>
 								</div>
 								<div>
-									<label className="text-xs text-text-muted mb-1 block">
+									<label
+										htmlFor="api-manager-schedule-until"
+										className="text-xs text-text-muted mb-1 block"
+									>
 										{t("scheduleUntil")}
 									</label>
 									<input
+										id="api-manager-schedule-until"
 										type="time"
 										value={scheduleUntil}
 										onChange={(e) => setScheduleUntil(e.target.value)}
@@ -1262,9 +1274,9 @@ const PermissionsModal = memo(function PermissionsModal({
 								</div>
 							</div>
 							<div>
-								<label className="text-xs text-text-muted mb-1.5 block">
+								<p className="text-xs text-text-muted mb-1.5 block">
 									{t("scheduleDays")}
-								</label>
+								</p>
 								<div className="flex gap-1 flex-wrap">
 									{(
 										[
@@ -1304,10 +1316,14 @@ const PermissionsModal = memo(function PermissionsModal({
 								</div>
 							</div>
 							<div>
-								<label className="text-xs text-text-muted mb-1 block">
+								<label
+									htmlFor="api-manager-schedule-timezone"
+									className="text-xs text-text-muted mb-1 block"
+								>
 									{t("scheduleTimezone")}
 								</label>
 								<input
+									id="api-manager-schedule-timezone"
 									type="text"
 									value={scheduleTz}
 									onChange={(e) => setScheduleTz(e.target.value)}
@@ -1481,7 +1497,8 @@ const PermissionsModal = memo(function PermissionsModal({
 													chevron_right
 												</span>
 												<div className="flex items-center gap-2 flex-1 min-w-0">
-													<div
+													<button
+														type="button"
 														className="relative flex items-center cursor-pointer shrink-0"
 														onClick={(e) => {
 															e.stopPropagation();
@@ -1508,7 +1525,7 @@ const PermissionsModal = memo(function PermissionsModal({
 																</span>
 															)}
 														</div>
-													</div>
+													</button>
 													<span className="text-xs font-semibold text-text-main truncate">
 														{provider}
 													</span>

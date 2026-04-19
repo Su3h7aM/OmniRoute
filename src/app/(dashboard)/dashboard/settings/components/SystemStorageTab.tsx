@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Button, Badge } from "@/shared/components";
 import { useLocale, useTranslations } from "next-intl";
 

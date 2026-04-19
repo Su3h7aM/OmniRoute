@@ -488,7 +488,7 @@ export default function CachePage() {
 			</div>
 
 			{loading && (
-				<div className="grid grid-cols-1 gap-6" aria-busy="true" aria-label="Loading cache">
+				<div className="grid grid-cols-1 gap-6" aria-busy="true">
 					<div className="h-96 rounded-3xl bg-surface-raised animate-pulse" />
 				</div>
 			)}

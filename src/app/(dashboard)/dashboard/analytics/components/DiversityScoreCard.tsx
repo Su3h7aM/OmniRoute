@@ -111,7 +111,11 @@ export default function DiversityScoreCard() {
 			<div className="flex flex-col sm:flex-row items-center gap-5">
 				{/* Gauge */}
 				<div className="relative shrink-0 h-20 w-20">
-					<svg className="h-full w-full -rotate-90" viewBox="0 0 36 36">
+					<svg
+						className="h-full w-full -rotate-90"
+						viewBox="0 0 36 36"
+						aria-hidden="true"
+					>
 						<path
 							className="text-border/70"
 							strokeWidth="3.5"

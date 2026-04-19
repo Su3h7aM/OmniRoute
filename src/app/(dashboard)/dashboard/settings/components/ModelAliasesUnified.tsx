@@ -336,7 +336,7 @@ export default function ModelAliasesUnified() {
 					) : (
 						wildcardAliases.map((alias, index) => (
 							<div
-								key={`${alias.pattern}-${alias.target}-${index}`}
+								key={`${alias.pattern}-${alias.target}`}
 								className="flex items-center gap-3 px-4 py-2.5"
 							>
 								<code className="text-xs text-purple-400 flex-1 truncate">
