@@ -17,10 +17,11 @@ process.env.USERPROFILE = TEST_HOME_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 delete process.env.NEXT_PHASE;
 
+const { getLegacyDotDataDir } = await import("../../src/lib/dataPaths.ts");
 const migrations = await import("../../src/lib/usage/migrations.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
-const LEGACY_DATA_DIR = path.join(TEST_HOME_DIR, ".omniroute");
+const LEGACY_DATA_DIR = getLegacyDotDataDir();
 const LEGACY_USAGE_JSON_FILE = path.join(LEGACY_DATA_DIR, "usage.json");
 const LEGACY_CALL_LOGS_JSON_FILE = path.join(LEGACY_DATA_DIR, "call_logs.json");
 const USAGE_JSON_FILE = path.join(TEST_DATA_DIR, "usage.json");
@@ -119,7 +120,7 @@ test("archiveLegacyRequestLogs returns null when there are no targets or the mar
   assert.equal(fs.existsSync(CURRENT_REQUEST_SUMMARY_FILE), true);
 });
 
-test("migrateLegacyUsageFiles copies legacy JSON files once and does not overwrite existing targets", () => {
+test.serial("migrateLegacyUsageFiles copies legacy JSON files once and does not overwrite existing targets", () => {
   writeJson(LEGACY_USAGE_JSON_FILE, { history: [{ provider: "legacy-openai" }] });
   writeJson(LEGACY_CALL_LOGS_JSON_FILE, { logs: [{ id: "legacy-call" }] });
 

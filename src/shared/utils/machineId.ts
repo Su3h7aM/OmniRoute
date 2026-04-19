@@ -1,5 +1,5 @@
-import { execFileSync, execSync } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import childProcess from "node:child_process";
+import fs from "node:fs";
 
 /**
  * Get raw machine ID using OS-specific methods.
@@ -18,8 +18,8 @@ function getMachineIdRaw(): string {
     }
     const sysRoot = process.env.SystemRoot || process.env.windir || "C:\\Windows";
     const regPath = `${sysRoot}\\System32\\REG.exe`;
-    if (existsSync(/* turbopackIgnore: true */ regPath)) {
-      const output = execFileSync(
+    if (fs.existsSync(/* turbopackIgnore: true */ regPath)) {
+      const output = childProcess.execFileSync(
         regPath,
         ["QUERY", "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid"],
         { encoding: "utf8", timeout: 5000 }
@@ -39,7 +39,7 @@ function getMachineIdRaw(): string {
     if (process.platform !== "darwin") {
       throw new Error("Not macOS");
     }
-    const output = execSync("ioreg -rd1 -c IOPlatformExpertDevice", {
+    const output = childProcess.execSync("ioreg -rd1 -c IOPlatformExpertDevice", {
       encoding: "utf8",
       timeout: 5000,
     });
@@ -59,7 +59,7 @@ function getMachineIdRaw(): string {
   try {
     for (const filePath of ["/etc/machine-id", "/var/lib/dbus/machine-id"]) {
       try {
-        const content = readFileSync(/* turbopackIgnore: true */ filePath, "utf8")
+        const content = fs.readFileSync(/* turbopackIgnore: true */ filePath, "utf8")
           .trim()
           .toLowerCase();
         if (content.length > 8) return content;
@@ -73,7 +73,7 @@ function getMachineIdRaw(): string {
 
   // Strategy 4: Hostname fallback (works on all platforms)
   try {
-    const hostname = execSync("hostname", { encoding: "utf8", timeout: 5000 });
+    const hostname = childProcess.execSync("hostname", { encoding: "utf8", timeout: 5000 });
     const id = hostname.trim().toLowerCase();
     if (id) return id;
   } catch {

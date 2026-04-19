@@ -128,7 +128,7 @@ test("package.json test script runs tests", () => {
   const testScript = pkg.scripts?.test;
   assert.ok(testScript, "package.json must have a test script");
   assert.ok(
-    testScript.includes("--test") || testScript.includes("vitest") || testScript.includes("jest"),
+    testScript.includes("--test") || testScript.includes("bun test") || testScript.includes("jest"),
     `test script should run tests, got: ${testScript}`
   );
 });

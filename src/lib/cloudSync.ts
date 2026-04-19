@@ -1,8 +1,13 @@
 import { getProviderConnections, updateProviderConnection } from "@/lib/localDb";
 import { buildConfigSyncEnvelope, toLegacyCloudSyncPayload } from "@/lib/sync/bundle";
 
-const CLOUD_URL = process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL;
-const CLOUD_SYNC_TIMEOUT_MS = Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
+function getCloudUrl() {
+  return process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || "";
+}
+
+function getCloudSyncTimeoutMs() {
+  return Number(process.env.CLOUD_SYNC_TIMEOUT_MS || 12000);
+}
 
 type JsonRecord = Record<string, unknown>;
 
@@ -22,7 +27,7 @@ function toDateMs(value: unknown): number {
   return 0;
 }
 
-export async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC_TIMEOUT_MS) {
+export async function fetchWithTimeout(url, options = {}, timeoutMs = getCloudSyncTimeoutMs()) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -38,7 +43,8 @@ export async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SYNC
  * @param {string|null} createdKey - Key created during enable
  */
 export async function syncToCloud(machineId, createdKey = null) {
-  if (!CLOUD_URL) {
+  const cloudUrl = getCloudUrl();
+  if (!cloudUrl) {
     return { error: "NEXT_PUBLIC_CLOUD_URL is not configured" };
   }
 
@@ -50,7 +56,7 @@ export async function syncToCloud(machineId, createdKey = null) {
   let response;
   try {
     // Send to Cloud
-    response = await fetchWithTimeout(`${CLOUD_URL}/sync/${machineId}`, {
+    response = await fetchWithTimeout(`${cloudUrl}/sync/${machineId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -140,4 +146,4 @@ async function updateLocalTokens(cloudProviders: unknown) {
   }
 }
 
-export { CLOUD_URL, CLOUD_SYNC_TIMEOUT_MS };
+export { getCloudUrl, getCloudSyncTimeoutMs };

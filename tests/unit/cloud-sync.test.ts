@@ -13,6 +13,11 @@ const ORIGINAL_TIMEOUT = process.env.CLOUD_SYNC_TIMEOUT_MS;
 const ORIGINAL_FETCH = globalThis.fetch;
 const cloudSyncModuleUrl = pathToFileURL(path.join(process.cwd(), "src/lib/cloudSync.ts")).href;
 
+function setCloudUrl(value) {
+  process.env.CLOUD_URL = value;
+  process.env.NEXT_PUBLIC_CLOUD_URL = value;
+}
+
 process.env.DATA_DIR = TEST_DATA_DIR;
 // FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
 if (!process.env.API_KEY_SECRET) {
@@ -30,7 +35,7 @@ function createAbortError(message = "aborted") {
 }
 
 async function loadCloudSync(label) {
-  return import(`${cloudSyncModuleUrl}?case=${label}-${Date.now()}-${Math.random()}`);
+  return import(`${cloudSyncModuleUrl}?cloudUrl=${encodeURIComponent(process.env.CLOUD_URL || process.env.NEXT_PUBLIC_CLOUD_URL || "")}&case=${label}-${Date.now()}-${Math.random()}`);
 }
 
 async function resetStorage() {
@@ -84,7 +89,7 @@ test("cloudSync returns a configuration error when the cloud URL is missing", as
 });
 
 test("fetchWithTimeout aborts when the timeout elapses", async () => {
-  process.env.NEXT_PUBLIC_CLOUD_URL = "https://cloud.example";
+  setCloudUrl("https://cloud.example");
   globalThis.fetch = (_url, options) =>
     new Promise((_, reject) => {
       options.signal.addEventListener("abort", () => reject(createAbortError()));
@@ -97,8 +102,8 @@ test("fetchWithTimeout aborts when the timeout elapses", async () => {
   });
 });
 
-test("cloudSync maps timeout and transport failures to stable error messages", async () => {
-  process.env.NEXT_PUBLIC_CLOUD_URL = "https://cloud.example";
+test.serial("cloudSync maps timeout and transport failures to stable error messages", async () => {
+  setCloudUrl("https://cloud.example");
   process.env.CLOUD_SYNC_TIMEOUT_MS = "5";
 
   globalThis.fetch = (_url, options) =>
@@ -118,8 +123,8 @@ test("cloudSync maps timeout and transport failures to stable error messages", a
   });
 });
 
-test("cloudSync returns a generic error when the API responds with a non-OK status", async () => {
-  process.env.CLOUD_URL = "https://cloud.example";
+test.serial("cloudSync returns a generic error when the API responds with a non-OK status", async () => {
+  setCloudUrl("https://cloud.example");
 
   const originalConsoleLog = console.log;
   const logged = [];
@@ -144,8 +149,8 @@ test("cloudSync returns a generic error when the API responds with a non-OK stat
   }
 });
 
-test("cloudSync syncs data upstream and refreshes only locally stale provider tokens", async () => {
-  process.env.NEXT_PUBLIC_CLOUD_URL = "https://cloud.example";
+test.serial("cloudSync syncs data upstream and refreshes only locally stale provider tokens", async () => {
+  setCloudUrl("https://cloud.example");
 
   const stale = await providersDb.createProviderConnection({
     provider: "openai",

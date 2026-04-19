@@ -136,7 +136,7 @@ test("getCloudflaredRuntimeDirs and status resolve a managed binary from the dat
   assert.equal(status.running, false);
 });
 
-test("getCloudflaredTunnelStatus resolves a PATH-installed binary when no managed install exists", async () => {
+test.serial("getCloudflaredTunnelStatus resolves a PATH-installed binary when no managed install exists", async () => {
   const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-path-");
   process.env.DATA_DIR = dataDir;
   delete process.env.CLOUDFLARED_BIN;
@@ -213,7 +213,7 @@ test("getCloudflaredTunnelStatus reports a starting tunnel while the spawned pid
   assert.equal(status.targetUrl, "http://127.0.0.1:30128");
 });
 
-test("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel clears persisted runtime state", async () => {
+test.serial("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel clears persisted runtime state", async () => {
   const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-run-");
   const binaryPath = path.join(
     dataDir,
@@ -305,7 +305,7 @@ test("startCloudflaredTunnel reaches running state and stopCloudflaredTunnel cle
   );
 });
 
-test("startCloudflaredTunnel records an error state when the child exits before a public tunnel URL is available", async () => {
+test.serial("startCloudflaredTunnel records an error state when the child exits before a public tunnel URL is available", async () => {
   const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-error-");
   const binaryPath = path.join(dataDir, "bin", "cloudflared");
   process.env.DATA_DIR = dataDir;
@@ -361,7 +361,7 @@ test("startCloudflaredTunnel records an error state when the child exits before 
   );
 });
 
-test("startCloudflaredTunnel fails fast when the spawned child has no pid", async () => {
+test.serial("startCloudflaredTunnel fails fast when the spawned child has no pid", async () => {
   const dataDir = await createCloudflaredDataDir("omniroute-cloudflared-nopid-");
   const binaryPath = path.join(dataDir, "bin", "cloudflared");
   process.env.DATA_DIR = dataDir;

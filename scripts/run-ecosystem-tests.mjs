@@ -45,17 +45,13 @@ async function main() {
     await waitForServerReady();
   }
 
-  const vitestProcess = spawn(
-    process.execPath,
-    ["./node_modules/vitest/vitest.mjs", "run", "tests/e2e/ecosystem.test.ts"],
-    {
-      stdio: "inherit",
-      env: testEnv,
-    }
-  );
+  const testProcess = spawn("bun", ["test", "tests/e2e/ecosystem.test.ts"], {
+    stdio: "inherit",
+    env: testEnv,
+  });
 
   const exitCode = await new Promise((resolve) => {
-    vitestProcess.on("exit", (code, signal) => {
+    testProcess.on("exit", (code, signal) => {
       if (signal) {
         resolve(1);
         return;

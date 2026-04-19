@@ -1,6 +1,10 @@
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const releasesCache = new Map<string, { data: any; ts: number }>();
 
+export function clearReleaseCache(): void {
+  releasesCache.clear();
+}
+
 function getGitHubHeaders(): Record<string, string> {
   const headers: Record<string, string> = { Accept: "application/vnd.github+json" };
   const token = process.env.GITHUB_TOKEN;
@@ -94,5 +98,5 @@ export async function getChecksums(version: string): Promise<Map<string, string>
 }
 
 export function clearCache(): void {
-  releasesCache.clear();
+  clearReleaseCache();
 }

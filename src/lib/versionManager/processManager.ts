@@ -1,4 +1,5 @@
-import { spawn, type ChildProcess } from "child_process";
+import childProcess from "node:child_process";
+import type { ChildProcess } from "node:child_process";
 import fs from "fs/promises";
 import fsSync from "fs";
 import path from "path";
@@ -42,7 +43,7 @@ export async function startProcess(
   const actualConfigDir = configDir || defaultConfigDir();
   await writeConfig(actualConfigDir, actualPort);
 
-  const child = spawn(binaryPath, ["-c", path.join(actualConfigDir, "config.yaml")], {
+  const child = childProcess.spawn(binaryPath, ["-c", path.join(actualConfigDir, "config.yaml")], {
     detached: false,
     stdio: ["ignore", "pipe", "pipe"],
     env: { ...process.env },

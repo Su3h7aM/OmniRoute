@@ -145,7 +145,7 @@ afterAll(async () => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
-test("fetchModelsDev caches successful responses and rejects invalid JSON or non-ok responses", async () => {
+test.serial("fetchModelsDev caches successful responses and rejects invalid JSON or non-ok responses", async () => {
   const modelsDev = await importFresh("fetch-cache");
   let calls = 0;
   globalThis.fetch = async () => {
@@ -281,7 +281,7 @@ test("modelsDev capabilities helpers create the table, persist rows, filter by p
   assert.deepEqual(modelsDev.getSyncedCapabilities(), {});
 });
 
-test("modelsDev capability helpers coerce false/null values and ignore malformed rows", async () => {
+test.serial("modelsDev capability helpers coerce false/null values and ignore malformed rows", async () => {
   const modelsDev = await importFresh("capabilities-malformed");
   const db = core.getDbInstance();
   const originalPrepare = db.prepare.bind(db);
@@ -432,7 +432,7 @@ test("saveModelsDevCapabilities round-trips false and null booleans", async () =
   });
 });
 
-test("syncModelsDev supports dry-run mode, persistence, capability toggles, and failure reporting", async () => {
+test.serial("syncModelsDev supports dry-run mode, persistence, capability toggles, and failure reporting", async () => {
   const modelsDev = await importFresh("sync-main");
   mockFetchWith(MOCK_MODELS_DEV_DATA);
 
@@ -461,7 +461,7 @@ test("syncModelsDev supports dry-run mode, persistence, capability toggles, and 
   assert.match(failed.error, /network down/);
 });
 
-test("syncModelsDev string failures are normalized into an error payload", async () => {
+test.serial("syncModelsDev string failures are normalized into an error payload", async () => {
   const modelsDev = await importFresh("sync-string-error");
   globalThis.fetch = async () => {
     throw "hard fail";
@@ -473,7 +473,7 @@ test("syncModelsDev string failures are normalized into an error payload", async
   assert.equal(failed.dryRun, true);
 });
 
-test("syncModelsDev honors abort signals during retry backoff", async () => {
+test.serial("syncModelsDev honors abort signals during retry backoff", async () => {
   const modelsDev = await importFresh("sync-abort");
   const warnings = [];
   const originalWarn = console.warn;
@@ -539,7 +539,7 @@ test("startPeriodicSync, stopPeriodicSync, getSyncStatus, and initModelsDevSync 
   await waitFor(() => enabled.getSyncStatus().lastSync, 300);
 });
 
-test("stopPeriodicSync aborts the in-flight initial sync", async () => {
+test.serial("stopPeriodicSync aborts the in-flight initial sync", async () => {
   const modelsDev = await importFresh("periodic-stop-abort");
   let aborted = false;
 

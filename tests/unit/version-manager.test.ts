@@ -18,6 +18,7 @@ const coreDb = await import("../../src/lib/db/core.ts");
 const versionManagerDb = await import("../../src/lib/db/versionManager.ts");
 const processManager = await import("../../src/lib/versionManager/processManager.ts");
 const versionManager = await import("../../src/lib/versionManager/index.ts");
+const releaseChecker = await import("../../src/lib/versionManager/releaseChecker.ts");
 const healthMonitor = await import("../../src/lib/versionManager/healthMonitor.ts");
 
 const originalFetch = globalThis.fetch;
@@ -57,10 +58,30 @@ function installSpawnStub(startPid = 6100) {
 
   childProcess.spawn = (command, args, options) => {
     const child = new EventEmitter();
-    child.pid = nextPid++;
-    child.stdout = new EventEmitter();
-    child.stderr = new EventEmitter();
-    child.kill = () => true;
+    Object.defineProperty(child, "pid", {
+      value: nextPid++,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(child, "stdout", {
+      value: new EventEmitter(),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(child, "stderr", {
+      value: new EventEmitter(),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(child, "kill", {
+      value: () => true,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
     calls.push({ command, args, options, child });
     return child;
   };
@@ -248,6 +269,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   healthMonitor.stopMonitoring("cliproxyapi");
+  releaseChecker.clearReleaseCache();
   childProcess.spawn = originalSpawn;
   process.kill = originalProcessKill;
   globalThis.fetch = originalFetch;

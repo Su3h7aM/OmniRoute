@@ -80,7 +80,7 @@ test("machineId: reads the Windows MachineGuid via REG.exe when available", asyn
   assert.equal(await machineId.getRawMachineId(), "abcdef12-3456-7890");
 });
 
-test("machineId: falls back to Linux machine-id files before hostname", async () => {
+test.serial("machineId: falls back to Linux machine-id files before hostname", async () => {
   setPlatform("linux");
 
   fs.existsSync = () => false;
@@ -98,7 +98,7 @@ test("machineId: falls back to Linux machine-id files before hostname", async ()
   assert.equal(await machineId.getRawMachineId(), "linux-machine-id");
 });
 
-test("machineId: reads the macOS IOPlatformUUID when ioreg is available", async () => {
+test.serial("machineId: reads the macOS IOPlatformUUID when ioreg is available", async () => {
   setPlatform("darwin");
 
   fs.existsSync = () => false;

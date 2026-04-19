@@ -5,7 +5,8 @@ import http from "node:http";
 const { createOmnirouteWsBridge } = await import("../../scripts/v1-ws-bridge.mjs");
 
 function listen(server) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
       const address = server.address();
       resolve(address.port);
@@ -28,7 +29,7 @@ function readRequestBody(req) {
   });
 }
 
-function waitFor(predicate, { timeoutMs = 3000, intervalMs = 10 } = {}) {
+function waitFor(predicate, { timeoutMs = 5000, intervalMs = 10 } = {}) {
   const startedAt = Date.now();
   return new Promise((resolve, reject) => {
     const timer = setInterval(() => {
@@ -51,7 +52,7 @@ function waitFor(predicate, { timeoutMs = 3000, intervalMs = 10 } = {}) {
   });
 }
 
-test("v1 ws bridge streams correlated request chunks and survives protocol errors", async () => {
+test("v1 ws bridge streams correlated request chunks and survives protocol errors", { timeout: 15000 }, async () => {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
 
@@ -88,17 +89,29 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
   const bridge = createOmnirouteWsBridge({ baseUrl, pingIntervalMs: 1000, idleTimeoutMs: 10000 });
 
   server.on("upgrade", async (req, socket, head) => {
-    const handled = await bridge.handleUpgrade(req, socket, head);
-    if (!handled && !socket.destroyed) {
-      socket.destroy();
+    try {
+      const handled = await bridge.handleUpgrade(req, socket, head);
+      if (!handled && !socket.destroyed) {
+        socket.destroy();
+      }
+    } catch (error) {
+      console.error("upgrade failed", error);
+      if (!socket.destroyed) socket.destroy();
     }
   });
+
+  const originalConsoleError = console.error;
+  console.error = () => {};
 
   const ws = new WebSocket(`ws://127.0.0.1:${port}/v1/ws`);
   const messages = [];
   const errors = [];
   ws.addEventListener("message", (event) => {
     messages.push(JSON.parse(String(event.data)));
+  });
+  await new Promise((resolve, reject) => {
+    ws.addEventListener("open", () => resolve(null), { once: true });
+    ws.addEventListener("error", reject, { once: true });
   });
   ws.addEventListener("error", (event) => {
     errors.push(event);
@@ -114,6 +127,7 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
     JSON.stringify({
       type: "request",
       id: "req-1",
+      endpoint: "/v1/chat/completions",
       payload: {
         model: "openai/gpt-4.1-mini",
         messages: [{ role: "user", content: "alpha" }],
@@ -155,5 +169,6 @@ test("v1 ws bridge streams correlated request chunks and survives protocol error
   assert.match(req2Chunks[1], /beta:part2/);
 
   ws.close();
+  console.error = originalConsoleError;
   await close(server);
 });

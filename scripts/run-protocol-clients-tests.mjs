@@ -29,37 +29,45 @@ async function waitForServerReady() {
   throw new Error(`Timed out waiting for ${healthUrl} after ${maxWaitMs}ms`);
 }
 
-async function main() {
-  let serverProcess = null;
-  let startedHere = false;
-  const testEnv = sanitizeColorEnv(process.env);
-
-  if (!(await isServerReady())) {
-    serverProcess = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
-      stdio: "inherit",
-      env: testEnv,
-    });
-    startedHere = true;
-    await waitForServerReady();
+async function ensureServer(testEnv) {
+  if (await isServerReady()) {
+    return { serverProcess: null, startedHere: false };
   }
 
-  const vitestProcess = spawn(
-    process.execPath,
-    [
-      "./node_modules/vitest/vitest.mjs",
-      "run",
-      "tests/e2e/protocol-clients.test.ts",
-      "--dir",
-      "tests",
-    ],
-    {
-      stdio: "inherit",
-      env: testEnv,
+  const serverProcess = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
+    stdio: "inherit",
+    env: testEnv,
+  });
+
+  let exited = false;
+  let exitCode = null;
+  serverProcess.once("exit", (code) => {
+    exited = true;
+    exitCode = code ?? 1;
+  });
+
+  try {
+    await waitForServerReady();
+    return { serverProcess, startedHere: true };
+  } catch (error) {
+    if (exited && (await isServerReady())) {
+      return { serverProcess: null, startedHere: false };
     }
-  );
+    throw error;
+  }
+}
+
+async function main() {
+  const testEnv = sanitizeColorEnv(process.env);
+  const { serverProcess, startedHere } = await ensureServer(testEnv);
+
+  const testProcess = spawn("bun", ["test", "tests/e2e/protocol-clients.test.ts"], {
+    stdio: "inherit",
+    env: testEnv,
+  });
 
   const exitCode = await new Promise((resolve) => {
-    vitestProcess.on("exit", (code, signal) => {
+    testProcess.on("exit", (code, signal) => {
       if (signal) {
         resolve(1);
         return;
