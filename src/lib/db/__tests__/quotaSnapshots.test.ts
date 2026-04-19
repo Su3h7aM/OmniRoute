@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { rowToCamel } from "../core";
 import type { QuotaSnapshotRow } from "@/shared/types/utilization";
 
@@ -34,7 +34,7 @@ interface DbLike {
 let lastCleanupAt = 0;
 
 function saveQuotaSnapshotForTest(
-  db: Database.Database,
+  db: Database,
   snapshot: Omit<QuotaSnapshotRow, "id" | "created_at">
 ): void {
   const now = new Date().toISOString();
@@ -60,7 +60,7 @@ function saveQuotaSnapshotForTest(
 }
 
 function getQuotaSnapshotsForTest(
-  db: Database.Database,
+  db: Database,
   opts: {
     provider?: string;
     connectionId?: string;
@@ -117,7 +117,7 @@ function getQuotaSnapshotsForTest(
 }
 
 function getAggregatedSnapshotsForTest(
-  db: Database.Database,
+  db: Database,
   opts: {
     provider?: string;
     since: string;
@@ -175,7 +175,7 @@ function getAggregatedSnapshotsForTest(
   }));
 }
 
-function cleanupOldSnapshotsForTest(db: Database.Database, retentionDays = 90): number {
+function cleanupOldSnapshotsForTest(db: Database, retentionDays = 90): number {
   const now = Date.now();
   const cleanupThresholdMs = 6 * 60 * 60 * 1000;
 
@@ -193,11 +193,11 @@ function cleanupOldSnapshotsForTest(db: Database.Database, retentionDays = 90): 
 }
 
 describe("quotaSnapshots DB module", () => {
-  let testDb: Database.Database;
+  let testDb: Database;
 
   beforeEach(() => {
-    testDb = new Database(":memory:");
-    testDb.pragma("journal_mode = WAL");
+    testDb = new Database(":memory:", { strict: true });
+    testDb.run("PRAGMA journal_mode = WAL");
     testDb.exec(MIGRATION_SQL);
     lastCleanupAt = 0;
   });
