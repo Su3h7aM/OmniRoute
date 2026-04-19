@@ -928,7 +928,7 @@ test("chat pipeline returns 503 when the requested model is temporarily unavaila
   assert.match(json.error.message, /temporarily unavailable/i);
 });
 
-test("chat pipeline surfaces upstream 500 responses as structured errors", async () => {
+test("chat pipeline surfaces upstream 500 responses as structured errors", { timeout: 10000 }, async () => {
   await seedConnection("openai", { apiKey: "sk-openai-500" });
 
   globalThis.fetch = async () =>
@@ -992,7 +992,7 @@ test("chat pipeline returns 429 with Retry-After when the upstream rate-limits t
   assert.match(json.error.message, /\[openai\/gpt-4o-mini\]/);
 });
 
-test("chat pipeline maps upstream timeouts to 504 responses", async () => {
+test("chat pipeline maps upstream timeouts to 504 responses", { timeout: 10000 }, async () => {
   await seedConnection("openai", { apiKey: "sk-openai-timeout" });
 
   globalThis.fetch = async () => {

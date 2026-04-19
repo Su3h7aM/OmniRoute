@@ -1,6 +1,5 @@
 import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
-import { mock } from "bun:test";
 
 import { createChatPipelineHarness } from "./_chatPipelineHarness.ts";
 
@@ -524,9 +523,16 @@ test("logging verification: observability logs fire during pipeline operations",
   const apiKey = await seedApiKey();
   await enableMemory(2000);
 
-  // Spy on console methods used by the logger
-  const logSpy = mock.method(console, "log", () => {});
-  const debugSpy = mock.method(console, "debug", () => {});
+  const originalLog = console.log;
+  const originalDebug = console.debug;
+  const logCalls = [];
+  const debugCalls = [];
+  console.log = (...args) => {
+    logCalls.push(args);
+  };
+  console.debug = (...args) => {
+    debugCalls.push(args);
+  };
 
   try {
     // 1. createMemory should trigger "memory.stored" log
@@ -560,14 +566,14 @@ test("logging verification: observability logs fire during pipeline operations",
     injectMemory(request, [], "openai");
 
     // 5. Verify that logs were emitted (console.log/debug were called)
-    const allCalls = [...logSpy.mock.calls, ...debugSpy.mock.calls];
+    const allCalls = [...logCalls, ...debugCalls];
     assert.ok(
       allCalls.length > 0,
       "expected console.log or console.debug to be called by logger during pipeline operations"
     );
 
     // 6. Check for specific log event strings in the log output
-    const allLogOutput = allCalls.map((c) => c.arguments.join(" ")).join("\n");
+    const allLogOutput = allCalls.map((args) => args.join(" ")).join("\n");
     assert.match(allLogOutput, /memory\.stored/i, "should log memory.stored event");
     assert.match(
       allLogOutput,
@@ -580,8 +586,7 @@ test("logging verification: observability logs fire during pipeline operations",
       "should log memory injection events"
     );
   } finally {
-    // Restore console methods
-    logSpy.mock.restore();
-    debugSpy.mock.restore();
+    console.log = originalLog;
+    console.debug = originalDebug;
   }
 });
