@@ -1,4 +1,4 @@
-import { describe, test, before, after } from "node:test";
+import { afterAll, beforeAll, describe, test } from "bun:test";
 import assert from "node:assert/strict";
 import { getCacheMetrics } from "../../src/lib/db/settings.ts";
 import { getDbInstance } from "../../src/lib/db/core.ts";
@@ -6,7 +6,7 @@ import { getDbInstance } from "../../src/lib/db/core.ts";
 describe("Cache Metrics Database", () => {
   let db;
 
-  before(() => {
+  beforeAll(() => {
     db = getDbInstance();
     // Create usage_history table if it doesn't exist (mimicking production schema)
     db.prepare(
@@ -34,7 +34,7 @@ describe("Cache Metrics Database", () => {
     ).run();
   });
 
-  after(async () => {
+  afterAll(async () => {
     // Clean up test data
     db.prepare("DELETE FROM usage_history WHERE provider = 'test-provider'").run();
   });

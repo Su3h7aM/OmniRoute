@@ -1,10 +1,11 @@
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-key-reveal-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = "test-api-key-secret";
 
@@ -28,15 +29,20 @@ function maskKey(key) {
   return key.slice(0, 8) + "****" + key.slice(-4);
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   delete process.env.ALLOW_API_KEY_REVEAL;
   core.resetDbInstance();
   apiKeysDb.resetApiKeyState();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
 });
 
 test("GET /api/keys stays masked even when reveal is enabled", async () => {

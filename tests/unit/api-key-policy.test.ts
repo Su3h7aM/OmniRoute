@@ -14,7 +14,7 @@
  *      the exact same algorithm.
  */
 
-import test from "node:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -22,6 +22,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-api-key-policy-"));
+const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "task-607-api-key-secret";
 
@@ -85,15 +86,20 @@ function getCurrentUtcDay() {
   return { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[dayName];
 }
 
-test.beforeEach(async () => {
+beforeEach(async () => {
   await resetStorage();
 });
 
-test.after(async () => {
+afterAll(async () => {
   apiKeysDb.resetApiKeyState();
   costRules.resetCostData();
   coreDb.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+  if (ORIGINAL_DATA_DIR === undefined) {
+    delete process.env.DATA_DIR;
+  } else {
+    process.env.DATA_DIR = ORIGINAL_DATA_DIR;
+  }
 });
 
 // ─── Replicate the isWithinSchedule logic for pure unit testing ───────────────
