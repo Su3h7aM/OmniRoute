@@ -93,6 +93,7 @@ export default function LogsPage() {
 							fill="none"
 							stroke="currentColor"
 							strokeWidth="1.5"
+							aria-hidden="true"
 						>
 							<path
 								d="M8 2v8m0 0l-3-3m3 3l3-3M3 12h10"

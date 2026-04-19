@@ -25,12 +25,7 @@ export default function PricingTab() {
 	const [editedProviders, setEditedProviders] = useState(new Set());
 	const t = useTranslations("settings");
 
-	// Load catalog + pricing
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		setLoading(true);
 		try {
 			const [catalogRes, pricingRes] = await Promise.all([
@@ -44,7 +39,12 @@ export default function PricingTab() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	// Load catalog + pricing
+	useEffect(() => {
+		loadData();
+	}, [loadData]);
 
 	// All providers sorted by model count (desc)
 	const allProviders = useMemo(() => {

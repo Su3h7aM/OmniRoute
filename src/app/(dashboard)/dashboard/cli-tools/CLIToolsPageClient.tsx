@@ -32,8 +32,37 @@ export default function CLIToolsPageClient({ machineId }) {
 	const [dynamicModels, setDynamicModels] = useState([]);
 	const translateOrFallback = useCallback(
 		(key, fallback, values = undefined) => {
+			if (values) {
+				try {
+					const message = t(key, values);
+					if (!message || message === key || message === `cliTools.${key}`) {
+						return fallback;
+					}
+					return message;
+				} catch {
+					return fallback;
+				}
+			}
+
+			const [scope, nestedKey] = key.split(".", 2);
+			if (scope && nestedKey) {
+				try {
+					const scoped = t.raw(scope) as Record<string, string> | undefined;
+					const message = scoped?.[nestedKey];
+					if (typeof message === "string" && message.length > 0) {
+						return message;
+					}
+				} catch {
+					// fall through to fallback
+				}
+			}
+
 			try {
-				return t(key, values);
+				const message = t(key);
+				if (!message || message === key || message === `cliTools.${key}`) {
+					return fallback;
+				}
+				return message;
 			} catch {
 				return fallback;
 			}
@@ -41,15 +70,7 @@ export default function CLIToolsPageClient({ machineId }) {
 		[t]
 	);
 
-	useEffect(() => {
-		fetchConnections();
-		loadCloudSettings();
-		fetchApiKeys();
-		fetchToolStatuses();
-		fetchDynamicModels();
-	}, [fetchConnections, loadCloudSettings, fetchDynamicModels, fetchToolStatuses, fetchApiKeys]);
-
-	const loadCloudSettings = async () => {
+	const loadCloudSettings = useCallback(async () => {
 		try {
 			const res = await fetch("/api/settings");
 			if (res.ok) {
@@ -59,9 +80,9 @@ export default function CLIToolsPageClient({ machineId }) {
 		} catch (error) {
 			console.log("Error loading cloud settings:", error);
 		}
-	};
+	}, []);
 
-	const fetchApiKeys = async () => {
+	const fetchApiKeys = useCallback(async () => {
 		try {
 			const res = await fetch("/api/keys");
 			if (res.ok) {
@@ -71,9 +92,9 @@ export default function CLIToolsPageClient({ machineId }) {
 		} catch (error) {
 			console.log("Error fetching API keys:", error);
 		}
-	};
+	}, []);
 
-	const fetchToolStatuses = async () => {
+	const fetchToolStatuses = useCallback(async () => {
 		try {
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s client timeout
@@ -89,9 +110,9 @@ export default function CLIToolsPageClient({ machineId }) {
 		} finally {
 			setStatusesLoaded(true);
 		}
-	};
+	}, []);
 
-	const fetchConnections = async () => {
+	const fetchConnections = useCallback(async () => {
 		try {
 			const res = await fetch("/api/providers");
 			const data = await res.json();
@@ -103,9 +124,9 @@ export default function CLIToolsPageClient({ machineId }) {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
-	const fetchDynamicModels = async () => {
+	const fetchDynamicModels = useCallback(async () => {
 		try {
 			const res = await fetch("/v1/models");
 			if (res.ok) {
@@ -115,7 +136,15 @@ export default function CLIToolsPageClient({ machineId }) {
 		} catch (error) {
 			console.log("Error fetching dynamic models:", error);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		fetchConnections();
+		loadCloudSettings();
+		fetchApiKeys();
+		fetchToolStatuses();
+		fetchDynamicModels();
+	}, [fetchConnections, loadCloudSettings, fetchDynamicModels, fetchToolStatuses, fetchApiKeys]);
 
 	const getActiveProviders = () => {
 		return connections.filter((c) => c.isActive !== false);

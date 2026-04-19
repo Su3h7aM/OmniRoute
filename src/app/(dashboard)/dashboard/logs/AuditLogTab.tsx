@@ -106,9 +106,8 @@ export default function AuditLogTab() {
 			</div>
 
 			{/* Filters */}
-			<div
+			<search
 				className="flex flex-wrap gap-3 p-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]"
-				role="search"
 				aria-label={t("filterEntriesAria")}
 			>
 				<input
@@ -136,7 +135,7 @@ export default function AuditLogTab() {
 				>
 					{t("search")}
 				</button>
-			</div>
+			</search>
 
 			{/* Error */}
 			{error && (

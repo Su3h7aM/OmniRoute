@@ -315,7 +315,7 @@ export default function HealthPage() {
 					<div className="mt-4 space-y-2">
 						{dbHealth.issues.map((issue, index) => (
 							<div
-								key={`${issue.table}-${issue.type}-${index}`}
+								key={`${issue.table}-${issue.type}-${issue.description}-${issue.count}`}
 								className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2"
 							>
 								<div className="flex items-center justify-between gap-3">

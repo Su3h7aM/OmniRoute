@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card } from "@/shared/components";
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -88,7 +88,7 @@ export default function ApiEndpointsTab() {
 	const [testingWebhookId, setTestingWebhookId] = useState<string | null>(null);
 
 	// Load catalog
-	const loadCatalog = async () => {
+	const loadCatalog = useCallback(async () => {
 		try {
 			const res = await fetch("/api/openapi/spec");
 			if (res.ok) {
@@ -97,7 +97,7 @@ export default function ApiEndpointsTab() {
 			}
 		} catch {}
 		return null;
-	};
+	}, []);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -113,7 +113,7 @@ export default function ApiEndpointsTab() {
 	}, [loadCatalog]);
 
 	// Load webhooks
-	const fetchWebhooksData = async (): Promise<WebhookItem[]> => {
+	const fetchWebhooksData = useCallback(async (): Promise<WebhookItem[]> => {
 		try {
 			const res = await fetch("/api/webhooks");
 			if (res.ok) {
@@ -122,7 +122,7 @@ export default function ApiEndpointsTab() {
 			}
 		} catch {}
 		return [];
-	};
+	}, []);
 
 	const loadWebhooks = async () => {
 		setWebhooksLoading(true);
@@ -427,8 +427,9 @@ export default function ApiEndpointsTab() {
 
 									return (
 										<div key={key}>
-											<div
-												className="flex items-center gap-3 px-4 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]
+											<button
+												type="button"
+												className="flex w-full items-center gap-3 px-4 py-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]
                                    cursor-pointer transition-colors"
 												onClick={() =>
 													setExpandedEndpoint(isExpanded ? null : key)
@@ -459,7 +460,7 @@ export default function ApiEndpointsTab() {
 												>
 													expand_more
 												</span>
-											</div>
+											</button>
 
 											{/* Expanded detail */}
 											{isExpanded && (
@@ -542,10 +543,14 @@ export default function ApiEndpointsTab() {
 														<div className="rounded-lg border border-primary/20 bg-primary/[0.02] p-3 space-y-3">
 															{ep.method !== "GET" && (
 																<div>
-																	<label className="text-[9px] font-semibold text-text-muted uppercase tracking-wider">
+																	<label
+																		htmlFor={`try-body-${key}`}
+																		className="text-[9px] font-semibold text-text-muted uppercase tracking-wider"
+																	>
 																		Request Body (JSON)
 																	</label>
 																	<textarea
+																		id={`try-body-${key}`}
 																		value={tryBody}
 																		onChange={(e) =>
 																			setTryBody(
@@ -699,10 +704,14 @@ export default function ApiEndpointsTab() {
 							<div className="mb-4 p-3 rounded-lg border border-primary/20 bg-primary/[0.03] space-y-2">
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 									<div>
-										<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+										<label
+											htmlFor="webhook-url"
+											className="text-[10px] font-medium text-text-muted uppercase tracking-wider"
+										>
 											Webhook URL
 										</label>
 										<input
+											id="webhook-url"
 											value={whUrl}
 											onChange={(e) => setWhUrl(e.target.value)}
 											placeholder="https://example.com/webhook"
@@ -711,10 +720,14 @@ export default function ApiEndpointsTab() {
 										/>
 									</div>
 									<div>
-										<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+										<label
+											htmlFor="webhook-description"
+											className="text-[10px] font-medium text-text-muted uppercase tracking-wider"
+										>
 											Description
 										</label>
 										<input
+											id="webhook-description"
 											value={whDesc}
 											onChange={(e) => setWhDesc(e.target.value)}
 											placeholder="Production monitoring"
@@ -724,9 +737,9 @@ export default function ApiEndpointsTab() {
 									</div>
 								</div>
 								<div>
-									<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+									<p className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
 										Events
-									</label>
+									</p>
 									<div className="flex flex-wrap gap-1.5 mt-1">
 										<button
 											type="button"

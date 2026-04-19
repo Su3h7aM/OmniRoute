@@ -115,13 +115,7 @@ export default function ApiManagerPageClient() {
 
 	const { copied, copy } = useCopyToClipboard();
 
-	useEffect(() => {
-		fetchData();
-		fetchModels();
-		fetchConnections();
-	}, [fetchModels, fetchData, fetchConnections]);
-
-	const fetchModels = async () => {
+	const fetchModels = useCallback(async () => {
 		try {
 			const res = await fetch("/v1/models");
 			if (res.ok) {
@@ -131,9 +125,9 @@ export default function ApiManagerPageClient() {
 		} catch (error) {
 			console.log("Error fetching models:", error);
 		}
-	};
+	}, []);
 
-	const fetchConnections = async () => {
+	const fetchConnections = useCallback(async () => {
 		try {
 			const res = await fetch("/api/providers");
 			if (res.ok) {
@@ -143,9 +137,9 @@ export default function ApiManagerPageClient() {
 		} catch (error) {
 			console.log("Error fetching connections:", error);
 		}
-	};
+	}, []);
 
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			const res = await fetch("/api/keys");
 			if (res.ok) {
@@ -161,7 +155,7 @@ export default function ApiManagerPageClient() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
 	const fetchUsageStats = async (apiKeys: ApiKey[]) => {
 		if (apiKeys.length === 0) return;
@@ -225,6 +219,12 @@ export default function ApiManagerPageClient() {
 			console.log("Error fetching session counts:", error);
 		}
 	};
+
+	useEffect(() => {
+		fetchData();
+		fetchModels();
+		fetchConnections();
+	}, [fetchModels, fetchData, fetchConnections]);
 
 	const clearError = useCallback(() => setError(null), []);
 

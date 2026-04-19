@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, Button, Input } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -24,11 +24,7 @@ export default function IPFilterSection() {
 	const [listTarget, setListTarget] = useState("blacklist");
 	const t = useTranslations("settings");
 
-	useEffect(() => {
-		loadConfig();
-	}, [loadConfig]);
-
-	const loadConfig = async () => {
+	const loadConfig = useCallback(async () => {
 		try {
 			const res = await fetch("/api/settings/ip-filter");
 			if (res.ok) setConfig(await res.json());
@@ -36,7 +32,11 @@ export default function IPFilterSection() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		loadConfig();
+	}, [loadConfig]);
 
 	const updateConfig = async (updates) => {
 		try {

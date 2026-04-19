@@ -89,7 +89,7 @@ export default function APIPageClient({ machineId }) {
 		[t]
 	);
 
-	const fetchSearchProviders = async () => {
+	const fetchSearchProviders = useCallback(async () => {
 		try {
 			const res = await fetch("/api/search/providers");
 			if (res.ok) {
@@ -99,7 +99,7 @@ export default function APIPageClient({ machineId }) {
 		} catch {
 			// Search endpoint may not be available
 		}
-	};
+	}, []);
 
 	const fetchCloudflaredStatus = useCallback(
 		async (silent = false) => {
@@ -137,25 +137,7 @@ export default function APIPageClient({ machineId }) {
 		[translateOrFallback]
 	);
 
-	useEffect(() => {
-		Promise.allSettled([
-			loadCloudSettings(),
-			fetchModels(),
-			fetchProtocolStatus(),
-			fetchSearchProviders(),
-			fetchCloudflaredStatus(true),
-		]).finally(() => {
-			setLoading(false);
-		});
-	}, [
-		fetchCloudflaredStatus,
-		loadCloudSettings,
-		fetchProtocolStatus,
-		fetchSearchProviders,
-		fetchModels,
-	]);
-
-	const fetchModels = async () => {
+	const fetchModels = useCallback(async () => {
 		try {
 			const res = await fetch("/v1/models");
 			if (res.ok) {
@@ -165,9 +147,9 @@ export default function APIPageClient({ machineId }) {
 		} catch (e) {
 			console.log("Error fetching models:", e);
 		}
-	};
+	}, []);
 
-	const fetchProtocolStatus = async () => {
+	const fetchProtocolStatus = useCallback(async () => {
 		try {
 			const [mcpRes, a2aRes] = await Promise.allSettled([
 				fetch("/api/mcp/status"),
@@ -183,7 +165,7 @@ export default function APIPageClient({ machineId }) {
 		} catch {
 			// Ignore status failures; protocols panel has fallback text.
 		}
-	};
+	}, []);
 
 	// Categorize models by endpoint type
 	// Filter out parent models (models with parent field set) to avoid showing duplicates
@@ -238,7 +220,7 @@ export default function APIPageClient({ machineId }) {
 		}
 	};
 
-	const loadCloudSettings = async () => {
+	const loadCloudSettings = useCallback(async () => {
 		try {
 			const res = await fetch("/api/settings");
 			if (res.ok) {
@@ -257,7 +239,25 @@ export default function APIPageClient({ machineId }) {
 		} catch (error) {
 			console.log("Error loading cloud settings:", error);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		Promise.allSettled([
+			loadCloudSettings(),
+			fetchModels(),
+			fetchProtocolStatus(),
+			fetchSearchProviders(),
+			fetchCloudflaredStatus(true),
+		]).finally(() => {
+			setLoading(false);
+		});
+	}, [
+		fetchCloudflaredStatus,
+		loadCloudSettings,
+		fetchProtocolStatus,
+		fetchSearchProviders,
+		fetchModels,
+	]);
 
 	const handleCloudToggle = (checked) => {
 		if (checked) {

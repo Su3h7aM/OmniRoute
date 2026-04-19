@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
@@ -174,7 +174,7 @@ export default function ProxyConfigModal({
 		loadProxy();
 	}, [isOpen, level, levelId, t, resetFields]);
 
-	const resetFields = () => {
+	const resetFields = useCallback(() => {
 		setProxyType(PROXY_TYPES[0]?.value || "http");
 		setHost("");
 		setPort("");
@@ -182,7 +182,7 @@ export default function ProxyConfigModal({
 		setPassword("");
 		setShowAuth(false);
 		setFormError(null);
-	};
+	}, []);
 
 	const handleSave = async () => {
 		if (mode === "saved" && !selectedProxyId) {

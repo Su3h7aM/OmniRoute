@@ -251,7 +251,7 @@ export default function BackgroundDegradationTab() {
 						<div className="flex flex-wrap gap-2">
 							{(config.detectionPatterns || []).map((pattern, idx) => (
 								<span
-									key={idx}
+									key={pattern}
 									className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20"
 								>
 									{pattern}

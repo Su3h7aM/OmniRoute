@@ -631,14 +631,6 @@ export default function CombosPage() {
 	}, [intelligentCombos, selectedIntelligentComboId]);
 
 	useEffect(() => {
-		fetchData();
-		fetch("/api/settings/proxy")
-			.then((r) => (r.ok ? r.json() : null))
-			.then((c) => setProxyConfig(c))
-			.catch(() => {});
-	}, [fetchData]);
-
-	useEffect(() => {
 		try {
 			if (globalThis.localStorage?.getItem(COMBO_USAGE_GUIDE_STORAGE_KEY) === "1") {
 				setShowUsageGuide(false);
@@ -676,6 +668,14 @@ export default function CombosPage() {
 			setLoading(false);
 		}
 	};
+
+	useEffect(() => {
+		fetchData();
+		fetch("/api/settings/proxy")
+			.then((r) => (r.ok ? r.json() : null))
+			.then((c) => setProxyConfig(c))
+			.catch(() => {});
+	}, [fetchData]);
 
 	const handleCreate = async (data) => {
 		try {

@@ -160,7 +160,7 @@ function ImageResultsInline({ data }: { data: any }) {
 					if (!src) return null;
 					return (
 						<div
-							key={i}
+							key={img.url || img.b64_json || `image-${i + 1}`}
 							className="relative group rounded-lg overflow-hidden border border-border"
 						>
 							{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -502,10 +502,14 @@ export default function PlaygroundPage() {
 				<div className="p-4 flex flex-col sm:flex-row items-end gap-4">
 					{/* Endpoint — always first */}
 					<div className="flex-1 w-full">
-						<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+						<label
+							htmlFor="playground-endpoint"
+							className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+						>
 							{t("endpoint")}
 						</label>
 						<Select
+							id="playground-endpoint"
 							value={selectedEndpoint}
 							onChange={(e: any) => handleEndpointChange(e.target.value)}
 							options={endpointOptions}
@@ -516,10 +520,14 @@ export default function PlaygroundPage() {
 					{/* Provider — hidden in search mode */}
 					{!isSearchEndpoint && (
 						<div className="flex-1 w-full">
-							<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+							<label
+								htmlFor="playground-provider"
+								className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+							>
 								{t("provider")}
 							</label>
 							<Select
+								id="playground-provider"
 								value={selectedProvider}
 								onChange={(e: any) => handleProviderChange(e.target.value)}
 								options={providers}
@@ -531,10 +539,14 @@ export default function PlaygroundPage() {
 					{/* Model — hidden in search mode */}
 					{!isSearchEndpoint && (
 						<div className="flex-1 w-full">
-							<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+							<label
+								htmlFor="playground-model"
+								className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+							>
 								{t("model")}
 							</label>
 							<Select
+								id="playground-model"
 								value={selectedModel}
 								onChange={(e: any) => handleModelChange(e.target.value)}
 								options={filteredModels}
@@ -546,10 +558,14 @@ export default function PlaygroundPage() {
 					{/* Account/Key — always shown when provider is selected */}
 					{!isSearchEndpoint && (
 						<div className="flex-1 w-full">
-							<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+							<label
+								htmlFor="playground-account-key"
+								className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+							>
 								{t("accountKey")}
 							</label>
 							<Select
+								id="playground-account-key"
 								value={selectedConnection}
 								onChange={(e: any) => setSelectedConnection(e.target.value)}
 								options={[
@@ -669,7 +685,7 @@ export default function PlaygroundPage() {
 											<div className="flex gap-2 mt-2 flex-wrap">
 												{uploadedImages.map((src, i) => (
 													<div
-														key={i}
+														key={src}
 														className="relative group size-16 rounded overflow-hidden border border-border"
 													>
 														{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -843,7 +859,13 @@ export default function PlaygroundPage() {
 												src={audioUrl}
 												className="w-full rounded-lg"
 												autoPlay
-											/>
+											>
+												<track
+													kind="captions"
+													label="Captions unavailable"
+													srcLang="en"
+												/>
+											</audio>
 											<a
 												href={audioUrl}
 												download="speech.mp3"

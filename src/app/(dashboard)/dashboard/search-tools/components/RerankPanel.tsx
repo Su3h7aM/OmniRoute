@@ -110,10 +110,14 @@ export default function RerankPanel({ query, results, onClose }: RerankPanelProp
 					<>
 						<div className="flex gap-2 items-end mb-3">
 							<div className="flex-1">
-								<label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+								<label
+									htmlFor="rerank-model"
+									className="block text-[10px] text-text-muted uppercase tracking-wider mb-1"
+								>
 									{t("rerankModel")}
 								</label>
 								<Select
+									id="rerank-model"
 									value={selectedModel}
 									onChange={(e: any) => setSelectedModel(e.target.value)}
 									options={models}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, Button, Badge, Modal, Input, ModelSelectModal } from "@/shared/components";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -32,14 +32,7 @@ export default function AntigravityToolCard({
 		}
 	}, [apiKeys, selectedApiKey]);
 
-	useEffect(() => {
-		if (isExpanded && !status) {
-			fetchStatus();
-			loadSavedMappings();
-		}
-	}, [isExpanded, status, loadSavedMappings, fetchStatus]);
-
-	const loadSavedMappings = async () => {
+	const loadSavedMappings = useCallback(async () => {
 		try {
 			const res = await fetch(`/api/cli-tools/antigravity-mitm/alias?tool=${tool.id}`);
 			if (res.ok) {
@@ -53,9 +46,9 @@ export default function AntigravityToolCard({
 		} catch (error) {
 			console.log("Error loading saved mappings:", error);
 		}
-	};
+	}, [tool.id]);
 
-	const fetchStatus = async () => {
+	const fetchStatus = useCallback(async () => {
 		try {
 			const res = await fetch("/api/cli-tools/antigravity-mitm");
 			if (res.ok) {
@@ -66,7 +59,14 @@ export default function AntigravityToolCard({
 			console.log("Error fetching status:", error);
 			setStatus({ running: false });
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (isExpanded && !status) {
+			fetchStatus();
+			loadSavedMappings();
+		}
+	}, [isExpanded, status, loadSavedMappings, fetchStatus]);
 
 	// Windows uses UAC dialog, no sudo needed
 	const isWindows = typeof navigator !== "undefined" && navigator.userAgent?.includes("Windows");
@@ -207,8 +207,9 @@ export default function AntigravityToolCard({
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -246,7 +247,7 @@ export default function AntigravityToolCard({
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-4 pt-4 border-t border-border flex flex-col gap-4">

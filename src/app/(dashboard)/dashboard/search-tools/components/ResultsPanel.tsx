@@ -168,7 +168,7 @@ export default function ResultsPanel({
 					{/* Results list */}
 					{response.results.map((r, i) => (
 						<div
-							key={i}
+							key={r.url || r.id || r.title || `${response.provider}-${i + 1}`}
 							className="border-l-[3px] border-l-primary p-3 bg-surface rounded-r-lg border border-border"
 						>
 							<div className="flex justify-between items-start">

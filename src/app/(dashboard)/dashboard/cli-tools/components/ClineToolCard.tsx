@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
@@ -61,14 +61,6 @@ export default function ClineToolCard({
 	}, [apiKeys, selectedApiKey]);
 
 	useEffect(() => {
-		if (isExpanded && !clineStatus) {
-			checkClineStatus();
-			fetchModelAliases();
-			fetchBackups();
-		}
-	}, [isExpanded, clineStatus, fetchModelAliases, fetchBackups, checkClineStatus]);
-
-	useEffect(() => {
 		if (clineStatus?.settings && !hasInitializedModel.current) {
 			const currentModel = clineStatus.settings.openAiModelId;
 			if (currentModel) {
@@ -78,7 +70,7 @@ export default function ClineToolCard({
 		}
 	}, [clineStatus]);
 
-	const fetchModelAliases = async () => {
+	const fetchModelAliases = useCallback(async () => {
 		try {
 			const res = await fetch("/api/models/alias");
 			if (res.ok) {
@@ -88,9 +80,9 @@ export default function ClineToolCard({
 		} catch {
 			/* ignore */
 		}
-	};
+	}, []);
 
-	const fetchBackups = async () => {
+	const fetchBackups = useCallback(async () => {
 		try {
 			const res = await fetch("/api/cli-tools/backups?tool=cline");
 			if (res.ok) {
@@ -100,7 +92,7 @@ export default function ClineToolCard({
 		} catch {
 			/* ignore */
 		}
-	};
+	}, []);
 
 	const handleRestoreBackup = async (backupId) => {
 		setRestoringBackup(backupId);
@@ -125,7 +117,7 @@ export default function ClineToolCard({
 		}
 	};
 
-	const checkClineStatus = async () => {
+	const checkClineStatus = useCallback(async () => {
 		setCheckingCline(true);
 		try {
 			const res = await fetch("/api/cli-tools/cline-settings");
@@ -136,7 +128,15 @@ export default function ClineToolCard({
 		} finally {
 			setCheckingCline(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (isExpanded && !clineStatus) {
+			checkClineStatus();
+			fetchModelAliases();
+			fetchBackups();
+		}
+	}, [isExpanded, clineStatus, fetchModelAliases, fetchBackups, checkClineStatus]);
 
 	const getEffectiveBaseUrl = () => {
 		if (customBaseUrl) return customBaseUrl;

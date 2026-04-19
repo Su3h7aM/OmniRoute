@@ -188,7 +188,7 @@ export default function FallbackChainsEditor() {
 									<div className="flex gap-1.5 flex-wrap">
 										{(Array.isArray(chain) ? chain : []).map((entry, i) => (
 											<span
-												key={`${entry.provider}-${i}`}
+												key={`${entry.provider}-${entry.model || entry.connectionId || "entry"}`}
 												className="text-xs px-2 py-0.5 rounded-full font-medium"
 												style={{
 													backgroundColor: `${CHAIN_COLORS[i % CHAIN_COLORS.length]}20`,
