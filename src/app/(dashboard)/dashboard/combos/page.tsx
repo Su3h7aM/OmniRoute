@@ -492,6 +492,24 @@ function getModelString(entry) {
 	return entry.model;
 }
 
+function getComboEntryKey(entry) {
+	if (typeof entry === "string") return entry;
+	if (entry?.kind === "combo-ref") {
+		return [
+			"combo-ref",
+			entry.comboName || "",
+			entry.weight || 0,
+			entry.connectionId || "",
+		].join("::");
+	}
+	return [
+		entry?.providerId || "",
+		entry?.model || "",
+		entry?.connectionId || "",
+		entry?.weight || 0,
+	].join("::");
+}
+
 function findProviderNodeByIdentifier(providerNodes, providerIdentifier) {
 	return (providerNodes || []).find(
 		(node) => node.id === providerIdentifier || node.prefix === providerIdentifier
@@ -640,7 +658,7 @@ export default function CombosPage() {
 		}
 	}, []);
 
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			const [combosRes, providersRes, metricsRes, nodesRes] = await Promise.all([
 				fetch("/api/combos"),
@@ -667,7 +685,7 @@ export default function CombosPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchData();
@@ -1119,16 +1137,11 @@ export default function CombosPage() {
 					</div>
 				</Card>
 			) : (
-				<div className="flex flex-col gap-4">
+				<ul className="flex flex-col gap-4">
 					{filteredCombos.map((combo, index) => (
-						<div
+						<li
 							key={combo.id}
 							data-testid={`combo-card-${combo.id}`}
-							onClick={() => {
-								if (isIntelligentStrategy(combo?.strategy)) {
-									setSelectedIntelligentComboId(combo.id);
-								}
-							}}
 							onDragOver={(e) => handleComboDragOver(e, index)}
 							onDrop={(e) => handleComboDrop(e, index)}
 						>
@@ -1157,9 +1170,9 @@ export default function CombosPage() {
 								onDragStart={(e) => handleComboDragStart(e, index)}
 								onDragEnd={handleComboDragEnd}
 							/>
-						</div>
+						</li>
 					))}
-				</div>
+				</ul>
 			)}
 
 			{/* Test Results Modal */}
@@ -1392,9 +1405,9 @@ function StrategyRecommendationsPanel({ strategy, onApply, showNudge }) {
 			</div>
 
 			<div className="mt-2 grid grid-cols-1 gap-1">
-				{tips.map((tip, index) => (
+				{tips.map((tip) => (
 					<div
-						key={`${strategy}-tip-${index + 1}`}
+						key={`${strategy}-${tip}`}
 						className="flex items-start gap-1 rounded-md bg-black/[0.02] dark:bg-white/[0.03] px-1.5 py-1"
 					>
 						<span className="material-symbols-outlined text-[12px] text-primary mt-0.5">
@@ -1424,7 +1437,7 @@ function StrategyRecommendationsPanel({ strategy, onApply, showNudge }) {
 function FieldLabelWithHelp({ label, help }) {
 	return (
 		<div className="flex items-center gap-1 mb-0.5">
-			<label className="text-[10px] text-text-muted">{label}</label>
+			<span className="text-[10px] text-text-muted">{label}</span>
 			<Tooltip content={help}>
 				<span className="material-symbols-outlined text-[12px] text-text-muted cursor-help">
 					help
@@ -1501,9 +1514,9 @@ function ComboReadinessPanel({ checks, blockers }) {
 						)}
 					</p>
 					<div className="mt-1 flex flex-col gap-0.5">
-						{blockers.map((blocker, index) => (
+						{blockers.map((blocker) => (
 							<p
-								key={`${blocker}-${index}`}
+								key={blocker}
 								className="text-[10px] text-amber-700 dark:text-amber-300"
 							>
 								• {blocker}
@@ -1632,11 +1645,11 @@ function ComboCard({
 									{t("noModels")}
 								</span>
 							) : (
-								models.slice(0, 3).map((entry, index) => {
+								models.slice(0, 3).map((entry) => {
 									const { weight } = normalizeModelEntry(entry);
 									return (
 										<code
-											key={index}
+											key={getComboEntryKey(entry)}
 											className="text-[10px] font-mono bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded text-text-muted"
 										>
 											{formatComboEntryDisplay(entry, {
@@ -1789,9 +1802,9 @@ function TestResultsView({ results }) {
 					</div>
 				</div>
 			)}
-			{results.results?.map((r, i) => (
+			{results.results?.map((r) => (
 				<div
-					key={i}
+					key={`${r.stepId || ""}::${r.connectionId || ""}::${r.label || ""}::${r.model || ""}::${r.status}`}
 					title={r.error || undefined}
 					className="flex items-center gap-2 text-xs px-2 py-1.5 rounded bg-black/[0.02] dark:bg-white/[0.02]"
 				>
@@ -2143,7 +2156,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 		);
 	}
 
-	const fetchModalData = async () => {
+	const fetchModalData = useCallback(async () => {
 		setBuilderLoading(true);
 		try {
 			const [aliasesRes, nodesRes, pricingRes, builderRes] = await Promise.all([
@@ -2182,7 +2195,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 		} finally {
 			setBuilderLoading(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isOpen) fetchModalData();
@@ -2815,9 +2828,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 					{builderStage === "strategy" && (
 						<div>
 							<div className="flex items-center gap-1 mb-1.5">
-								<label className="text-sm font-medium">
-									{t("routingStrategy")}
-								</label>
+								<span className="text-sm font-medium">{t("routingStrategy")}</span>
 								<Tooltip content={getStrategyDescription(t, strategy)}>
 									<span className="material-symbols-outlined text-[13px] text-text-muted cursor-help">
 										help
@@ -2887,7 +2898,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 					{builderStage === "steps" && (
 						<div>
 							<div className="flex items-center justify-between mb-1.5">
-								<label className="text-sm font-medium">{t("models")}</label>
+								<span className="text-sm font-medium">{t("models")}</span>
 								{strategy === "weighted" && models.length > 1 && (
 									<button
 										type="button"
@@ -2932,10 +2943,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
 									<div>
-										<label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+										<label
+											htmlFor="combo-builder-provider"
+											className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1"
+										>
 											1. {getI18nOrFallback(t, "builderProvider", "Provider")}
 										</label>
 										<select
+											id="combo-builder-provider"
 											value={builderProviderId}
 											onChange={handleBuilderProviderChange}
 											data-testid="combo-builder-provider"
@@ -2968,10 +2983,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 									</div>
 
 									<div>
-										<label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+										<label
+											htmlFor="combo-builder-model"
+											className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1"
+										>
 											2. {getI18nOrFallback(t, "builderModel", "Model")}
 										</label>
 										<select
+											id="combo-builder-model"
 											value={builderModelId}
 											onChange={handleBuilderModelChange}
 											disabled={!selectedBuilderProvider}
@@ -3003,10 +3022,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 									</div>
 
 									<div>
-										<label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+										<label
+											htmlFor="combo-builder-account"
+											className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1"
+										>
 											3. {getI18nOrFallback(t, "builderAccount", "Account")}
 										</label>
 										<select
+											id="combo-builder-account"
 											value={builderConnectionId}
 											onChange={handleBuilderConnectionChange}
 											disabled={!selectedBuilderModel}
@@ -3081,7 +3104,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 								</div>
 
 								<div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5">
-									<label className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1">
+									<label
+										htmlFor="combo-builder-reference"
+										className="text-[10px] font-medium uppercase tracking-wide text-text-muted block mb-1"
+									>
 										{getI18nOrFallback(
 											t,
 											"builderComboRef",
@@ -3090,6 +3116,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 									</label>
 									<div className="flex flex-col sm:flex-row gap-2">
 										<select
+											id="combo-builder-reference"
 											value={builderComboRefName}
 											onChange={(e) => setBuilderComboRefName(e.target.value)}
 											className="flex-1 text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
@@ -3139,10 +3166,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 									<p className="text-xs text-text-muted">{t("noModelsYet")}</p>
 								</div>
 							) : (
-								<div className="flex flex-col gap-1 max-h-[240px] overflow-y-auto">
+								<ul className="flex flex-col gap-1 max-h-[240px] overflow-y-auto">
 									{models.map((entry, index) => (
-										<div
-											key={`${entry.model}-${index}`}
+										<li
+											key={getComboEntryKey(entry)}
 											draggable
 											onDragStart={(e) => handleDragStart(e, index)}
 											onDragEnd={handleDragEnd}
@@ -3292,9 +3319,9 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 													close
 												</span>
 											</button>
-										</div>
+										</li>
 									))}
-								</div>
+								</ul>
 							)}
 
 							{/* Weight total indicator */}
@@ -3730,10 +3757,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
 							{/* System Message Override */}
 							<div>
-								<label className="text-[11px] font-medium text-text-muted block mb-0.5">
+								<label
+									htmlFor="combo-agent-system-message"
+									className="text-[11px] font-medium text-text-muted block mb-0.5"
+								>
 									{t("agentFeaturesSystemMessageOverride")}
 								</label>
 								<textarea
+									id="combo-agent-system-message"
 									rows={2}
 									value={agentSystemMessage}
 									onChange={(e) => setAgentSystemMessage(e.target.value)}
@@ -3747,10 +3778,14 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
 							{/* Tool Filter Regex */}
 							<div>
-								<label className="text-[11px] font-medium text-text-muted block mb-0.5">
+								<label
+									htmlFor="combo-agent-tool-filter"
+									className="text-[11px] font-medium text-text-muted block mb-0.5"
+								>
 									{t("agentFeaturesToolFilterRegex")}
 								</label>
 								<input
+									id="combo-agent-tool-filter"
 									type="text"
 									value={agentToolFilter}
 									onChange={(e) => setAgentToolFilter(e.target.value)}
@@ -3765,7 +3800,10 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 							{/* Context Cache Protection */}
 							<div className="flex items-center justify-between gap-2">
 								<div>
-									<label className="text-[11px] font-medium text-text-muted block">
+									<label
+										htmlFor="combo-agent-context-cache"
+										className="text-[11px] font-medium text-text-muted block"
+									>
 										{t("agentFeaturesContextCacheProtection")}
 									</label>
 									<p className="text-[10px] text-text-muted">
@@ -3773,6 +3811,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 									</p>
 								</div>
 								<input
+									id="combo-agent-context-cache"
 									type="checkbox"
 									checked={agentContextCache}
 									onChange={(e) => setAgentContextCache(e.target.checked)}
@@ -3966,7 +4005,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 									) : (
 										models.map((entry, index) => (
 											<div
-												key={`${getModelString(entry) || "entry"}-${index}`}
+												key={getComboEntryKey(entry)}
 												className="rounded-md border border-black/6 dark:border-white/6 bg-white/70 dark:bg-white/[0.03] px-2.5 py-2"
 											>
 												<div className="flex items-start gap-2">
@@ -4106,7 +4145,7 @@ function WeightTotalBar({ models }) {
 					if (!m.weight) return null;
 					return (
 						<div
-							key={i}
+							key={getComboEntryKey(m)}
 							className={`${colors[i % colors.length]} transition-all duration-300`}
 							style={{ width: `${Math.min(m.weight, 100)}%` }}
 						/>
@@ -4119,7 +4158,7 @@ function WeightTotalBar({ models }) {
 						(m, i) =>
 							m.weight > 0 && (
 								<span
-									key={i}
+									key={getComboEntryKey(m)}
 									className="flex items-center gap-0.5 text-[9px] text-text-muted"
 								>
 									<span
