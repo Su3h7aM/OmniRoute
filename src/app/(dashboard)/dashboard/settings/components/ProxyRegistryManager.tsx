@@ -575,10 +575,14 @@ export default function ProxyRegistryManager() {
 				<div className="flex flex-col gap-3">
 					<div className="grid grid-cols-2 gap-3">
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">
+							<label
+								htmlFor="proxy-registry-name"
+								className="text-xs text-text-muted mb-1 block"
+							>
 								{t("labelName")}
 							</label>
 							<input
+								id="proxy-registry-name"
 								data-testid="proxy-registry-name-input"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.name}
@@ -588,8 +592,14 @@ export default function ProxyRegistryManager() {
 							/>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Type</label>
+							<label
+								htmlFor="proxy-registry-type"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Type
+							</label>
 							<select
+								id="proxy-registry-type"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.type}
 								onChange={(e) =>
@@ -602,8 +612,14 @@ export default function ProxyRegistryManager() {
 							</select>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Host</label>
+							<label
+								htmlFor="proxy-registry-host"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Host
+							</label>
 							<input
+								id="proxy-registry-host"
 								data-testid="proxy-registry-host-input"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.host}
@@ -613,8 +629,14 @@ export default function ProxyRegistryManager() {
 							/>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Port</label>
+							<label
+								htmlFor="proxy-registry-port"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Port
+							</label>
 							<input
+								id="proxy-registry-port"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.port}
 								onChange={(e) =>
@@ -623,8 +645,14 @@ export default function ProxyRegistryManager() {
 							/>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Username</label>
+							<label
+								htmlFor="proxy-registry-username"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Username
+							</label>
 							<input
+								id="proxy-registry-username"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.username}
 								placeholder={
@@ -636,8 +664,14 @@ export default function ProxyRegistryManager() {
 							/>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Password</label>
+							<label
+								htmlFor="proxy-registry-password"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Password
+							</label>
 							<input
+								id="proxy-registry-password"
 								type="password"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.password}
@@ -650,8 +684,14 @@ export default function ProxyRegistryManager() {
 							/>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Region</label>
+							<label
+								htmlFor="proxy-registry-region"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Region
+							</label>
 							<input
+								id="proxy-registry-region"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.region}
 								onChange={(e) =>
@@ -660,8 +700,14 @@ export default function ProxyRegistryManager() {
 							/>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Status</label>
+							<label
+								htmlFor="proxy-registry-status"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Status
+							</label>
 							<select
+								id="proxy-registry-status"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={form.status}
 								onChange={(e) =>
@@ -675,8 +721,14 @@ export default function ProxyRegistryManager() {
 					</div>
 
 					<div>
-						<label className="text-xs text-text-muted mb-1 block">Notes</label>
+						<label
+							htmlFor="proxy-registry-notes"
+							className="text-xs text-text-muted mb-1 block"
+						>
+							Notes
+						</label>
 						<textarea
+							id="proxy-registry-notes"
 							className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 							value={form.notes}
 							onChange={(e) =>
@@ -708,8 +760,14 @@ export default function ProxyRegistryManager() {
 				<div className="flex flex-col gap-3">
 					<div className="grid grid-cols-2 gap-3">
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Scope</label>
+							<label
+								htmlFor="proxy-registry-bulk-scope"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Scope
+							</label>
 							<select
+								id="proxy-registry-bulk-scope"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={bulkScope}
 								onChange={(e) => setBulkScope(e.target.value)}
@@ -721,8 +779,14 @@ export default function ProxyRegistryManager() {
 							</select>
 						</div>
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">Proxy</label>
+							<label
+								htmlFor="proxy-registry-bulk-proxy"
+								className="text-xs text-text-muted mb-1 block"
+							>
+								Proxy
+							</label>
 							<select
+								id="proxy-registry-bulk-proxy"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								value={bulkProxyId}
 								onChange={(e) => setBulkProxyId(e.target.value)}
@@ -739,10 +803,14 @@ export default function ProxyRegistryManager() {
 
 					{bulkScope !== "global" && (
 						<div>
-							<label className="text-xs text-text-muted mb-1 block">
+							<label
+								htmlFor="proxy-registry-bulk-scopeids"
+								className="text-xs text-text-muted mb-1 block"
+							>
 								Scope IDs (comma or newline)
 							</label>
 							<textarea
+								id="proxy-registry-bulk-scopeids"
 								data-testid="proxy-registry-bulk-scopeids-input"
 								className="w-full px-3 py-2 rounded bg-bg-subtle border border-border"
 								rows={5}

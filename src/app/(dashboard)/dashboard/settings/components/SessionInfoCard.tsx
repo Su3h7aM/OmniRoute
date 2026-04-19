@@ -109,8 +109,8 @@ export default function SessionInfoCard() {
 				<h3 className="text-lg font-semibold">{t("session")}</h3>
 			</div>
 
-			<div className="flex flex-col gap-3" role="list" aria-label={t("sessionDetailsAria")}>
-				<div className="flex justify-between items-center text-sm" role="listitem">
+			<ul className="flex flex-col gap-3" aria-label={t("sessionDetailsAria")}>
+				<li className="flex justify-between items-center text-sm">
 					<span className="text-text-muted">{t("status")}</span>
 					<span className="flex items-center gap-1.5">
 						<span
@@ -119,27 +119,27 @@ export default function SessionInfoCard() {
 						/>
 						{session?.authenticated ? t("authenticated") : t("guest")}
 					</span>
-				</div>
+				</li>
 
 				{session?.loginTime && (
-					<div className="flex justify-between items-center text-sm" role="listitem">
+					<li className="flex justify-between items-center text-sm">
 						<span className="text-text-muted">{t("loginTime")}</span>
 						<span className="font-mono text-xs">{session.loginTime}</span>
-					</div>
+					</li>
 				)}
 
-				<div className="flex justify-between items-center text-sm" role="listitem">
+				<li className="flex justify-between items-center text-sm">
 					<span className="text-text-muted">{t("sessionAge")}</span>
 					<span className="font-mono text-xs">{session?.sessionAge}</span>
-				</div>
+				</li>
 
-				<div className="flex justify-between items-center text-sm" role="listitem">
+				<li className="flex justify-between items-center text-sm">
 					<span className="text-text-muted">{t("browser")}</span>
 					<span className="font-mono text-xs truncate max-w-[200px]">
 						{session?.userAgent}
 					</span>
-				</div>
-			</div>
+				</li>
+			</ul>
 
 			<div className="flex gap-3 mt-4 pt-4 border-t border-border/50">
 				<Button variant="secondary" onClick={handleClearStorage}>

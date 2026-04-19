@@ -34,6 +34,7 @@ export default function ChatTesterMode() {
 	const [pipeline, setPipeline] = useState(null);
 	const [expandedStep, setExpandedStep] = useState(null);
 	const messagesEndRef = useRef(null);
+	const messageKeyCounterRef = useRef(0);
 
 	// Pick a smart default model when format changes or models finish loading
 	useEffect(() => {
@@ -51,7 +52,10 @@ export default function ChatTesterMode() {
 		const userMessage = message.trim();
 		setMessage("");
 		setSending(true);
-		setChatHistory((prev) => [...prev, { role: "user", content: userMessage }]);
+		setChatHistory((prev) => [
+			...prev,
+			{ role: "user", content: userMessage, _key: `msg-${messageKeyCounterRef.current++}` },
+		]);
 
 		const steps = [];
 
@@ -200,6 +204,7 @@ export default function ChatTesterMode() {
 						content: t("errorMessage", {
 							message: errData.error || t("requestFailed"),
 						}),
+						_key: `msg-${messageKeyCounterRef.current++}`,
 					},
 				]);
 			} else {
@@ -229,7 +234,11 @@ export default function ChatTesterMode() {
 				const assistantText = extractAssistantText(fullResponse);
 				setChatHistory((prev) => [
 					...prev,
-					{ role: "assistant", content: assistantText || t("noTextExtracted") },
+					{
+						role: "assistant",
+						content: assistantText || t("noTextExtracted"),
+						_key: `msg-${messageKeyCounterRef.current++}`,
+					},
 				]);
 			}
 		} catch (err) {
@@ -243,7 +252,11 @@ export default function ChatTesterMode() {
 			});
 			setChatHistory((prev) => [
 				...prev,
-				{ role: "assistant", content: t("errorMessage", { message: err.message }) },
+				{
+					role: "assistant",
+					content: t("errorMessage", { message: err.message }),
+					_key: `msg-${messageKeyCounterRef.current++}`,
+				},
 			]);
 		}
 
@@ -278,10 +291,14 @@ export default function ChatTesterMode() {
 						<div className="p-4 flex flex-col gap-3">
 							<div className="flex flex-col sm:flex-row gap-3">
 								<div className="flex-1">
-									<label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
+									<label
+										htmlFor="chat-tester-client-format"
+										className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider"
+									>
 										{t("clientFormat")}
 									</label>
 									<Select
+										id="chat-tester-client-format"
 										value={clientFormat}
 										onChange={(e) => setClientFormat(e.target.value)}
 										options={FORMAT_OPTIONS.filter((o) =>
@@ -295,10 +312,14 @@ export default function ChatTesterMode() {
 									/>
 								</div>
 								<div className="flex-1">
-									<label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
+									<label
+										htmlFor="chat-tester-provider"
+										className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider"
+									>
 										{t("provider")}
 									</label>
 									<Select
+										id="chat-tester-provider"
 										value={provider}
 										onChange={(e) => setProvider(e.target.value)}
 										options={providerOptions}
@@ -306,11 +327,15 @@ export default function ChatTesterMode() {
 								</div>
 							</div>
 							<div>
-								<label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
+								<label
+									htmlFor="chat-tester-model"
+									className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider"
+								>
 									{t("model")}
 								</label>
 								<div className="relative">
 									<input
+										id="chat-tester-model"
 										type="text"
 										value={model}
 										onChange={(e) => setModel(e.target.value)}
@@ -346,9 +371,9 @@ export default function ChatTesterMode() {
 									</p>
 								</div>
 							)}
-							{chatHistory.map((msg, i) => (
+							{chatHistory.map((msg) => (
 								<div
-									key={i}
+									key={msg._key}
 									className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
 								>
 									<div

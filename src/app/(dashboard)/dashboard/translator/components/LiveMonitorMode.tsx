@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Badge } from "@/shared/components";
 import { FORMAT_META } from "../exampleTemplates";
 
@@ -21,7 +21,7 @@ export default function LiveMonitorMode() {
 	const notAvailable = t("notAvailableSymbol");
 	const formatLatency = (value) => t("millisecondsShort", { value });
 
-	const fetchHistory = async () => {
+	const fetchHistory = useCallback(async () => {
 		try {
 			const res = await fetch("/api/translator/history?limit=50");
 			if (res.ok) {
@@ -33,7 +33,7 @@ export default function LiveMonitorMode() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchHistory();

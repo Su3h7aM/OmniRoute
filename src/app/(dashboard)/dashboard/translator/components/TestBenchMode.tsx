@@ -176,10 +176,14 @@ export default function TestBenchMode() {
 				<div className="p-4 flex flex-col gap-4">
 					<div className="flex flex-col sm:flex-row items-end gap-4 min-w-0">
 						<div className="flex-1 w-full">
-							<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+							<label
+								htmlFor="testbench-source"
+								className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+							>
 								{t("source")}
 							</label>
 							<Select
+								id="testbench-source"
 								value={sourceFormat}
 								onChange={(e) => {
 									setSourceFormat(e.target.value);
@@ -198,10 +202,14 @@ export default function TestBenchMode() {
 							</span>
 						</div>
 						<div className="flex-1 w-full">
-							<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+							<label
+								htmlFor="testbench-target-provider"
+								className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+							>
 								{t("targetProvider")}
 							</label>
 							<Select
+								id="testbench-target-provider"
 								value={provider}
 								onChange={(e) => {
 									setProvider(e.target.value);
@@ -221,11 +229,15 @@ export default function TestBenchMode() {
 						</Button>
 					</div>
 					<div>
-						<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+						<label
+							htmlFor="testbench-model"
+							className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+						>
 							{t("model")}
 						</label>
 						<div className="relative">
 							<input
+								id="testbench-model"
 								type="text"
 								value={model}
 								onChange={(e) => setModel(e.target.value)}

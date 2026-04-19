@@ -128,7 +128,10 @@ export default function PlaygroundMode() {
 				<div className="p-4 flex flex-col sm:flex-row items-center gap-4">
 					{/* Source Format */}
 					<div className="flex-1 w-full">
-						<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+						<label
+							htmlFor="translator-playground-source"
+							className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+						>
 							{t("source")}
 						</label>
 						<div className="flex items-center gap-2">
@@ -138,6 +141,7 @@ export default function PlaygroundMode() {
 								{srcMeta.icon}
 							</span>
 							<Select
+								id="translator-playground-source"
 								value={sourceFormat}
 								onChange={(e) => {
 									setSourceFormat(e.target.value);
@@ -166,7 +170,10 @@ export default function PlaygroundMode() {
 
 					{/* Target Format */}
 					<div className="flex-1 w-full">
-						<label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
+						<label
+							htmlFor="translator-playground-target"
+							className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider"
+						>
 							{t("target")}
 						</label>
 						<div className="flex items-center gap-2">
@@ -176,6 +183,7 @@ export default function PlaygroundMode() {
 								{tgtMeta.icon}
 							</span>
 							<Select
+								id="translator-playground-target"
 								value={targetFormat}
 								onChange={(e) => setTargetFormat(e.target.value)}
 								options={FORMAT_OPTIONS}
