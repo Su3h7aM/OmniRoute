@@ -13,11 +13,18 @@ const providerNodesRoute = await import("../../src/app/api/provider-nodes/route.
 const { OPENAI_COMPATIBLE_PREFIX, ANTHROPIC_COMPATIBLE_PREFIX, CLAUDE_CODE_COMPATIBLE_PREFIX } =
 	await import("../../src/shared/constants/providers.ts");
 
+function getActiveDataDir() {
+	const activeSqliteFile = typeof core.SQLITE_FILE === "string" ? core.SQLITE_FILE : null;
+	return activeSqliteFile ? path.dirname(activeSqliteFile) : TEST_DATA_DIR;
+}
+
 async function resetStorage() {
 	delete process.env.ENABLE_CC_COMPATIBLE_PROVIDER;
 	core.resetDbInstance();
-	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
-	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+	const activeDataDir = getActiveDataDir();
+	fs.rmSync(activeDataDir, { recursive: true, force: true });
+	fs.mkdirSync(activeDataDir, { recursive: true });
+	process.env.DATA_DIR = activeDataDir;
 }
 
 function makeRequest(body) {
@@ -33,8 +40,11 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-	await resetStorage();
-	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	core.resetDbInstance();
+	fs.rmSync(getActiveDataDir(), { recursive: true, force: true });
+	if (getActiveDataDir() !== TEST_DATA_DIR) {
+		fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+	}
 });
 
 test("provider nodes route lists stored nodes and exposes the CC feature flag", async () => {

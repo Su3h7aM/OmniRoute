@@ -11,6 +11,7 @@ interface ToggleProps {
 	size?: "sm" | "md" | "lg";
 	className?: string;
 	title?: string;
+	stopPropagation?: boolean;
 }
 
 export default function Toggle({
@@ -21,6 +22,7 @@ export default function Toggle({
 	disabled = false,
 	size = "md",
 	className,
+	stopPropagation = false,
 }: ToggleProps) {
 	const sizes = {
 		sm: {
@@ -40,7 +42,11 @@ export default function Toggle({
 		},
 	};
 
-	const handleClick = () => {
+	const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+		if (stopPropagation) {
+			event.preventDefault();
+			event.stopPropagation();
+		}
 		if (!disabled && onChange) {
 			onChange(!checked);
 		}

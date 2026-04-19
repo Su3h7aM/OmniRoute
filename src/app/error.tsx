@@ -35,10 +35,7 @@ export default function Error({ error, reset }: ErrorProps) {
 				</p>
 			)}
 			{process.env.NODE_ENV === "development" && error?.message && (
-				<pre
-					className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs max-w-[600px] overflow-auto text-left mb-6"
-					aria-label="Error details"
-				>
+				<pre className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs max-w-[600px] overflow-auto text-left mb-6">
 					{error.message}
 					{error.stack && `\n\n${error.stack}`}
 				</pre>

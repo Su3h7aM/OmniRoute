@@ -882,14 +882,18 @@ export default function ProvidersPage() {
 			)}
 			{/* Test Results Modal */}
 			{testResults && (
-				<div
-					className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]"
-					onClick={() => setTestResults(null)}
-				>
-					<div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+				<div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
+					<button
+						type="button"
+						className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+						onClick={() => setTestResults(null)}
+						aria-label={tc("close")}
+					/>
 					<div
+						role="dialog"
+						aria-modal="true"
+						aria-label={t("testResults")}
 						className="relative bg-bg-primary border border-border rounded-xl w-full max-w-[600px] max-h-[80vh] overflow-y-auto shadow-2xl"
-						onClick={(e) => e.stopPropagation()}
 					>
 						<div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
 							<h3 className="font-semibold">{t("testResults")}</h3>
@@ -916,6 +920,7 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
 	const t = useTranslations("providers");
 	const tc = useTranslations("common");
 	const { connected, error, errorCode, errorTime, allDisabled } = stats;
+	const toggleLabel = allDisabled ? t("enableProvider") : t("disableProvider");
 
 	// (#529) Icon state replaced by ProviderIcon component (Lobehub + PNG + generic fallback)
 
@@ -988,21 +993,13 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
 					</div>
 					<div className="flex items-center gap-2">
 						{stats.total > 0 && (
-							<div
-								onClick={(e) => {
-									e.preventDefault();
-									e.stopPropagation();
-									onToggle(!!allDisabled);
-								}}
-								className=""
-							>
-								<Toggle
-									size="sm"
-									checked={!allDisabled}
-									onChange={() => {}}
-									title={allDisabled ? t("enableProvider") : t("disableProvider")}
-								/>
-							</div>
+							<Toggle
+								size="sm"
+								checked={!allDisabled}
+								onChange={() => onToggle(!!allDisabled)}
+								title={toggleLabel}
+								stopPropagation
+							/>
 						)}
 						<span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
 							chevron_right
@@ -1036,6 +1033,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
 	const t = useTranslations("providers");
 	const tc = useTranslations("common");
 	const { connected, error, errorCode, errorTime, allDisabled } = stats;
+	const toggleLabel = allDisabled ? t("enableProvider") : t("disableProvider");
 	const isCompatible = isOpenAICompatibleProvider(providerId);
 	const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
 	const isAnthropicCompatible =
@@ -1150,21 +1148,13 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
 					</div>
 					<div className="flex items-center gap-2">
 						{stats.total > 0 && (
-							<div
-								onClick={(e) => {
-									e.preventDefault();
-									e.stopPropagation();
-									onToggle(!!allDisabled);
-								}}
-								className=""
-							>
-								<Toggle
-									size="sm"
-									checked={!allDisabled}
-									onChange={() => {}}
-									title={allDisabled ? t("enableProvider") : t("disableProvider")}
-								/>
-							</div>
+							<Toggle
+								size="sm"
+								checked={!allDisabled}
+								onChange={() => onToggle(!!allDisabled)}
+								title={toggleLabel}
+								stopPropagation
+							/>
 						)}
 						<span className="material-symbols-outlined text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
 							chevron_right

@@ -395,9 +395,9 @@ export default function ProxyConfigModal({
 
 					{/* Proxy Type Selector */}
 					<div>
-						<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+						<p className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
 							{t("source")}
-						</label>
+						</p>
 						<div className="flex gap-2">
 							<button
 								type="button"
@@ -426,10 +426,14 @@ export default function ProxyConfigModal({
 
 					{mode === "saved" && (
 						<div>
-							<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+							<label
+								htmlFor="proxy-config-saved-proxy"
+								className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium"
+							>
 								{t("savedProxy")}
 							</label>
 							<select
+								id="proxy-config-saved-proxy"
 								value={selectedProxyId}
 								onChange={(e) => setSelectedProxyId(e.target.value)}
 								className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary"
@@ -447,9 +451,9 @@ export default function ProxyConfigModal({
 					{mode === "custom" && (
 						<>
 							<div>
-								<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+								<p className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
 									{t("proxyType")}
-								</label>
+								</p>
 								<div className="flex gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
 									{PROXY_TYPES.map((t) => (
 										<button
@@ -471,10 +475,14 @@ export default function ProxyConfigModal({
 							{/* Host + Port */}
 							<div className="grid grid-cols-3 gap-3">
 								<div className="col-span-2">
-									<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+									<label
+										htmlFor="proxy-config-host"
+										className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium"
+									>
 										{t("host")}
 									</label>
 									<input
+										id="proxy-config-host"
 										type="text"
 										value={host}
 										onChange={(e) => setHost(e.target.value)}
@@ -483,10 +491,14 @@ export default function ProxyConfigModal({
 									/>
 								</div>
 								<div>
-									<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+									<label
+										htmlFor="proxy-config-port"
+										className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium"
+									>
 										{t("port")}
 									</label>
 									<input
+										id="proxy-config-port"
 										type="text"
 										value={port}
 										onChange={(e) => setPort(e.target.value)}
@@ -511,10 +523,14 @@ export default function ProxyConfigModal({
 								{showAuth && (
 									<div className="grid grid-cols-2 gap-3 mt-3">
 										<div>
-											<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+											<label
+												htmlFor="proxy-config-username"
+												className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium"
+											>
 												{t("username")}
 											</label>
 											<input
+												id="proxy-config-username"
 												type="text"
 												value={username}
 												onChange={(e) => setUsername(e.target.value)}
@@ -523,10 +539,14 @@ export default function ProxyConfigModal({
 											/>
 										</div>
 										<div>
-											<label className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium">
+											<label
+												htmlFor="proxy-config-password"
+												className="text-xs text-text-muted mb-1.5 block uppercase tracking-wider font-medium"
+											>
 												{t("password")}
 											</label>
 											<input
+												id="proxy-config-password"
 												type="password"
 												value={password}
 												onChange={(e) => setPassword(e.target.value)}

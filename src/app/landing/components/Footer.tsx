@@ -27,10 +27,12 @@ export default function Footer() {
 								href="https://github.com/diegosouzapw/OmniRoute"
 								target="_blank"
 								rel="noopener noreferrer"
+								aria-label="GitHub"
 							>
 								<span className="material-symbols-outlined" aria-hidden="true">
 									code
 								</span>
+								<span className="sr-only">GitHub</span>
 							</a>
 						</div>
 					</div>
