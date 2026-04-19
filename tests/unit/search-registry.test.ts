@@ -203,7 +203,7 @@ test("computeCacheKey differs by max_results", () => {
 
 test("getOrCoalesce caches and returns on second call", async () => {
 	let callCount = 0;
-	const key = "test-cache-hit-" + Date.now();
+	const key = `test-cache-hit-${Date.now()}`;
 
 	const r1 = await getOrCoalesce(key, 60_000, async () => {
 		callCount++;
@@ -223,7 +223,7 @@ test("getOrCoalesce caches and returns on second call", async () => {
 
 test("getOrCoalesce coalesces concurrent requests", async () => {
 	let callCount = 0;
-	const key = "test-coalesce-" + Date.now();
+	const key = `test-coalesce-${Date.now()}`;
 
 	const fetchFn = async () => {
 		callCount++;
@@ -246,7 +246,7 @@ test("getOrCoalesce coalesces concurrent requests", async () => {
 
 test("getOrCoalesce respects TTL=0 (no caching)", async () => {
 	let callCount = 0;
-	const key = "test-no-cache-" + Date.now();
+	const key = `test-no-cache-${Date.now()}`;
 
 	await getOrCoalesce(key, 0, async () => {
 		callCount++;

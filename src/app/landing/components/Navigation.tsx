@@ -63,12 +63,14 @@ export default function Navigation() {
 				{/* CTA + Mobile menu */}
 				<div className="flex items-center gap-2 sm:gap-4 shrink-0">
 					<button
+						type="button"
 						onClick={() => router.push("/dashboard")}
 						className="hidden sm:flex h-9 items-center justify-center rounded-lg px-4 bg-[#E54D5E] hover:bg-[#C93D4E] transition-all text-white text-sm font-bold shadow-[0_0_15px_rgba(229,77,94,0.4)] hover:shadow-[0_0_20px_rgba(229,77,94,0.6)]"
 					>
 						{t("getStarted")}
 					</button>
 					<button
+						type="button"
 						className="md:hidden text-white"
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
 						aria-label={t("toggleMenu")}
@@ -113,6 +115,7 @@ export default function Navigation() {
 							{t("github")}
 						</a>
 						<button
+							type="button"
 							onClick={() => router.push("/dashboard")}
 							className="h-9 rounded-lg bg-[#E54D5E] hover:bg-[#C93D4E] text-white text-sm font-bold"
 						>

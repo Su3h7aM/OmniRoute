@@ -88,7 +88,7 @@ export function cleanupOldLogs(logFilePath: string, retentionDays: number): void
 		for (const file of files) {
 			// Match rotated files like app.2026-02-19_030000.log
 			if (
-				file.startsWith(base + ".") &&
+				file.startsWith(`${base}.`) &&
 				file.endsWith(ext) &&
 				file !== basename(logFilePath)
 			) {
@@ -122,7 +122,7 @@ export function cleanupOverflowLogs(logFilePath: string, maxFiles: number): void
 			.filter(
 				(file) =>
 					file !== basename(logFilePath) &&
-					file.startsWith(base + ".") &&
+					file.startsWith(`${base}.`) &&
 					file.endsWith(ext)
 			)
 			.map((file) => {

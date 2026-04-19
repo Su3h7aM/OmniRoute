@@ -460,6 +460,7 @@ export default function ChatTesterMode() {
 											}
 										>
 											<button
+												type="button"
 												onClick={() =>
 													setExpandedStep(isExpanded ? null : step.id)
 												}

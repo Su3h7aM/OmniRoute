@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 		let files;
 		try {
 			files = await readdir(cachePath);
-		} catch (error) {
+		} catch (_error) {
 			return NextResponse.json({
 				found: false,
 				error: "AWS SSO cache not found. Please login to Kiro IDE first.",
@@ -41,11 +41,11 @@ export async function GET(request: Request) {
 			try {
 				const content = await readFile(join(cachePath, kiroTokenFile), "utf-8");
 				const data = JSON.parse(content);
-				if (data.refreshToken && data.refreshToken.startsWith("aorAAAAAG")) {
+				if (data.refreshToken?.startsWith("aorAAAAAG")) {
 					refreshToken = data.refreshToken;
 					foundFile = kiroTokenFile;
 				}
-			} catch (error) {
+			} catch (_error) {
 				// Continue to search other files
 			}
 		}
@@ -60,12 +60,12 @@ export async function GET(request: Request) {
 					const data = JSON.parse(content);
 
 					// Look for Kiro refresh token (starts with aorAAAAAG)
-					if (data.refreshToken && data.refreshToken.startsWith("aorAAAAAG")) {
+					if (data.refreshToken?.startsWith("aorAAAAAG")) {
 						refreshToken = data.refreshToken;
 						foundFile = file;
 						break;
 					}
-				} catch (error) {}
+				} catch (_error) {}
 			}
 		}
 

@@ -85,7 +85,7 @@ export default function OnboardingWizard() {
 		if (step > 0) setStep(step - 1);
 	};
 
-	const [errorMessage, setErrorMessage] = useState("");
+	const [_errorMessage, setErrorMessage] = useState("");
 
 	const handleSetPassword = async () => {
 		if (skipSecurity) {
@@ -357,6 +357,7 @@ export default function OnboardingWizard() {
 								<div className="grid grid-cols-3 gap-2">
 									{COMMON_PROVIDERS.map((p) => (
 										<button
+											type="button"
 											key={p.id}
 											onClick={() => {
 												setSelectedProvider(p.id);
@@ -399,6 +400,7 @@ export default function OnboardingWizard() {
 								<p className="text-sm text-text-muted">{t("testDesc")}</p>
 								{testStatus === "idle" && (
 									<button
+										type="button"
 										onClick={handleTestProvider}
 										className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
 									>
@@ -430,6 +432,7 @@ export default function OnboardingWizard() {
 											<span className="text-sm">{testMessage}</span>
 										</div>
 										<button
+											type="button"
 											onClick={handleTestProvider}
 											className="text-xs text-text-muted underline cursor-pointer"
 										>
@@ -459,6 +462,7 @@ export default function OnboardingWizard() {
 						<div>
 							{step > 0 && !isLastStep && (
 								<button
+									type="button"
 									onClick={handleBack}
 									className="px-4 py-2 text-sm text-text-muted hover:text-text-main transition-colors cursor-pointer"
 								>
@@ -469,6 +473,7 @@ export default function OnboardingWizard() {
 						<div className="flex items-center gap-3">
 							{!isLastStep && step > 0 && (
 								<button
+									type="button"
 									onClick={handleNext}
 									className="px-4 py-2 text-sm text-text-muted hover:text-text-main transition-colors cursor-pointer"
 								>
@@ -477,6 +482,7 @@ export default function OnboardingWizard() {
 							)}
 							{currentStep.id === "welcome" && (
 								<button
+									type="button"
 									onClick={handleNext}
 									className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
 								>
@@ -485,6 +491,7 @@ export default function OnboardingWizard() {
 							)}
 							{currentStep.id === "security" && (
 								<button
+									type="button"
 									onClick={handleSetPassword}
 									disabled={
 										!skipSecurity && (!password || password !== confirmPassword)
@@ -496,6 +503,7 @@ export default function OnboardingWizard() {
 							)}
 							{currentStep.id === "provider" && (
 								<button
+									type="button"
 									onClick={handleAddProvider}
 									disabled={!selectedProvider || !providerKey}
 									className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -505,6 +513,7 @@ export default function OnboardingWizard() {
 							)}
 							{currentStep.id === "test" && (
 								<button
+									type="button"
 									onClick={handleNext}
 									className="px-6 py-2.5 bg-primary rounded-lg text-white font-medium text-sm hover:bg-primary/90 transition-colors cursor-pointer"
 								>
@@ -513,6 +522,7 @@ export default function OnboardingWizard() {
 							)}
 							{isLastStep && (
 								<button
+									type="button"
 									onClick={handleFinish}
 									className="px-6 py-2.5 bg-green-500 rounded-lg text-white font-medium text-sm hover:bg-green-500/90 transition-colors cursor-pointer"
 								>
@@ -527,6 +537,7 @@ export default function OnboardingWizard() {
 				{!isLastStep && (
 					<div className="text-center mt-4">
 						<button
+							type="button"
 							onClick={handleFinish}
 							className="text-xs text-text-muted/60 hover:text-text-muted transition-colors cursor-pointer"
 						>

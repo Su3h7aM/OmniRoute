@@ -179,14 +179,14 @@ export function parseEmbeddingModel(
 	if (slashIdx > 0) {
 		// Phase 1: Try each hardcoded provider prefix
 		for (const [providerId] of Object.entries(EMBEDDING_PROVIDERS)) {
-			if (modelStr.startsWith(providerId + "/")) {
+			if (modelStr.startsWith(`${providerId}/`)) {
 				return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
 			}
 		}
 		// Phase 2: Try dynamic provider_nodes prefix
 		if (dynamicProviders) {
 			for (const dp of dynamicProviders) {
-				if (modelStr.startsWith(dp.id + "/")) {
+				if (modelStr.startsWith(`${dp.id}/`)) {
 					return { provider: dp.id, model: modelStr.slice(dp.id.length + 1) };
 				}
 			}

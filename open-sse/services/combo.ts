@@ -127,7 +127,7 @@ function toTrimmedString(value): string | null {
 async function validateResponseQuality(
 	response: Response,
 	isStreaming: boolean,
-	log: { warn?: (...args: unknown[]) => void }
+	_log: { warn?: (...args: unknown[]) => void }
 ): Promise<{ valid: boolean; reason?: string; clonedResponse?: Response }> {
 	if (isStreaming) return { valid: true };
 
@@ -416,7 +416,7 @@ export function resolveNestedComboTargets(
 export function getComboFromData(modelStr, combosData) {
 	const combos = Array.isArray(combosData) ? combosData : combosData?.combos || [];
 	const combo = combos.find((c) => c.name === modelStr);
-	if (combo && combo.models && combo.models.length > 0) {
+	if (combo?.models && combo.models.length > 0) {
 		return combo;
 	}
 	return null;
@@ -450,7 +450,7 @@ export function validateComboDAG(comboName, allCombos, visited = new Set(), dept
 
 	const combos = Array.isArray(allCombos) ? allCombos : allCombos?.combos || [];
 	const combo = combos.find((c) => c.name === comboName);
-	if (!combo || !combo.models) return;
+	if (!combo?.models) return;
 
 	for (const entry of combo.models) {
 		const modelName = normalizeModelEntry(entry).model;
@@ -586,7 +586,7 @@ async function sortTargetsByCost(targets: ResolvedComboTarget[]) {
  */
 function sortModelsByUsage(models, comboName) {
 	const metrics = getComboMetrics(comboName);
-	if (!metrics || !metrics.byModel) return models;
+	if (!metrics?.byModel) return models;
 
 	const withUsage = models.map((modelStr) => ({
 		modelStr,
@@ -701,7 +701,6 @@ function mapIntentToTaskType(intent) {
 			return "analysis";
 		case "simple":
 			return "default";
-		case "medium":
 		default:
 			return "default";
 	}
@@ -1582,8 +1581,7 @@ export async function handleComboChat({
 				if (
 					strategy === "context-relay" &&
 					relayOptions?.sessionId &&
-					relayConfig &&
-					relayConfig.handoffProviders.includes(provider) &&
+					relayConfig?.handoffProviders.includes(provider) &&
 					provider === "codex"
 				) {
 					const connectionId = getSessionConnection(relayOptions.sessionId);

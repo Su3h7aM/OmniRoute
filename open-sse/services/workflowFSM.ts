@@ -130,7 +130,7 @@ const T: Transition[] = [
 		to: "plan",
 		condition: (c) =>
 			(c.lastVerdict === "reject" || c.lastVerdict === "request_changes") &&
-			(c.retries["plan"] ?? 0) < c.maxRetries,
+			(c.retries.plan ?? 0) < c.maxRetries,
 		description: "Plan rejected -> retry",
 	},
 	{
@@ -138,7 +138,7 @@ const T: Transition[] = [
 		to: "failed",
 		condition: (c) =>
 			(c.lastVerdict === "reject" || c.lastVerdict === "request_changes") &&
-			(c.retries["plan"] ?? 0) >= c.maxRetries,
+			(c.retries.plan ?? 0) >= c.maxRetries,
 		description: "Plan rejected max retries",
 	},
 	{
@@ -164,7 +164,7 @@ const T: Transition[] = [
 		to: "execute",
 		condition: (c) =>
 			(c.lastVerdict === "reject" || c.lastVerdict === "request_changes") &&
-			(c.retries["execute"] ?? 0) < c.maxRetries,
+			(c.retries.execute ?? 0) < c.maxRetries,
 		description: "Code rejected -> re-execute",
 	},
 	{
@@ -172,7 +172,7 @@ const T: Transition[] = [
 		to: "failed",
 		condition: (c) =>
 			(c.lastVerdict === "reject" || c.lastVerdict === "request_changes") &&
-			(c.retries["execute"] ?? 0) >= c.maxRetries,
+			(c.retries.execute ?? 0) >= c.maxRetries,
 		description: "Code rejected max retries",
 	},
 	{
@@ -208,13 +208,13 @@ const T: Transition[] = [
 	{
 		from: "test",
 		to: "execute",
-		condition: (c) => !c.testsPass && (c.retries["execute"] ?? 0) < c.maxRetries,
+		condition: (c) => !c.testsPass && (c.retries.execute ?? 0) < c.maxRetries,
 		description: "Tests fail -> re-execute",
 	},
 	{
 		from: "test",
 		to: "failed",
-		condition: (c) => !c.testsPass && (c.retries["execute"] ?? 0) >= c.maxRetries,
+		condition: (c) => !c.testsPass && (c.retries.execute ?? 0) >= c.maxRetries,
 		description: "Tests fail max retries",
 	},
 	{

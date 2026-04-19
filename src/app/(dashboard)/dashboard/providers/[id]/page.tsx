@@ -45,7 +45,7 @@ import {
 	type ModelCompatProtocolKey,
 } from "@/shared/constants/modelCompat";
 import { resolveManagedModelAlias } from "@/shared/utils/providerModelAliases";
-import { maskEmail, pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
+import { maskEmail, pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 import {
@@ -450,7 +450,6 @@ function getModelSourceBadgeClass(source?: string): string {
 			return "border-amber-500/30 bg-amber-500/10 text-amber-300";
 		case "alias":
 			return "border-violet-500/30 bg-violet-500/10 text-violet-300";
-		case "system":
 		default:
 			return "border-border bg-sidebar/70 text-text-muted";
 	}
@@ -533,7 +532,7 @@ interface AddApiKeyModalProps {
 		priority: number;
 		baseUrl?: string;
 		providerSpecificData?: Record<string, unknown>;
-	}) => Promise<void | unknown>;
+	}) => Promise<undefined | unknown>;
 	onClose: () => void;
 }
 
@@ -551,7 +550,7 @@ interface EditConnectionModalConnection {
 interface EditConnectionModalProps {
 	isOpen: boolean;
 	connection: EditConnectionModalConnection | null;
-	onSave: (data: unknown) => Promise<void | unknown>;
+	onSave: (data: unknown) => Promise<undefined | unknown>;
 	onClose: () => void;
 }
 
@@ -705,12 +704,12 @@ function ModelCompatPopover({
 		// Only re-load rows when opening or switching protocol — not when the parent passes a new
 		// inline callback every render (would wipe in-progress edits).
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-	}, [open, protocol]);
+	}, [open, protocol, genHeaderRowId, getUpstreamHeadersRecord]);
 
 	useEffect(() => {
 		setValuePeekRowId(null);
 		setValueFocusRowId(null);
-	}, [open, protocol]);
+	}, []);
 
 	const namedHeaderCount = headerRows.filter((r) => r.name.trim()).length;
 	const canAddHeaderRow = namedHeaderCount < UPSTREAM_HEADERS_UI_MAX;
@@ -1487,7 +1486,7 @@ export default function ProviderDetailPage() {
 		if (!isCcCompatible) return;
 		fetch(`/api/settings`)
 			.then((r) => r.json())
-			.then((data) => {
+			.then((_data) => {
 				// Check if this provider has CLIProxyAPI routing enabled
 				// The upstream_proxy_config is synced via the settings API
 			})
@@ -2303,6 +2302,7 @@ export default function ProviderDetailPage() {
 	const renderModelsSection = () => {
 		const autoSyncToggle = compatibleSupportsModelImport && canImportModels && (
 			<button
+				type="button"
 				onClick={handleToggleAutoSync}
 				disabled={togglingAutoSync}
 				className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-transparent cursor-pointer text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2321,6 +2321,7 @@ export default function ProviderDetailPage() {
 		const clearAllButton = (modelMeta.customModels.length > 0 ||
 			providerAliasEntries.length > 0) && (
 			<button
+				type="button"
 				onClick={handleClearAllModels}
 				disabled={clearingModels}
 				className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-red-300 dark:border-red-800 bg-transparent cursor-pointer text-[12px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2738,6 +2739,7 @@ export default function ProviderDetailPage() {
 							<h2 className="text-lg font-semibold">{t("connections")}</h2>
 							{/* Provider-level proxy indicator/button */}
 							<button
+								type="button"
 								onClick={() =>
 									setProxyTarget({
 										level: "provider",
@@ -2770,6 +2772,7 @@ export default function ProviderDetailPage() {
 						</div>
 						{connections.length > 1 && (
 							<button
+								type="button"
 								onClick={handleBatchTestAll}
 								disabled={batchTesting || !!retestingId}
 								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -3308,6 +3311,7 @@ export default function ProviderDetailPage() {
 						<div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
 							<h3 className="font-semibold">{t("testResults")}</h3>
 							<button
+								type="button"
 								onClick={() => setBatchTestResults(null)}
 								className="p-1 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
 								aria-label="Close"
@@ -3530,6 +3534,7 @@ export default function ProviderDetailPage() {
 					{importProgress.phase === "done" && (
 						<div className="flex justify-center">
 							<button
+								type="button"
 								onClick={() => setShowImportModal(false)}
 								className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-white hover:opacity-90 transition-opacity"
 							>
@@ -3577,6 +3582,7 @@ function ModelRow({
 				</code>
 				<ModelSourceBadge source={model.source} />
 				<button
+					type="button"
 					onClick={() => onCopy(fullModel, `model-${model.id}`)}
 					className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
 					title={t("copyModel")}
@@ -3589,6 +3595,7 @@ function ModelRow({
 			<div className="flex shrink-0 items-center gap-1">
 				{onToggleHidden && (
 					<button
+						type="button"
 						onClick={() => onToggleHidden(model.id, !isHidden)}
 						disabled={togglingHidden}
 						className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
@@ -3677,6 +3684,7 @@ function ModelVisibilityToolbar({
 				/>
 			</div>
 			<button
+				type="button"
 				onClick={onSelectAll}
 				disabled={selectAllDisabled}
 				className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
@@ -3686,6 +3694,7 @@ function ModelVisibilityToolbar({
 				<span>{providerText(t, "selectAllModels", "Select all")}</span>
 			</button>
 			<button
+				type="button"
 				onClick={onDeselectAll}
 				disabled={deselectAllDisabled}
 				className="flex items-center gap-1.5 rounded-lg border border-border bg-transparent px-2.5 py-1 text-[12px] text-text-main disabled:cursor-not-allowed disabled:opacity-50"
@@ -3935,6 +3944,7 @@ function PassthroughModelRow({
 						</code>
 						<ModelSourceBadge source={source} />
 						<button
+							type="button"
 							onClick={() => onCopy(fullModel, `model-${modelId}`)}
 							className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
 							title={t("copyModel")}
@@ -3949,6 +3959,7 @@ function PassthroughModelRow({
 			<div className="flex shrink-0 items-center gap-1 self-start">
 				{onToggleHidden && (
 					<button
+						type="button"
 						onClick={() => onToggleHidden(modelId, !isHidden)}
 						disabled={togglingHidden}
 						className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
@@ -3977,6 +3988,7 @@ function PassthroughModelRow({
 					disabled={compatDisabled}
 				/>
 				<button
+					type="button"
 					onClick={onDeleteAlias}
 					className="rounded p-1 text-red-500 hover:bg-red-50"
 					title={t("removeModel")}
@@ -4340,6 +4352,7 @@ function CustomModelsSection({
 											{fullModel}
 										</code>
 										<button
+											type="button"
 											onClick={() => onCopy(fullModel, copyKey)}
 											className="p-0.5 hover:bg-sidebar rounded text-text-muted hover:text-primary"
 											title={t("copyModel")}
@@ -4520,6 +4533,7 @@ function CustomModelsSection({
 								</div>
 								<div className="flex shrink-0 items-center gap-1">
 									<button
+										type="button"
 										onClick={() => beginEdit(model)}
 										className="rounded p-1 text-text-muted hover:bg-sidebar hover:text-primary"
 										title={t("edit")}
@@ -4563,6 +4577,7 @@ function CustomModelsSection({
 										disabled={savingModelId === model.id}
 									/>
 									<button
+										type="button"
 										onClick={() => handleRemove(model.id)}
 										className="rounded p-1 text-red-500 hover:bg-red-50"
 										title={t("removeCustomModel")}
@@ -5299,6 +5314,7 @@ function ConnectionRow({
 				{/* Priority arrows */}
 				<div className="flex flex-col">
 					<button
+						type="button"
 						onClick={onMoveUp}
 						disabled={isFirst}
 						className={`p-0.5 rounded ${isFirst ? "text-text-muted/30 cursor-not-allowed" : "hover:bg-sidebar text-text-muted hover:text-primary"}`}
@@ -5306,6 +5322,7 @@ function ConnectionRow({
 						<span className="material-symbols-outlined text-sm">keyboard_arrow_up</span>
 					</button>
 					<button
+						type="button"
 						onClick={onMoveDown}
 						disabled={isLast}
 						className={`p-0.5 rounded ${isLast ? "text-text-muted/30 cursor-not-allowed" : "hover:bg-sidebar text-text-muted hover:text-primary"}`}
@@ -5372,6 +5389,7 @@ function ConnectionRow({
 						{/* Rate Limit Protection — inline toggle with label */}
 						<span className="text-text-muted/30 select-none">|</span>
 						<button
+							type="button"
 							onClick={() => onToggleRateLimit(!rateLimitEnabled)}
 							className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
 								rateLimitEnabled
@@ -5391,6 +5409,7 @@ function ConnectionRow({
 							<>
 								<span className="text-text-muted/30 select-none">|</span>
 								<button
+									type="button"
 									onClick={() => onToggleCliproxyapiMode?.(!cliproxyapiDeepMode)}
 									className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
 										cliproxyapiDeepMode
@@ -5414,6 +5433,7 @@ function ConnectionRow({
 							<>
 								<span className="text-text-muted/30 select-none">|</span>
 								<button
+									type="button"
 									onClick={() => onToggleCodex5h?.(!codex5hEnabled)}
 									className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
 										codex5hEnabled
@@ -5428,6 +5448,7 @@ function ConnectionRow({
 									5h {codex5hEnabled ? "ON" : "OFF"}
 								</button>
 								<button
+									type="button"
 									onClick={() => onToggleCodexWeekly?.(!codexWeeklyEnabled)}
 									className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
 										codexWeeklyEnabled
@@ -5547,6 +5568,7 @@ function ConnectionRow({
 				<div className="flex gap-1 ml-1 transition-opacity">
 					{onReauth && (
 						<button
+							type="button"
 							onClick={onReauth}
 							className="p-2 hover:bg-amber-500/10 rounded text-amber-600 hover:text-amber-500"
 							title={t("reauthenticateConnection")}
@@ -5555,6 +5577,7 @@ function ConnectionRow({
 						</button>
 					)}
 					<button
+						type="button"
 						onClick={onEdit}
 						className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary"
 						title={t("edit")}
@@ -5562,6 +5585,7 @@ function ConnectionRow({
 						<span className="material-symbols-outlined text-[18px]">edit</span>
 					</button>
 					<button
+						type="button"
 						onClick={onProxy}
 						className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary"
 						title={t("proxyConfig")}
@@ -5569,6 +5593,7 @@ function ConnectionRow({
 						<span className="material-symbols-outlined text-[18px]">vpn_lock</span>
 					</button>
 					<button
+						type="button"
 						onClick={onDelete}
 						className="p-2 hover:bg-red-500/10 rounded text-red-500"
 						title={t("delete")}
@@ -6080,7 +6105,10 @@ function AddApiKeyModal({
 					type="number"
 					value={formData.priority}
 					onChange={(e) =>
-						setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
+						setFormData({
+							...formData,
+							priority: Number.parseInt(e.target.value, 10) || 1,
+						})
 					}
 				/>
 				{usesBaseUrl && (
@@ -6472,7 +6500,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 						formData.codexOpenaiStoreEnabled === true;
 				}
 			}
-			const error = (await onSave(updates)) as void | unknown;
+			const error = (await onSave(updates)) as undefined | unknown;
 			if (error) {
 				setSaveError(typeof error === "string" ? error : t("failedSaveConnection"));
 			}
@@ -6596,7 +6624,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 								...formData,
 								healthCheckInterval: Math.max(
 									0,
-									Number.parseInt(e.target.value) || 0
+									Number.parseInt(e.target.value, 10) || 0
 								),
 							})
 						}
@@ -6608,7 +6636,10 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 					type="number"
 					value={formData.priority}
 					onChange={(e) =>
-						setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 1 })
+						setFormData({
+							...formData,
+							priority: Number.parseInt(e.target.value, 10) || 1,
+						})
 					}
 				/>
 				{!isOAuth && (
@@ -6796,6 +6827,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 											{`Key #${idx + 2}: ${key.slice(0, 6)}...${key.slice(-4)}`}
 										</span>
 										<button
+											type="button"
 											onClick={() =>
 												setExtraApiKeys(
 													extraApiKeys.filter((_, i) => i !== idx)
@@ -6827,6 +6859,7 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 								}}
 							/>
 							<button
+								type="button"
 								onClick={() => {
 									if (newExtraKey.trim()) {
 										setExtraApiKeys([...extraApiKeys, newExtraKey.trim()]);

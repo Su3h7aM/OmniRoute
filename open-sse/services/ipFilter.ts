@@ -80,8 +80,6 @@ export function checkIP(ip) {
 				return { allowed: false, reason: "IP blacklisted" };
 			}
 			return { allowed: true };
-
-		case "blacklist":
 		default:
 			// Blacklisted IPs blocked
 			if (matchesAny(normalizedIP, _config.blacklist)) {
@@ -208,7 +206,7 @@ function matchesCIDR(ip, cidr) {
 	try {
 		const [range, bits] = cidr.split("/");
 		const mask = parseInt(bits, 10);
-		if (isNaN(mask) || mask < 0 || mask > 32) return false;
+		if (Number.isNaN(mask) || mask < 0 || mask > 32) return false;
 		const ipNum = ipToNum(ip);
 		const rangeNum = ipToNum(range);
 		if (ipNum === null || rangeNum === null) return false;
@@ -225,7 +223,7 @@ function ipToNum(ip) {
 	let num = 0;
 	for (const p of parts) {
 		const n = parseInt(p, 10);
-		if (isNaN(n) || n < 0 || n > 255) return null;
+		if (Number.isNaN(n) || n < 0 || n > 255) return null;
 		num = (num << 8) | n;
 	}
 	return num >>> 0;

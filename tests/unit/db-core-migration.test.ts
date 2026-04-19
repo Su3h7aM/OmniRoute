@@ -27,10 +27,10 @@ test("Test 1: migrateFromJson handles empty db.json and renames it", () => {
 	fs.writeFileSync(JSON_DB_FILE, JSON.stringify({}));
 
 	// Initialize db, should trigger migration
-	const db = core.getDbInstance();
+	const _db = core.getDbInstance();
 
 	assert.equal(fs.existsSync(JSON_DB_FILE), false);
-	assert.equal(fs.existsSync(JSON_DB_FILE + ".empty"), true);
+	assert.equal(fs.existsSync(`${JSON_DB_FILE}.empty`), true);
 
 	core.resetDbInstance();
 });
@@ -97,7 +97,7 @@ test("Test 2: migrateFromJson migrates data to SQLite successfully", () => {
 	const db = core.getDbInstance();
 
 	assert.equal(fs.existsSync(JSON_DB_FILE), false);
-	assert.equal(fs.existsSync(JSON_DB_FILE + ".migrated"), true);
+	assert.equal(fs.existsSync(`${JSON_DB_FILE}.migrated`), true);
 
 	const pc = db.prepare("SELECT * FROM provider_connections WHERE id = 'test-conn'").get();
 	assert.ok(pc);

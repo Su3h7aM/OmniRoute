@@ -13,13 +13,12 @@ import {
 import {
 	formatTime,
 	formatDuration,
-	maskSegment,
 	maskAccount,
 	formatApiKeyLabel,
 } from "@/shared/utils/formatting";
 
 // Quick filter categories - status-based only (providers are dynamic from data)
-const STATUS_FILTERS = [
+const _STATUS_FILTERS = [
 	{ key: "all", label: "All" },
 	{ key: "error", label: "Errors", icon: "error" },
 	{ key: "ok", label: "Success", icon: "check_circle" },
@@ -27,7 +26,7 @@ const STATUS_FILTERS = [
 ];
 
 // Column definitions for visibility toggles
-const COLUMNS = [
+const _COLUMNS = [
 	{ key: "status", label: "Status" },
 	{ key: "cacheSource", label: "Cache Source" },
 	{ key: "model", label: "Model" },
@@ -292,7 +291,6 @@ export default function RequestLoggerV2() {
 					return (a.model || "").localeCompare(b.model || "");
 				case "model_desc":
 					return (b.model || "").localeCompare(a.model || "");
-				case "newest":
 				default:
 					return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
 			}
@@ -370,6 +368,7 @@ export default function RequestLoggerV2() {
 			<div className="flex flex-wrap items-center gap-3">
 				{/* Recording Toggle */}
 				<button
+					type="button"
 					onClick={() => setRecording(!recording)}
 					className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
 						recording
@@ -384,6 +383,7 @@ export default function RequestLoggerV2() {
 				</button>
 
 				<button
+					type="button"
 					onClick={toggleDetailLogging}
 					disabled={detailLoggingLoading}
 					className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors disabled:opacity-60 ${
@@ -530,6 +530,7 @@ export default function RequestLoggerV2() {
 
 				{/* Refresh */}
 				<button
+					type="button"
 					onClick={() => fetchLogs(false)}
 					className="p-2 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
 					title="Refresh"
@@ -543,6 +544,7 @@ export default function RequestLoggerV2() {
 				{/* Status Filters */}
 				{statusFilters.map((f) => (
 					<button
+						type="button"
 						key={f.key}
 						onClick={() => setActiveFilter(activeFilter === f.key ? "all" : f.key)}
 						className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
@@ -579,6 +581,7 @@ export default function RequestLoggerV2() {
 					const isActive = selectedProvider === p;
 					return (
 						<button
+							type="button"
 							key={p}
 							onClick={() => setSelectedProvider(isActive ? "" : p)}
 							className={`px-3 py-1 rounded-full text-xs font-bold uppercase border transition-all ${
@@ -604,6 +607,7 @@ export default function RequestLoggerV2() {
 				</span>
 				{columns.map((col) => (
 					<button
+						type="button"
 						key={col.key}
 						onClick={() => toggleColumn(col.key)}
 						className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${

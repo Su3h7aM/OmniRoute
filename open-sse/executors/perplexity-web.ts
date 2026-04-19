@@ -242,7 +242,7 @@ function parseOpenAIMessages(messages: Array<Record<string, unknown>>): ParsedMe
 		if (!content.trim()) continue;
 
 		if (role === "system") {
-			systemMsg += content + "\n";
+			systemMsg += `${content}\n`;
 		} else if (role === "user" || role === "assistant") {
 			history.push({ role, content });
 		}
@@ -503,7 +503,7 @@ function buildStreamingResponse(
 									choices: [
 										{
 											index: 0,
-											delta: { reasoning_content: chunk.thinking + "\n" },
+											delta: { reasoning_content: `${chunk.thinking}\n` },
 											finish_reason: null,
 											logprobs: null,
 										},
@@ -740,9 +740,9 @@ export class PerplexityWebExecutor extends BaseExecutor {
 		};
 
 		if (credentials.accessToken) {
-			headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+			headers.Authorization = `Bearer ${credentials.accessToken}`;
 		} else if (credentials.apiKey) {
-			headers["Cookie"] = `__Secure-next-auth.session-token=${credentials.apiKey}`;
+			headers.Cookie = `__Secure-next-auth.session-token=${credentials.apiKey}`;
 		}
 
 		log?.info?.(

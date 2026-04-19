@@ -13,7 +13,7 @@ import { getApiKeyById } from "@/lib/localDb";
 
 const KILO_DATA_DIR = path.join(os.homedir(), ".local", "share", "kilo");
 const AUTH_PATH = path.join(KILO_DATA_DIR, "auth.json");
-const KILO_CONFIG_DIR = path.join(os.homedir(), ".config", "kilo");
+const _KILO_CONFIG_DIR = path.join(os.homedir(), ".config", "kilo");
 
 // Read auth.json
 const readAuth = async () => {
@@ -29,7 +29,7 @@ const readAuth = async () => {
 // Check if OmniRoute OpenAI-compatible provider is configured
 const hasOmniRouteConfig = (auth) => {
 	if (!auth) return false;
-	const routerEntry = auth["openai-compatible"] || auth["omniroute"];
+	const routerEntry = auth["openai-compatible"] || auth.omniroute;
 	if (!routerEntry) return false;
 	const baseUrl = routerEntry.baseUrl || routerEntry.baseURL || "";
 	return (
@@ -255,7 +255,7 @@ export async function DELETE() {
 
 		// Remove OmniRoute provider
 		delete auth["openai-compatible"];
-		delete auth["omniroute"];
+		delete auth.omniroute;
 
 		await fs.writeFile(AUTH_PATH, JSON.stringify(auth, null, 2));
 

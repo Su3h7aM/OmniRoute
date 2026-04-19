@@ -128,7 +128,7 @@ export default function AutoDisableCard() {
 								onChange={(e) =>
 									setDraft((prev) => ({
 										...prev,
-										threshold: parseInt(e.target.value) || 1,
+										threshold: parseInt(e.target.value, 10) || 1,
 									}))
 								}
 							/>

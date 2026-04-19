@@ -64,7 +64,7 @@ export function correlationMiddleware(request, next) {
 		const response = await next();
 
 		// Attach correlation ID to response
-		if (response && response.headers) {
+		if (response?.headers) {
 			response.headers.set("x-request-id", requestId);
 		}
 

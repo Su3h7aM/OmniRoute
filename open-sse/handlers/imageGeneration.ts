@@ -120,7 +120,7 @@ export async function handleImageGeneration({ body, credentials, log, resolvedPr
 		// Extract model name from the full "provider/model" string
 		provider = resolvedProvider;
 		const modelStr = body.model || "";
-		model = modelStr.startsWith(provider + "/")
+		model = modelStr.startsWith(`${provider}/`)
 			? modelStr.slice(provider.length + 1)
 			: modelStr;
 	} else {
@@ -467,7 +467,7 @@ async function handleOpenAIImageGeneration({
 
 	const token = credentials.apiKey || credentials.accessToken;
 	if (providerConfig.authHeader === "bearer") {
-		headers["Authorization"] = `Bearer ${token}`;
+		headers.Authorization = `Bearer ${token}`;
 	} else if (providerConfig.authHeader === "x-api-key") {
 		headers["x-api-key"] = token;
 	}

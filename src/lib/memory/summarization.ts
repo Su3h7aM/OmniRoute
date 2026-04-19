@@ -98,5 +98,5 @@ function generateSummary(content: string): string {
 	if (sentences.length <= 3) {
 		return content;
 	}
-	return sentences.slice(0, 3).join(". ") + ".";
+	return `${sentences.slice(0, 3).join(". ")}.`;
 }

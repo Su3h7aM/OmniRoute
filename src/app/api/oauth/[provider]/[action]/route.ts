@@ -120,7 +120,7 @@ export async function GET(
  * Start Codex callback server on port 1455
  * Returns the auth URL and stores codeVerifier for later exchange
  */
-async function handleStartCallbackServer(provider: string, searchParams: URLSearchParams) {
+async function handleStartCallbackServer(provider: string, _searchParams: URLSearchParams) {
 	if (provider !== "codex") {
 		return NextResponse.json(
 			{ error: "Callback server only supported for codex" },
@@ -132,7 +132,7 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
 	if (globalThis.__codexCallbackState?.close) {
 		try {
 			globalThis.__codexCallbackState.close();
-		} catch (e) {
+		} catch (_e) {
 			/* ignore */
 		}
 	}
@@ -165,7 +165,7 @@ async function handleStartCallbackServer(provider: string, searchParams: URLSear
 			if (globalThis.__codexCallbackState?.startedAt === startedAt) {
 				try {
 					close();
-				} catch (e) {
+				} catch (_e) {
 					/* ignore */
 				}
 				globalThis.__codexCallbackState = null;
@@ -455,7 +455,7 @@ export async function POST(
 			// Clean up server
 			try {
 				close();
-			} catch (e) {
+			} catch (_e) {
 				/* ignore */
 			}
 			globalThis.__codexCallbackState = null;

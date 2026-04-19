@@ -265,7 +265,7 @@ export async function buildCodexAuthFile(connectionId: string): Promise<BuiltCod
 	const payload = buildCodexAuthPayload(connection);
 	const connectionLabel = getConnectionLabel(connection);
 	const fileName = `codex-auth-${sanitizeFileNamePart(connectionLabel)}.json`;
-	const content = JSON.stringify(payload, null, 2) + "\n";
+	const content = `${JSON.stringify(payload, null, 2)}\n`;
 
 	return {
 		connectionId,

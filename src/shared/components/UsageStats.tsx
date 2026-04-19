@@ -239,6 +239,7 @@ export default function UsageStats() {
 					{/* View Toggle */}
 					<div className="flex items-center gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
 						<button
+							type="button"
 							onClick={() => setViewMode("tokens")}
 							className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
 								viewMode === "tokens"
@@ -249,6 +250,7 @@ export default function UsageStats() {
 							Tokens
 						</button>
 						<button
+							type="button"
 							onClick={() => setViewMode("costs")}
 							className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
 								viewMode === "costs"

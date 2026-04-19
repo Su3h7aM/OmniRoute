@@ -412,7 +412,7 @@ export async function getProxyConfig() {
 export async function getProxyForLevel(level: string, id?: string | null) {
 	const config = await getProxyConfig();
 	if (level === "global") return config.global || null;
-	const map = toProxyMap(config[level + "s"] || config[level] || {});
+	const map = toProxyMap(config[`${level}s`] || config[level] || {});
 	return (id ? map[id] : null) || null;
 }
 
@@ -426,7 +426,7 @@ export async function setProxyForLevel(level: string, id: string | null, proxy: 
 			"INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('proxyConfig', 'global', ?)"
 		).run(JSON.stringify(config.global));
 	} else {
-		const mapKey = level + "s";
+		const mapKey = `${level}s`;
 		const map = toProxyMap(config[mapKey] || {});
 		if (proxy && id) {
 			map[id] = proxy;

@@ -43,6 +43,7 @@ export default function SegmentedControl({
 		>
 			{options.map((option) => (
 				<button
+					type="button"
 					key={option.value}
 					role="tab"
 					aria-selected={value === option.value}

@@ -57,7 +57,7 @@ export class CloudflareAIExecutor extends BaseExecutor {
 		};
 
 		if (stream) {
-			headers["Accept"] = "text/event-stream";
+			headers.Accept = "text/event-stream";
 		}
 
 		return headers;

@@ -189,7 +189,7 @@ export function prepareClaudeRequest(
 		for (const msg of filtered) {
 			if (Array.isArray(msg.content)) {
 				msg.content = msg.content.filter(
-					(block) => block.type !== "tool_use" || (block.name && block.name?.trim())
+					(block) => block.type !== "tool_use" || block.name?.trim()
 				);
 				msg.content = msg.content.filter(
 					(block) => block.type !== "tool_result" || block.tool_use_id
@@ -199,7 +199,7 @@ export function prepareClaudeRequest(
 
 		// Also filter top-level tool declarations with empty names
 		if (body.tools && Array.isArray(body.tools)) {
-			body.tools = body.tools.filter((tool) => tool.name && tool.name?.trim());
+			body.tools = body.tools.filter((tool) => tool.name?.trim());
 		}
 
 		// Pass 1.5: Fix tool_use/tool_result ordering

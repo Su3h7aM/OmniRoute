@@ -145,6 +145,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
 			<div className="flex items-center gap-3 lg:hidden">
 				{showMenuButton && (
 					<button
+						type="button"
 						onClick={onMenuClick}
 						className="text-text-main hover:text-primary transition-colors"
 					>
@@ -228,6 +229,7 @@ export default function Header({ onMenuClick, showMenuButton = true }) {
 
 				{/* Logout button */}
 				<button
+					type="button"
 					onClick={handleLogout}
 					className="flex items-center justify-center p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-all"
 					title={t("logout")}

@@ -31,8 +31,8 @@ const readSettings = async () => {
 
 // Check if settings has OmniRoute config
 const hasOmniRouteConfig = (settings: any) => {
-	if (!settings || !settings.models || !settings.models.providers) return false;
-	return !!settings.models.providers["omniroute"];
+	if (!settings?.models?.providers) return false;
+	return !!settings.models.providers.omniroute;
 };
 
 // GET - Check openclaw CLI and read current settings
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
 		settings.agents.defaults.model.primary = `omniroute/${model}`;
 
 		// Update models.providers.omniroute
-		settings.models.providers["omniroute"] = {
+		settings.models.providers.omniroute = {
 			baseUrl: normalizedBaseUrl,
 			apiKey: apiKey || "your_api_key",
 			api: "openai-completions",
@@ -211,8 +211,8 @@ export async function DELETE() {
 		}
 
 		// Remove OmniRoute from models.providers
-		if (settings.models && settings.models.providers) {
-			delete settings.models.providers["omniroute"];
+		if (settings.models?.providers) {
+			delete settings.models.providers.omniroute;
 
 			// Remove providers object if empty
 			if (Object.keys(settings.models.providers).length === 0) {

@@ -218,6 +218,7 @@ export default function ModelsDevSyncTab() {
 						</p>
 					</div>
 					<button
+						type="button"
 						onClick={toggleEnabled}
 						disabled={saving}
 						className={`relative w-11 h-6 rounded-full transition-colors ${
@@ -249,11 +250,11 @@ export default function ModelsDevSyncTab() {
 							max="168"
 							step="1"
 							value={draftIntervalHours}
-							onChange={(e) => setDraftIntervalHours(parseInt(e.target.value))}
+							onChange={(e) => setDraftIntervalHours(parseInt(e.target.value, 10))}
 							onMouseUp={(e) =>
-								updateInterval(parseInt((e.target as HTMLInputElement).value))
+								updateInterval(parseInt((e.target as HTMLInputElement).value, 10))
 							}
-							onBlur={(e) => updateInterval(parseInt(e.target.value))}
+							onBlur={(e) => updateInterval(parseInt(e.target.value, 10))}
 							className="w-full accent-blue-500"
 						/>
 						<div className="flex justify-between text-xs text-text-muted mt-1">
@@ -268,6 +269,7 @@ export default function ModelsDevSyncTab() {
 				{/* Manual sync button */}
 				<div className="flex items-center gap-3">
 					<button
+						type="button"
 						onClick={triggerSync}
 						disabled={syncing}
 						className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 transition-colors flex items-center gap-2"

@@ -57,11 +57,7 @@ function toProviderLimitsCacheEntry(
 }
 
 function isSupportedUsageConnection(connection: ProviderConnectionLike | null): boolean {
-	if (
-		!connection ||
-		!connection.provider ||
-		!USAGE_SUPPORTED_PROVIDERS.includes(connection.provider)
-	) {
+	if (!connection?.provider || !USAGE_SUPPORTED_PROVIDERS.includes(connection.provider)) {
 		return false;
 	}
 

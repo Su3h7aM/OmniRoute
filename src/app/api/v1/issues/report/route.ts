@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 		errorCode ? `| Error Code | \`${errorCode}\` |` : null,
 		`| Reported At | ${new Date().toISOString()} |`,
 		"",
-		details ? "### Details\n```json\n" + JSON.stringify(details, null, 2) + "\n```" : null,
+		details ? `### Details\n\`\`\`json\n${JSON.stringify(details, null, 2)}\n\`\`\`` : null,
 		"",
 		"_Auto-reported by OmniRoute Registered Key Issuer_",
 	]

@@ -33,6 +33,7 @@ export default function ColumnToggle({ columns = [], visible = {}, onToggle }) {
 	return (
 		<div ref={ref} style={{ position: "relative" }}>
 			<button
+				type="button"
 				onClick={() => setOpen(!open)}
 				title="Toggle columns"
 				style={{

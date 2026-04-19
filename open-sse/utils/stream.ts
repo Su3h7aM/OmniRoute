@@ -860,9 +860,9 @@ export function createSSEStream(options: StreamOptions = {}) {
 
 						if (!injectedUsage) {
 							if (line.startsWith("data:") && !line.startsWith("data: ")) {
-								output = "data: " + line.slice(5) + "\n";
+								output = `data: ${line.slice(5)}\n`;
 							} else {
-								output = line + "\n";
+								output = `${line}\n`;
 							}
 						}
 
@@ -900,7 +900,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 					if (!parsed) continue;
 					providerPayloadCollector.push(parsed);
 
-					if (parsed && parsed.done) {
+					if (parsed?.done) {
 						continue;
 					}
 
@@ -1041,7 +1041,7 @@ export function createSSEStream(options: StreamOptions = {}) {
 						} else if (buffer) {
 							let output = buffer;
 							if (buffer.startsWith("data:") && !buffer.startsWith("data: ")) {
-								output = "data: " + buffer.slice(5);
+								output = `data: ${buffer.slice(5)}`;
 							}
 							const bufferedPayload = parseSSELine(bufferedLine);
 							if (bufferedPayload) {

@@ -23,13 +23,13 @@ function getEnvOverride(provider: string): number | null {
 	const envValue = process.env[envKey];
 	if (envValue) {
 		const parsed = parseInt(envValue, 10);
-		if (!isNaN(parsed) && parsed > 0) return parsed;
+		if (!Number.isNaN(parsed) && parsed > 0) return parsed;
 	}
 	// Global override
 	const globalValue = process.env.CONTEXT_LENGTH_DEFAULT;
 	if (globalValue) {
 		const parsed = parseInt(globalValue, 10);
-		if (!isNaN(parsed) && parsed > 0) return parsed;
+		if (!Number.isNaN(parsed) && parsed > 0) return parsed;
 	}
 	return null;
 }
@@ -39,7 +39,7 @@ function getReserveTokensOverride(): number | null {
 	const envValue = process.env.CONTEXT_RESERVE_TOKENS;
 	if (envValue) {
 		const parsed = parseInt(envValue, 10);
-		if (!isNaN(parsed) && parsed > 0) return parsed;
+		if (!Number.isNaN(parsed) && parsed > 0) return parsed;
 	}
 	return null;
 }
@@ -112,7 +112,7 @@ export function compressContext(
 	body: Record<string, unknown>,
 	options: { provider?: string; model?: string; maxTokens?: number; reserveTokens?: number } = {}
 ) {
-	if (!body || !body.messages || !Array.isArray(body.messages)) {
+	if (!body?.messages || !Array.isArray(body.messages)) {
 		return { body, compressed: false, stats: {} };
 	}
 
@@ -189,7 +189,7 @@ function trimToolMessages(messages: Record<string, unknown>[], maxChars: number)
 		) {
 			return {
 				...msg,
-				content: msg.content.slice(0, maxChars) + "\n... [truncated]",
+				content: `${msg.content.slice(0, maxChars)}\n... [truncated]`,
 			};
 		}
 		// Handle array content (Claude format with tool_result blocks)
@@ -204,7 +204,7 @@ function trimToolMessages(messages: Record<string, unknown>[], maxChars: number)
 					) {
 						return {
 							...block,
-							content: block.content.slice(0, maxChars) + "\n... [truncated]",
+							content: `${block.content.slice(0, maxChars)}\n... [truncated]`,
 						};
 					}
 					return block;

@@ -168,7 +168,7 @@ export function stripModelTags(messages: Message[]): Message[] {
 export function applyComboAgentMiddleware(
 	body: Record<string, unknown>,
 	comboConfig: ComboConfig | null | undefined,
-	providerModel: string // "provider/model" string for context caching
+	_providerModel: string // "provider/model" string for context caching
 ): { body: Record<string, unknown>; pinnedModel: string | null } {
 	if (!comboConfig) return { body, pinnedModel: null };
 
@@ -188,7 +188,7 @@ export function applyComboAgentMiddleware(
 	}
 
 	// 2. System message override
-	if (comboConfig.system_message && comboConfig.system_message.trim()) {
+	if (comboConfig.system_message?.trim()) {
 		messages = applySystemMessageOverride(messages, comboConfig.system_message);
 	}
 

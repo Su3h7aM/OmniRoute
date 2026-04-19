@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSuite } from "@/lib/evals/evalRunner";
 
-export async function GET(request, { params }) {
+export async function GET(_request, { params }) {
 	try {
 		const { suiteId } = await params;
 		const suite = getSuite(suiteId);

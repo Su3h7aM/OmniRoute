@@ -11,7 +11,6 @@ class SkillExecutor {
 	private static instance: SkillExecutor;
 	private handlers: Map<string, SkillHandler> = new Map();
 	private timeout: number = 30000;
-	private maxRetries: number = 3;
 
 	private constructor() {}
 

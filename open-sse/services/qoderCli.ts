@@ -1,8 +1,7 @@
-import { spawn } from "child_process";
 import crypto from "crypto";
 
-const DEFAULT_TIMEOUT_MS = 45_000;
-const DEFAULT_MAX_TURNS = "1";
+const _DEFAULT_TIMEOUT_MS = 45_000;
+const _DEFAULT_MAX_TURNS = "1";
 const QODER_DEFAULT_MODEL = "qoder-rome-30ba3b";
 
 export const QODER_STATIC_MODELS = [

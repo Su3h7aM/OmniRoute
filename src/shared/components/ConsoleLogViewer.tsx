@@ -88,7 +88,7 @@ export default function ConsoleLogViewer() {
 		if (autoScroll && scrollRef.current) {
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
 		}
-	}, [logs, autoScroll]);
+	}, [autoScroll]);
 
 	const handleCopy = async (entry: LogEntry, idx: number) => {
 		const text = JSON.stringify(entry, null, 2);
@@ -159,6 +159,7 @@ export default function ConsoleLogViewer() {
 
 				{/* Auto-scroll toggle */}
 				<button
+					type="button"
 					onClick={() => setAutoScroll(!autoScroll)}
 					title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
 					className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
@@ -175,6 +176,7 @@ export default function ConsoleLogViewer() {
 
 				{/* Refresh */}
 				<button
+					type="button"
 					onClick={fetchLogs}
 					disabled={loading}
 					className="px-3 py-2 rounded-lg text-sm font-medium bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] disabled:opacity-50 transition-colors"
@@ -293,6 +295,7 @@ export default function ConsoleLogViewer() {
 
 									{/* Copy button */}
 									<button
+										type="button"
 										onClick={() => handleCopy(entry, idx)}
 										title="Copy log entry"
 										className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-[#8b949e] hover:text-white"

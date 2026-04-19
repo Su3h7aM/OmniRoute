@@ -49,11 +49,13 @@ export interface Plugin {
 	/** Whether the plugin is enabled */
 	enabled?: boolean;
 	/** Called before the chat handler */
-	onRequest?: (ctx: PluginContext) => Promise<PluginResult | void> | PluginResult | void;
+	onRequest?: (
+		ctx: PluginContext
+	) => Promise<PluginResult | undefined> | PluginResult | undefined;
 	/** Called after the chat handler */
-	onResponse?: (ctx: PluginContext, response: any) => Promise<any | void> | any | void;
+	onResponse?: (ctx: PluginContext, response: any) => Promise<any | undefined> | any | undefined;
 	/** Called on handler error */
-	onError?: (ctx: PluginContext, error: Error) => Promise<any | void> | any | void;
+	onError?: (ctx: PluginContext, error: Error) => Promise<any | undefined> | any | undefined;
 }
 
 // ── Registry ──

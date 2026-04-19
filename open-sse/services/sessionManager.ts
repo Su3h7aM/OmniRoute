@@ -284,7 +284,7 @@ export function extractExternalSessionId(
 		h.get("x-omniroute-session") ?? // OmniRoute-specific form
 		h.get("session-id") ?? // Bare session-id
 		null;
-	if (!raw || !raw.trim()) return null;
+	if (!raw?.trim()) return null;
 	// Prefix "ext:" to ensure no collision with internal SHA-256 hash IDs
 	return `ext:${raw.trim().slice(0, 64)}`; // max 64 chars to avoid abuse
 }

@@ -20,7 +20,7 @@ function getApiKeySecret(): string {
  * Generate 6-char random keyId
  */
 function generateKeyId(): string {
-	const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+	const _chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 	let result = "";
 	result = crypto.randomBytes(3).toString("hex");
 	return result;
@@ -63,7 +63,7 @@ export function generateApiKeyWithMachine(machineId: string): { key: string; key
 export function parseApiKey(
 	apiKey: string
 ): { machineId: string | null; keyId: string; isNewFormat: boolean } | null {
-	if (!apiKey || !apiKey.startsWith("sk-")) return null;
+	if (!apiKey?.startsWith("sk-")) return null;
 
 	const parts = apiKey.split("-");
 

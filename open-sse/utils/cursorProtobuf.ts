@@ -379,7 +379,7 @@ export function encodeMessage(
 	content,
 	role,
 	messageId,
-	chatModeEnum = null,
+	_chatModeEnum = null,
 	isLast = false,
 	hasTools = false,
 	toolResults = []

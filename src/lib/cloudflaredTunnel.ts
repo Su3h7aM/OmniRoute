@@ -215,7 +215,7 @@ async function readStateFile(): Promise<PersistedTunnelState> {
 
 async function writeStateFile(state: PersistedTunnelState) {
 	await ensureTunnelDir();
-	await fs.writeFile(getStateFilePath(), JSON.stringify(state, null, 2) + "\n", "utf8");
+	await fs.writeFile(getStateFilePath(), `${JSON.stringify(state, null, 2)}\n`, "utf8");
 }
 
 async function updateStateFile(patch: PersistedTunnelState) {

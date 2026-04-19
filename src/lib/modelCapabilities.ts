@@ -162,7 +162,7 @@ function getStaticSpec(modelId: string | null, rawModel: string | null): ModelSp
 function resolveVisionCapability(
 	spec: ModelSpec | undefined,
 	registryModel: { supportsVision?: boolean } | null,
-	synced: SyncedCapabilities,
+	_synced: SyncedCapabilities,
 	modalitiesInput: string[],
 	modalitiesOutput: string[]
 ): boolean | null {

@@ -150,6 +150,7 @@ export default function MemorySkillsTab() {
 						<p className="text-xs text-text-muted mt-0.5">{t("memoryEnabledDesc")}</p>
 					</div>
 					<button
+						type="button"
 						data-testid="memory-enabled-switch"
 						onClick={() => save({ enabled: !config.enabled })}
 						disabled={saving}
@@ -185,7 +186,7 @@ export default function MemorySkillsTab() {
 								max="16000"
 								step="500"
 								value={config.maxTokens}
-								onChange={(e) => save({ maxTokens: parseInt(e.target.value) })}
+								onChange={(e) => save({ maxTokens: parseInt(e.target.value, 10) })}
 								className="w-full accent-violet-500"
 							/>
 							<div className="flex justify-between text-xs text-text-muted mt-1">
@@ -211,7 +212,9 @@ export default function MemorySkillsTab() {
 								max="90"
 								step="1"
 								value={config.retentionDays}
-								onChange={(e) => save({ retentionDays: parseInt(e.target.value) })}
+								onChange={(e) =>
+									save({ retentionDays: parseInt(e.target.value, 10) })
+								}
 								className="w-full accent-violet-500"
 							/>
 							<div className="flex justify-between text-xs text-text-muted mt-1">
@@ -226,6 +229,7 @@ export default function MemorySkillsTab() {
 						<div className="grid grid-cols-3 gap-2">
 							{STRATEGIES.map((s) => (
 								<button
+									type="button"
 									data-testid={`memory-strategy-${s.value}`}
 									key={s.value}
 									onClick={() =>
@@ -275,6 +279,7 @@ export default function MemorySkillsTab() {
 						<p className="text-xs text-text-muted mt-0.5">{t("skillsEnabledDesc")}</p>
 					</div>
 					<button
+						type="button"
 						data-testid="skills-enabled-switch"
 						onClick={() => save({ skillsEnabled: !config.skillsEnabled })}
 						disabled={saving}
@@ -333,6 +338,7 @@ export default function MemorySkillsTab() {
 							className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm font-mono focus:outline-none focus:ring-1 focus:ring-violet-500"
 						/>
 						<button
+							type="button"
 							onClick={saveSkillsmpApiKey}
 							disabled={skillsmpSaving}
 							className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"

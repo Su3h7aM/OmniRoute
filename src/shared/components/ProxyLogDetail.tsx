@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
 	TYPE_COLORS,
 	LEVEL_COLORS,
@@ -73,6 +73,7 @@ export default function ProxyLogDetail({ log, onClose }) {
 						<span className="font-bold text-lg">Proxy Event</span>
 					</div>
 					<button
+						type="button"
 						onClick={onClose}
 						className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
 						aria-label="Close proxy detail modal"

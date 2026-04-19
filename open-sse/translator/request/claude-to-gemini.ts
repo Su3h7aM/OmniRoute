@@ -1,10 +1,6 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
-import {
-	DEFAULT_SAFETY_SETTINGS,
-	tryParseJSON,
-	cleanJSONSchemaForAntigravity,
-} from "../helpers/geminiHelper.ts";
+import { DEFAULT_SAFETY_SETTINGS, tryParseJSON } from "../helpers/geminiHelper.ts";
 import { DEFAULT_THINKING_GEMINI_SIGNATURE } from "../../config/defaultThinkingSignature.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 
@@ -13,7 +9,7 @@ import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiTools
  * Converts Claude Messages API body directly to Gemini format,
  * skipping the OpenAI hub intermediate step.
  */
-export function claudeToGeminiRequest(model, body, stream) {
+export function claudeToGeminiRequest(model, body, _stream) {
 	const toolNameMap = new Map<string, string>();
 	const sanitizeToolName = (name: string) =>
 		sanitizeGeminiToolName(name, {

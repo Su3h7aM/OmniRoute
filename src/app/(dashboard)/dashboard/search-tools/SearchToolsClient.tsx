@@ -254,6 +254,7 @@ export default function SearchToolsClient() {
 				{response && (
 					<div className="px-4 py-2 flex gap-2">
 						<button
+							type="button"
 							className="flex-1 bg-surface border border-border rounded-lg p-2 text-center hover:border-accent/30 transition-colors flex items-center justify-center gap-2"
 							onClick={handleCompare}
 							disabled={compareLoading}
@@ -262,6 +263,7 @@ export default function SearchToolsClient() {
 							<span className="text-xs text-text-muted">{t("compareProviders")}</span>
 						</button>
 						<button
+							type="button"
 							className="flex-1 bg-surface border border-border rounded-lg p-2 text-center hover:border-primary/30 transition-colors flex items-center justify-center gap-2"
 							onClick={() => setShowRerank(!showRerank)}
 						>

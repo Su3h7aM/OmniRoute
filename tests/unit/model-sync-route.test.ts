@@ -8,7 +8,7 @@ const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-model-syn
 process.env.DATA_DIR = TEST_DATA_DIR;
 // FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
 if (!process.env.API_KEY_SECRET) {
-	process.env.API_KEY_SECRET = "test-model-sync-secret-" + Date.now();
+	process.env.API_KEY_SECRET = `test-model-sync-secret-${Date.now()}`;
 }
 
 const core = await import("../../src/lib/db/core.ts");

@@ -144,7 +144,7 @@ export default function ProxyRegistryManager() {
 		} finally {
 			setLoading(false);
 		}
-	}, [loadHealth, loadAllUsage]);
+	}, [loadHealth, loadAllUsage, t]);
 
 	useEffect(() => {
 		void load();
@@ -177,7 +177,7 @@ export default function ProxyRegistryManager() {
 		setModalOpen(true);
 	};
 
-	const loadUsage = async (proxyId: string) => {
+	const _loadUsage = async (proxyId: string) => {
 		try {
 			const res = await fetch(
 				`/api/settings/proxies/assignments?proxyId=${encodeURIComponent(proxyId)}`
@@ -452,7 +452,7 @@ export default function ProxyRegistryManager() {
 							</thead>
 							<tbody>
 								{items.map((item) => {
-									const usage = usageById[item.id];
+									const _usage = usageById[item.id];
 									const health = healthById[item.id];
 									return (
 										<tr key={item.id} className="border-b border-border/60">

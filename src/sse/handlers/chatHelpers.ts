@@ -141,7 +141,7 @@ export async function executeChatWithBreaker({
 	comboExecutionKey,
 	extendedContext,
 }: any): Promise<{ result: any; tlsFingerprintUsed: boolean }> {
-	const tlsFingerprintUsed = false;
+	const _tlsFingerprintUsed = false;
 
 	try {
 		const chatFn = () =>

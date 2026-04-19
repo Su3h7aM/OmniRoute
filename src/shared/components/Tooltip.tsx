@@ -79,9 +79,7 @@ export default function Tooltip({
 			});
 		})()
 	) : (
-		<span tabIndex={0} aria-describedby={describedById}>
-			{children}
-		</span>
+		<span aria-describedby={describedById}>{children}</span>
 	);
 
 	return (

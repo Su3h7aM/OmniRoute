@@ -118,7 +118,7 @@ function toSafeNumber(value: number | null | undefined): number {
 	return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function extractProvider(model: string): string {
+function _extractProvider(model: string): string {
 	const [provider] = model.split("/");
 	return provider?.trim() || "unknown";
 }

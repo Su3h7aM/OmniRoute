@@ -28,6 +28,7 @@ function PayloadSection({ title, json, onCopy }) {
 					{title}
 				</h3>
 				<button
+					type="button"
 					onClick={handleCopy}
 					className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-primary transition-colors"
 					aria-label={`Copy ${title}`}
@@ -163,6 +164,7 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
 						<span className="text-text-muted font-mono text-sm">{log.path}</span>
 					</div>
 					<button
+						type="button"
 						onClick={onClose}
 						className="p-1.5 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
 						aria-label="Close detail modal"

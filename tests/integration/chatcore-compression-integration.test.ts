@@ -71,7 +71,7 @@ test("chatCore integration: compressContext called proactively when context exce
 
 	// Mock fetch to capture the request
 	let capturedBody: any = null;
-	globalThis.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+	globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
 		if (init?.body) {
 			capturedBody = JSON.parse(init.body as string);
 		}
@@ -151,7 +151,7 @@ test("chatCore integration: compressContext NOT called when context is below 85%
 
 	// Mock fetch to capture the request
 	let capturedBody: any = null;
-	globalThis.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+	globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
 		if (init?.body) {
 			capturedBody = JSON.parse(init.body as string);
 		}
@@ -219,7 +219,7 @@ test("chatCore integration: compression preserves message structure", async () =
 
 	// Mock fetch to capture the request
 	let capturedBody: any = null;
-	globalThis.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+	globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
 		if (init?.body) {
 			capturedBody = JSON.parse(init.body as string);
 		}
@@ -298,7 +298,7 @@ test("chatCore integration: compression handles tool messages", async () => {
 
 	// Mock fetch to capture the request
 	let capturedBody: any = null;
-	globalThis.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+	globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
 		if (init?.body) {
 			capturedBody = JSON.parse(init.body as string);
 		}

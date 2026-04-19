@@ -266,7 +266,6 @@ export async function retrieveMemories(
 			}
 			break;
 		}
-		case "exact":
 		default: {
 			query += ` ORDER BY ${columns.createdAt} DESC LIMIT 100`;
 			rows = db.prepare(query).all(...params) as MemoryRow[];

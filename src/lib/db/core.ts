@@ -54,7 +54,7 @@ export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 // ──────────────── Paths ────────────────
 
 export const DATA_DIR = resolveDataDir({ isCloud });
-const LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
+const _LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
 export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
 const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
 export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
@@ -1096,7 +1096,7 @@ export function getDbInstance(): SqliteDatabase {
 						fixDb.close();
 					}
 				} else {
-					const oldPath = sqliteFile + ".old-schema";
+					const oldPath = `${sqliteFile}.old-schema`;
 					console.log(
 						`[DB] Old incompatible schema detected (empty) — renaming to ${path.basename(oldPath)}`
 					);
@@ -1128,7 +1128,7 @@ export function getDbInstance(): SqliteDatabase {
 
 			// SAFETY: Never delete the database — rename to backup so data can be recovered.
 			// The old code would silently destroy all user data on any probe failure.
-			const failedPath = sqliteFile + `.probe-failed-${Date.now()}`;
+			const failedPath = `${sqliteFile}.probe-failed-${Date.now()}`;
 			try {
 				fs.renameSync(sqliteFile, failedPath);
 				console.warn(`[DB] Renamed corrupt DB to ${path.basename(failedPath)}`);
@@ -1359,7 +1359,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
 		if (connCount === 0 && nodeCount === 0 && keyCount === 0) {
 			console.log("[DB] db.json has no data to migrate, skipping");
-			fs.renameSync(jsonPath, jsonPath + ".empty");
+			fs.renameSync(jsonPath, `${jsonPath}.empty`);
 			return;
 		}
 
@@ -1533,7 +1533,7 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 
 		migrate();
 
-		const migratedPath = jsonPath + ".migrated";
+		const migratedPath = `${jsonPath}.migrated`;
 		fs.renameSync(jsonPath, migratedPath);
 		console.log(`[DB] ✓ Migration complete. Original saved as ${migratedPath}`);
 

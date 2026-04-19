@@ -27,7 +27,7 @@ function mockLog() {
 /** Create a handleSingleModel that returns given status codes in sequence */
 function mockHandler(statusSequence) {
 	let callIndex = 0;
-	return async (body, modelStr) => {
+	return async (_body, _modelStr) => {
 		const status =
 			statusSequence[callIndex] ?? statusSequence[statusSequence.length - 1] ?? 200;
 		callIndex++;

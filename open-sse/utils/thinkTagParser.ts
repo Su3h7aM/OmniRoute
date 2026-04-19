@@ -36,7 +36,7 @@ export function hasThinkTags(text) {
  * @returns {{ reasoning: string|null, content: string }}
  */
 export function extractThinkTags(text) {
-	if (!text || !text.includes(THINK_OPEN)) {
+	if (!text?.includes(THINK_OPEN)) {
 		return { reasoning: null, content: text || "" };
 	}
 

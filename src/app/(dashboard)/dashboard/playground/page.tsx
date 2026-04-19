@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button, Select, Badge } from "@/shared/components";
 import { ALIAS_TO_ID } from "@/shared/constants/providers";
-import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import dynamic from "next/dynamic";
 
@@ -285,7 +285,7 @@ export default function PlaygroundPage() {
 	}, []);
 
 	const filteredModels = models
-		.filter((m) => !selectedProvider || m.id.startsWith(selectedProvider + "/"))
+		.filter((m) => !selectedProvider || m.id.startsWith(`${selectedProvider}/`))
 		.map((m) => ({ value: m.id, label: m.id }));
 
 	const generateDefaultBody = (endpoint: string, model: string) => {
@@ -300,7 +300,7 @@ export default function PlaygroundPage() {
 		setSelectedProvider(newProvider);
 		setSelectedConnection("");
 		const providerModels = models
-			.filter((m) => !newProvider || m.id.startsWith(newProvider + "/"))
+			.filter((m) => !newProvider || m.id.startsWith(`${newProvider}/`))
 			.map((m) => m.id);
 		const firstModel = providerModels[0] || "";
 		setSelectedModel(firstModel);
@@ -679,6 +679,7 @@ export default function PlaygroundPage() {
 															className="w-full h-full object-cover"
 														/>
 														<button
+															type="button"
 															onClick={() =>
 																setUploadedImages((prev) =>
 																	prev.filter(
@@ -695,6 +696,7 @@ export default function PlaygroundPage() {
 													</div>
 												))}
 												<button
+													type="button"
 													onClick={() => setUploadedImages([])}
 													className="text-xs text-text-muted hover:text-red-500 self-center ml-1"
 												>
@@ -727,6 +729,7 @@ export default function PlaygroundPage() {
 									</div>
 									<div className="flex items-center gap-1">
 										<button
+											type="button"
 											onClick={() => handleCopy(requestBody)}
 											className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
 											title={t("copy")}
@@ -736,6 +739,7 @@ export default function PlaygroundPage() {
 											</span>
 										</button>
 										<button
+											type="button"
 											onClick={() => {
 												const template = {
 													...DEFAULT_BODIES[selectedEndpoint],
@@ -820,6 +824,7 @@ export default function PlaygroundPage() {
 									</div>
 									<div className="flex items-center gap-1">
 										<button
+											type="button"
 											onClick={() => handleCopy(responseBody)}
 											className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
 											title={t("copy")}
@@ -861,6 +866,7 @@ export default function PlaygroundPage() {
 												{transcriptionText}
 											</div>
 											<button
+												type="button"
 												onClick={() => handleCopy(transcriptionText)}
 												className="text-xs text-primary hover:underline flex items-center gap-1"
 											>

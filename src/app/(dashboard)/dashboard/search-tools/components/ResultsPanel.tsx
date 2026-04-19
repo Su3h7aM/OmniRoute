@@ -95,6 +95,7 @@ export default function ResultsPanel({
 				{response && (
 					<div className="flex gap-1">
 						<button
+							type="button"
 							className={`text-xs px-3 py-1 rounded-md ${
 								!showJson
 									? "bg-primary/15 text-primary font-medium"
@@ -105,6 +106,7 @@ export default function ResultsPanel({
 							{t("formatted")}
 						</button>
 						<button
+							type="button"
 							className={`text-xs px-3 py-1 rounded-md ${
 								showJson
 									? "bg-primary/15 text-primary font-medium"

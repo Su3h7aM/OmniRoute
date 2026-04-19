@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "bun:test";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import React from "react";
 import MemoryCards from "../components/MemoryCards";
 
 vi.mock("next-intl", () => ({

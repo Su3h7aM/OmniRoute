@@ -35,7 +35,7 @@ function cleanup() {
 	// Close the SQLite connection that holds a lock on files inside TEST_DATA_DIR
 	try {
 		const db = getDbInstance();
-		if (db && db.open) db.close();
+		if (db?.open) db.close();
 	} catch {
 		// DB may already be closed
 	}

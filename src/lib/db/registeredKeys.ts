@@ -93,7 +93,7 @@ function hashKey(raw: string): string {
 
 function generateRawKey(): string {
 	// ork_ prefix so users can easily identify these keys
-	return "ork_" + randomBytes(24).toString("base64url");
+	return `ork_${randomBytes(24).toString("base64url")}`;
 }
 
 /** Reset window counters if the tracking period has changed. */
@@ -126,8 +126,8 @@ function maybeResetWindow(
  */
 export function checkQuota(provider = "", accountId = ""): QuotaCheckResult {
 	const db = getDbInstance();
-	const today = nowDay();
-	const hour = nowHour();
+	const _today = nowDay();
+	const _hour = nowHour();
 
 	// ── provider-level check ──
 	if (provider) {

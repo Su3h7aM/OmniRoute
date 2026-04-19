@@ -14,7 +14,7 @@ describe("omniroute_set_routing_strategy MCP tool schema", () => {
 	});
 
 	it("should be available in MCP_TOOL_MAP", () => {
-		expect(MCP_TOOL_MAP["omniroute_set_routing_strategy"]).toBeDefined();
+		expect(MCP_TOOL_MAP.omniroute_set_routing_strategy).toBeDefined();
 	});
 
 	it("should require write:combos scope", () => {

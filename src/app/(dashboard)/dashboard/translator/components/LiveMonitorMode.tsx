@@ -43,7 +43,7 @@ export default function LiveMonitorMode() {
 		return () => {
 			if (intervalRef.current) clearInterval(intervalRef.current);
 		};
-	}, [autoRefresh]);
+	}, [autoRefresh, fetchHistory]);
 
 	// Stats
 	const successCount = events.filter((e) => e.status === "success").length;
@@ -108,6 +108,7 @@ export default function LiveMonitorMode() {
 							{autoRefresh ? "radio_button_checked" : "radio_button_unchecked"}
 						</span>
 						<button
+							type="button"
 							onClick={() => setAutoRefresh(!autoRefresh)}
 							className="text-sm text-text-main hover:text-primary transition-colors"
 						>
@@ -115,6 +116,7 @@ export default function LiveMonitorMode() {
 						</button>
 					</div>
 					<button
+						type="button"
 						onClick={fetchHistory}
 						className="flex items-center gap-1 text-xs text-text-muted hover:text-primary transition-colors"
 					>

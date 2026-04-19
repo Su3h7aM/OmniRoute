@@ -168,7 +168,6 @@ import {
 	getBudget,
 	recordCost,
 	checkBudget,
-	getDailyTotal,
 	getCostSummary,
 	resetCostData,
 } from "../../src/domain/costRules.ts";

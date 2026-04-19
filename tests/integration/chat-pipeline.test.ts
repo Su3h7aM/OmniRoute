@@ -1137,7 +1137,7 @@ test("chat pipeline falls back to the next account after a provider failure", as
 	});
 	const seenAuthHeaders = [];
 
-	globalThis.fetch = async (url, init = {}) => {
+	globalThis.fetch = async (_url, init = {}) => {
 		const headers = toPlainHeaders(init.headers);
 		seenAuthHeaders.push(headers.Authorization);
 		if (seenAuthHeaders.length === 1) {

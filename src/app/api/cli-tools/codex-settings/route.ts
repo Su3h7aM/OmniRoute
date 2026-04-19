@@ -77,7 +77,7 @@ const toToml = (parsed: Record<string, any>) => {
 		});
 	});
 
-	return lines.join("\n") + "\n";
+	return `${lines.join("\n")}\n`;
 };
 
 // Read current config.toml
@@ -225,8 +225,7 @@ export async function POST(request: Request) {
 		}
 
 		// Fix: Codex CLI sends /chat/completions; ensure the base resolves strictly to /api/v1
-		const normalizedBaseUrl =
-			baseUrl.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "") + "/api/v1";
+		const normalizedBaseUrl = `${baseUrl.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "")}/api/v1`;
 
 		// Always create a custom provider to reliably pass wire_api and use OMNIROUTE_API_KEY
 		parsed._root.model_provider = "omniroute";

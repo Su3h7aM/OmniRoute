@@ -343,7 +343,7 @@ export async function checkConnection(conn) {
 		return;
 	}
 
-	if (result && result.accessToken) {
+	if (result?.accessToken) {
 		const updateData: any = {
 			accessToken: result.accessToken,
 			lastHealthCheckAt: now,

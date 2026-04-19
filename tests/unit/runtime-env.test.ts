@@ -1,7 +1,6 @@
 import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
-import { EventEmitter } from "node:events";
 import { createRequire, syncBuiltinESMExports } from "node:module";
 import { pathToFileURL } from "node:url";
 

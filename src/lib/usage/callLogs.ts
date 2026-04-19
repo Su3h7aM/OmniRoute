@@ -266,8 +266,8 @@ function applyNodePrefix(
 	nodePrefix: string | null
 ): string | null {
 	if (!requestedModel || !provider || !nodePrefix) return requestedModel;
-	if (requestedModel.startsWith(provider + "/")) {
-		return nodePrefix + "/" + requestedModel.slice(provider.length + 1);
+	if (requestedModel.startsWith(`${provider}/`)) {
+		return `${nodePrefix}/${requestedModel.slice(provider.length + 1)}`;
 	}
 	return requestedModel;
 }
@@ -812,7 +812,7 @@ export async function getCallLogs(filter: any = {}) {
 	}
 
 	if (conditions.length > 0) {
-		sql += " WHERE " + conditions.join(" AND ");
+		sql += ` WHERE ${conditions.join(" AND ")}`;
 	}
 
 	const limit = filter.limit || 200;

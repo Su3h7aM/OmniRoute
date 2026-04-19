@@ -68,37 +68,37 @@ describe("CliproxyapiExecutor", () => {
 			const exec = new CliproxyapiExecutor();
 			const headers = exec.buildHeaders({});
 			assert.equal(headers["Content-Type"], "application/json");
-			assert.equal(headers["Authorization"], undefined);
+			assert.equal(headers.Authorization, undefined);
 		});
 
 		it("should add Authorization with apiKey", () => {
 			const exec = new CliproxyapiExecutor();
 			const headers = exec.buildHeaders({ apiKey: "test-key" });
-			assert.equal(headers["Authorization"], "Bearer test-key");
+			assert.equal(headers.Authorization, "Bearer test-key");
 		});
 
 		it("should add Authorization with accessToken", () => {
 			const exec = new CliproxyapiExecutor();
 			const headers = exec.buildHeaders({ accessToken: "test-token" });
-			assert.equal(headers["Authorization"], "Bearer test-token");
+			assert.equal(headers.Authorization, "Bearer test-token");
 		});
 
 		it("should prefer apiKey over accessToken", () => {
 			const exec = new CliproxyapiExecutor();
 			const headers = exec.buildHeaders({ apiKey: "key", accessToken: "token" });
-			assert.equal(headers["Authorization"], "Bearer key");
+			assert.equal(headers.Authorization, "Bearer key");
 		});
 
 		it("should add Accept header for streaming", () => {
 			const exec = new CliproxyapiExecutor();
 			const headers = exec.buildHeaders({}, true);
-			assert.equal(headers["Accept"], "text/event-stream");
+			assert.equal(headers.Accept, "text/event-stream");
 		});
 
 		it("should not add Accept header for non-streaming", () => {
 			const exec = new CliproxyapiExecutor();
 			const headers = exec.buildHeaders({}, false);
-			assert.equal(headers["Accept"], undefined);
+			assert.equal(headers.Accept, undefined);
 		});
 	});
 
@@ -171,7 +171,7 @@ describe("CliproxyapiExecutor", () => {
 				credentials: { apiKey: "secret-key" },
 			});
 
-			assert.equal(capturedHeaders["Authorization"], "Bearer secret-key");
+			assert.equal(capturedHeaders.Authorization, "Bearer secret-key");
 		});
 
 		it("should merge upstream extra headers", async () => {
@@ -195,10 +195,10 @@ describe("CliproxyapiExecutor", () => {
 
 		it("should handle rate limited response", async () => {
 			globalThis.fetch = async () => ({ status: 429, ok: false });
-			const log = { warn: (tag, msg) => {} };
-			let logged = false;
+			const log = { warn: (_tag, _msg) => {} };
+			let _logged = false;
 			log.warn = () => {
-				logged = true;
+				_logged = true;
 			};
 
 			const exec = new CliproxyapiExecutor();

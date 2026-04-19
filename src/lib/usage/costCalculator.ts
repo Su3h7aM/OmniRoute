@@ -20,7 +20,7 @@
  * @returns {string}
  */
 export function normalizeModelName(model) {
-	if (!model || !model.includes("/")) return model;
+	if (!model?.includes("/")) return model;
 	const parts = model.split("/");
 	return parts[parts.length - 1];
 }

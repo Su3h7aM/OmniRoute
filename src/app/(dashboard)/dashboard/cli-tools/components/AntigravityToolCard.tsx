@@ -37,7 +37,7 @@ export default function AntigravityToolCard({
 			fetchStatus();
 			loadSavedMappings();
 		}
-	}, [isExpanded, status]);
+	}, [isExpanded, status, loadSavedMappings, fetchStatus]);
 
 	const loadSavedMappings = async () => {
 		try {
@@ -254,6 +254,7 @@ export default function AntigravityToolCard({
 					<div className="flex items-center gap-2">
 						{isRunning ? (
 							<button
+								type="button"
 								onClick={handleStop}
 								disabled={loading}
 								className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 font-medium text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors disabled:opacity-50"
@@ -265,6 +266,7 @@ export default function AntigravityToolCard({
 							</button>
 						) : (
 							<button
+								type="button"
 								onClick={handleStart}
 								disabled={loading || !hasActiveProviders}
 								className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 text-primary font-medium text-sm flex items-center gap-2 hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -333,6 +335,7 @@ export default function AntigravityToolCard({
 										className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
 									/>
 									<button
+										type="button"
 										onClick={() => openModelSelector(model.alias)}
 										disabled={!hasActiveProviders}
 										className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
@@ -341,6 +344,7 @@ export default function AntigravityToolCard({
 									</button>
 									{modelMappings[model.alias] && (
 										<button
+											type="button"
 											onClick={() =>
 												handleModelMappingChange(model.alias, "")
 											}

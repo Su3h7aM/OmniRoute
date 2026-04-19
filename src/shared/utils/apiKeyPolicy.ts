@@ -232,7 +232,7 @@ export async function enforceApiKeyPolicy(
 	}
 
 	// ── Check 2: access_schedule — time-based access window ──
-	if (apiKeyInfo.accessSchedule && apiKeyInfo.accessSchedule.enabled) {
+	if (apiKeyInfo.accessSchedule?.enabled) {
 		if (!isWithinSchedule(apiKeyInfo.accessSchedule)) {
 			const { from, until, tz } = apiKeyInfo.accessSchedule;
 			return {

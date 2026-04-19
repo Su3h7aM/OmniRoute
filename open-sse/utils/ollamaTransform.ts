@@ -26,12 +26,11 @@ export function transformToOllama(response, model) {
 				const data = line.slice(5).trim();
 
 				if (data === "[DONE]") {
-					const ollamaEnd =
-						JSON.stringify({
-							model,
-							message: { role: "assistant", content: "" },
-							done: true,
-						}) + "\n";
+					const ollamaEnd = `${JSON.stringify({
+						model,
+						message: { role: "assistant", content: "" },
+						done: true,
+					})}\n`;
 					controller.enqueue(new TextEncoder().encode(ollamaEnd));
 					return;
 				}
@@ -70,12 +69,11 @@ export function transformToOllama(response, model) {
 					}
 
 					if (content) {
-						const ollama =
-							JSON.stringify({
-								model,
-								message: { role: "assistant", content },
-								done: false,
-							}) + "\n";
+						const ollama = `${JSON.stringify({
+							model,
+							message: { role: "assistant", content },
+							done: false,
+						})}\n`;
 						controller.enqueue(new TextEncoder().encode(ollama));
 					}
 
@@ -92,29 +90,27 @@ export function transformToOllama(response, model) {
 									arguments: JSON.parse(tc.function.arguments || "{}"),
 								},
 							}));
-							const ollama =
-								JSON.stringify({
-									model,
-									message: {
-										role: "assistant",
-										content: "",
-										tool_calls: formattedCalls,
-									},
-									done: true,
-								}) + "\n";
+							const ollama = `${JSON.stringify({
+								model,
+								message: {
+									role: "assistant",
+									content: "",
+									tool_calls: formattedCalls,
+								},
+								done: true,
+							})}\n`;
 							controller.enqueue(new TextEncoder().encode(ollama));
 							pendingToolCalls = {};
 						} else if (finishReason === "stop") {
-							const ollamaEnd =
-								JSON.stringify({
-									model,
-									message: { role: "assistant", content: "" },
-									done: true,
-								}) + "\n";
+							const ollamaEnd = `${JSON.stringify({
+								model,
+								message: { role: "assistant", content: "" },
+								done: true,
+							})}\n`;
 							controller.enqueue(new TextEncoder().encode(ollamaEnd));
 						}
 					}
-				} catch (e) {
+				} catch (_e) {
 					// Silently ignore parse errors
 				}
 			}

@@ -792,7 +792,7 @@ test("web_search fallback preserves Responses API output by appending function_c
 	await seedConnection("serper-search", { apiKey: "serper-search-key" });
 	const apiKey = await seedApiKey();
 
-	globalThis.fetch = async (url, init = {}) => {
+	globalThis.fetch = async (url, _init = {}) => {
 		const urlStr = String(url);
 		if (urlStr.includes("google.serper.dev/search")) {
 			return new Response(

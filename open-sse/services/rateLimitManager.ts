@@ -302,14 +302,15 @@ function parseResetTime(value) {
 	if (durationMatch) {
 		const [, h, m, s, ms] = durationMatch;
 		return (
-			(parseInt(h || 0) * 3600 + parseInt(m || 0) * 60 + parseInt(s || 0)) * 1000 +
-			parseInt(ms || 0)
+			(parseInt(h || 0, 10) * 3600 + parseInt(m || 0, 10) * 60 + parseInt(s || 0, 10)) *
+				1000 +
+			parseInt(ms || 0, 10)
 		);
 	}
 
 	// Pure number: assume seconds
 	const num = parseFloat(value);
-	if (!isNaN(num) && num > 0) {
+	if (!Number.isNaN(num) && num > 0) {
 		// If it looks like a Unix timestamp (> year 2025)
 		if (num > 1700000000) {
 			return Math.max(0, num * 1000 - Date.now());
@@ -320,7 +321,7 @@ function parseResetTime(value) {
 	// ISO date string
 	try {
 		const date = new Date(value);
-		if (!isNaN(date.getTime())) {
+		if (!Number.isNaN(date.getTime())) {
 			return Math.max(0, date.getTime() - Date.now());
 		}
 	} catch {}
@@ -352,8 +353,8 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
 		return headers[name] || null;
 	};
 
-	const limit = parseInt(getHeader(headerMap.limit));
-	const remaining = parseInt(getHeader(headerMap.remaining));
+	const limit = parseInt(getHeader(headerMap.limit), 10);
+	const remaining = parseInt(getHeader(headerMap.remaining), 10);
 	const resetStr = getHeader(headerMap.reset);
 	const retryAfterStr = getHeader(headerMap.retryAfter);
 	const overLimit = getHeader(STANDARD_HEADERS.overLimit);
@@ -390,7 +391,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
 	}
 
 	// Normal response — update limiter from headers
-	if (!isNaN(limit) && limit > 0) {
+	if (!Number.isNaN(limit) && limit > 0) {
 		const resetMs = parseResetTime(resetStr) || 60000;
 
 		// Calculate optimal minTime from RPM limit
@@ -399,7 +400,7 @@ export function updateFromHeaders(provider, connectionId, headers, status, model
 		const updates: LimiterUpdateSettings = { minTime };
 
 		// If remaining is low (< 10% of limit), set reservoir to throttle immediately
-		if (!isNaN(remaining)) {
+		if (!Number.isNaN(remaining)) {
 			if (remaining < limit * 0.1) {
 				updates.reservoir = remaining;
 				updates.reservoirRefreshAmount = limit;
@@ -632,7 +633,13 @@ async function loadPersistedLimits() {
  * @param {number} status - HTTP status code
  * @param {string} model - Model name (for per-model lockouts)
  */
-export function updateFromResponseBody(provider, connectionId, responseBody, status, model = null) {
+export function updateFromResponseBody(
+	provider,
+	connectionId,
+	responseBody,
+	_status,
+	model = null
+) {
 	if (!enabledConnections.has(connectionId)) return;
 
 	const { retryAfterMs, reason } = parseRetryAfterFromBody(responseBody);

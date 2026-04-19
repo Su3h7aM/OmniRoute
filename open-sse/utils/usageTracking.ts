@@ -52,7 +52,7 @@ function getBufferTokens(): number {
 	const envVal = process.env.USAGE_TOKEN_BUFFER;
 	if (envVal !== undefined) {
 		const parsed = parseInt(envVal, 10);
-		if (!isNaN(parsed) && parsed >= 0) {
+		if (!Number.isNaN(parsed) && parsed >= 0) {
 			_cachedBuffer = parsed;
 			_cacheTimestamp = now;
 			return parsed;
@@ -454,7 +454,7 @@ export function estimateInputTokens(body) {
 		}
 
 		return messageTokens + toolTokens;
-	} catch (err) {
+	} catch (_err) {
 		// Fallback if stringify fails
 		return 0;
 	}
@@ -531,7 +531,7 @@ export function logUsage(
 	void apiKeyInfo;
 	const normalizedConnectionId = typeof connectionId === "string" ? connectionId : undefined;
 	const accountPrefix = normalizedConnectionId
-		? normalizedConnectionId.slice(0, 8) + "..."
+		? `${normalizedConnectionId.slice(0, 8)}...`
 		: "unknown";
 
 	let msg = `[${getTimeString()}] 📊 ${COLORS.green}[USAGE] ${p} | in=${inTokens} | out=${outTokens} | account=${accountPrefix}${COLORS.reset}`;

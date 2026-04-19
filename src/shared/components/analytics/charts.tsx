@@ -219,7 +219,7 @@ export function ActivityHeatmap({ activityMap }) {
 		if (scrollRef.current) {
 			scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
 		}
-	}, [weeks]);
+	}, []);
 	const monthLabels = useMemo(() => {
 		const labels = [];
 		let lastMonth = -1;
@@ -866,7 +866,7 @@ export function MostActiveDay7d({ activityMap }) {
 		}
 		if (!peakKey || peakVal === 0) return null;
 
-		const peakDate = new Date(peakKey + "T12:00:00");
+		const peakDate = new Date(`${peakKey}T12:00:00`);
 		return {
 			weekday: weekdayFormatter.format(peakDate),
 			label: dateFormatter.format(peakDate),
@@ -956,7 +956,7 @@ export function WeeklySquares7d({ activityMap }) {
 					justifyContent: "center",
 				}}
 			>
-				{days.map((d, i) => (
+				{days.map((d, _i) => (
 					<div
 						key={d.key}
 						style={{

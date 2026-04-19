@@ -126,7 +126,7 @@ console.log(`  Stream: ${body.stream || false}`);
 
 				for (const line of lines) {
 					if (line.trim()) {
-						process.stdout.write(line + "\n");
+						process.stdout.write(`${line}\n`);
 						chunkCount++;
 					}
 				}
@@ -134,7 +134,7 @@ console.log(`  Stream: ${body.stream || false}`);
 
 			// Process any remaining data
 			if (buffer.trim()) {
-				process.stdout.write(buffer + "\n");
+				process.stdout.write(`${buffer}\n`);
 			}
 
 			console.log(`\n\n✅ Received ${chunkCount} chunks`);

@@ -26,7 +26,7 @@ export default function IPFilterSection() {
 
 	useEffect(() => {
 		loadConfig();
-	}, []);
+	}, [loadConfig]);
 
 	const loadConfig = async () => {
 		try {
@@ -91,6 +91,7 @@ export default function IPFilterSection() {
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
 				{MODES.map((m) => (
 					<button
+						type="button"
 						key={m.value}
 						onClick={() => setMode(m.value)}
 						disabled={loading}
@@ -168,6 +169,7 @@ export default function IPFilterSection() {
 									>
 										{ip}
 										<button
+											type="button"
 											onClick={() => removeIP(ip, "blacklist")}
 											className="hover:text-red-300"
 										>
@@ -196,6 +198,7 @@ export default function IPFilterSection() {
 									>
 										{ip}
 										<button
+											type="button"
 											onClick={() => removeIP(ip, "whitelist")}
 											className="hover:text-emerald-300"
 										>
@@ -237,6 +240,7 @@ export default function IPFilterSection() {
 												})}
 											</span>
 											<button
+												type="button"
 												onClick={() => removeBan(ban.ip)}
 												className="text-text-muted hover:text-orange-400"
 											>

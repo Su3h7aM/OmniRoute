@@ -224,7 +224,7 @@ export function resolveClaudeCodeCompatibleSessionId(headers?: HeaderLike): stri
 		getHeader(headers, "x-omniroute-session") ||
 		null;
 
-	return (raw && raw.trim()) || randomUUID();
+	return raw?.trim() || randomUUID();
 }
 
 export function buildClaudeCodeCompatibleRequest({
@@ -275,7 +275,7 @@ export function buildClaudeCodeCompatibleRequest({
 	const toolChoice =
 		tools.length > 0
 			? buildClaudeCodeCompatibleToolChoice(
-					normalizedBody?.["tool_choice"] ?? sourceBody?.["tool_choice"]
+					normalizedBody?.tool_choice ?? sourceBody?.tool_choice
 				)
 			: undefined;
 
@@ -386,10 +386,10 @@ export function resolveClaudeCodeCompatibleEffort(
 	const raw =
 		readNestedString(sourceBody, ["output_config", "effort"]) ||
 		readNestedString(sourceBody, ["reasoning", "effort"]) ||
-		toNonEmptyString(sourceBody?.["reasoning_effort"]) ||
+		toNonEmptyString(sourceBody?.reasoning_effort) ||
 		readNestedString(normalizedBody, ["output_config", "effort"]) ||
 		readNestedString(normalizedBody, ["reasoning", "effort"]) ||
-		toNonEmptyString(normalizedBody?.["reasoning_effort"]) ||
+		toNonEmptyString(normalizedBody?.reasoning_effort) ||
 		"";
 
 	const normalizedEffort = raw.toLowerCase();
@@ -413,12 +413,12 @@ export function resolveClaudeCodeCompatibleMaxTokens(
 	normalizedBody?: Record<string, unknown> | null
 ): number {
 	const candidates = [
-		sourceBody?.["max_tokens"],
-		sourceBody?.["max_completion_tokens"],
-		sourceBody?.["max_output_tokens"],
-		normalizedBody?.["max_tokens"],
-		normalizedBody?.["max_completion_tokens"],
-		normalizedBody?.["max_output_tokens"],
+		sourceBody?.max_tokens,
+		sourceBody?.max_completion_tokens,
+		sourceBody?.max_output_tokens,
+		normalizedBody?.max_tokens,
+		normalizedBody?.max_completion_tokens,
+		normalizedBody?.max_output_tokens,
 	];
 
 	for (const candidate of candidates) {
@@ -585,7 +585,7 @@ function buildClaudeCodeCompatibleSystemBlocks({
 	for (const systemBlock of customSystemBlocks) {
 		const preparedBlock = { ...systemBlock } as Record<string, unknown>;
 		if (!preserveCacheControl) {
-			delete preparedBlock["cache_control"];
+			delete preparedBlock.cache_control;
 		}
 		blocks.push(preparedBlock);
 	}
@@ -617,10 +617,10 @@ function buildClaudeCodeCompatibleTools(
 	normalizedBody?: Record<string, unknown> | null,
 	sourceBody?: Record<string, unknown> | null
 ) {
-	const rawTools = Array.isArray(normalizedBody?.["tools"])
-		? normalizedBody?.["tools"]
-		: Array.isArray(sourceBody?.["tools"])
-			? sourceBody?.["tools"]
+	const rawTools = Array.isArray(normalizedBody?.tools)
+		? normalizedBody?.tools
+		: Array.isArray(sourceBody?.tools)
+			? sourceBody?.tools
 			: [];
 
 	return rawTools

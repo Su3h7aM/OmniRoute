@@ -284,7 +284,7 @@ test.describe("Analytics Tabs UI", () => {
 
 		await expect(async () => {
 			await overviewTab.click();
-			const overviewStats = page.locator("text=Total API Requests").first();
+			const _overviewStats = page.locator("text=Total API Requests").first();
 			// Overview uses UsageAnalytics, we wait for a generic evidence of overview
 			// Or simply just wait 300ms if click doesn't throw
 		})

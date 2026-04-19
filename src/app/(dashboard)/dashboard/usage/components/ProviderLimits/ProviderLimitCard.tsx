@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
@@ -27,7 +26,7 @@ export default function ProviderLimitCard({
 	onRefresh,
 }) {
 	const [refreshing, setRefreshing] = useState(false);
-	const [imgError, setImgError] = useState(false);
+	const [imgError, _setImgError] = useState(false);
 	const t = useTranslations("usage");
 
 	const handleRefresh = async () => {
@@ -54,7 +53,7 @@ export default function ProviderLimitCard({
 	};
 
 	const providerColor = getProviderColor();
-	const planVariant = planVariants[plan?.toLowerCase()] || "default";
+	const _planVariant = planVariants[plan?.toLowerCase()] || "default";
 
 	return (
 		<Card padding="md" className="flex flex-col gap-4">
@@ -90,6 +89,7 @@ export default function ProviderLimitCard({
 
 				{/* Refresh Button */}
 				<button
+					type="button"
 					onClick={handleRefresh}
 					disabled={refreshing || loading}
 					className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

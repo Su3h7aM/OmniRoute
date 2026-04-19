@@ -56,7 +56,7 @@ function isRecord(value: unknown): value is JsonRecord {
 	return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function toRecord(value: unknown): JsonRecord {
+function _toRecord(value: unknown): JsonRecord {
 	return isRecord(value) ? value : {};
 }
 
@@ -73,7 +73,7 @@ function parseJsonRecord(value: string): JsonRecord | null {
 	}
 }
 
-function isFiniteNumber(value: unknown): boolean {
+function _isFiniteNumber(value: unknown): boolean {
 	return typeof value === "number" && Number.isFinite(value);
 }
 

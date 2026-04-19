@@ -8,7 +8,7 @@ export async function createChatPipelineHarness(prefix) {
 	process.env.REQUIRE_API_KEY = "false";
 	// FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
 	if (!process.env.API_KEY_SECRET) {
-		process.env.API_KEY_SECRET = "test-harness-secret-" + Date.now();
+		process.env.API_KEY_SECRET = `test-harness-secret-${Date.now()}`;
 	}
 
 	const core = await import("../../src/lib/db/core.ts");

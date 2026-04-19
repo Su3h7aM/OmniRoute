@@ -107,6 +107,7 @@ export default function ThinkingBudgetTab() {
 			<div className="grid grid-cols-2 gap-2 mb-5">
 				{MODES.map((m) => (
 					<button
+						type="button"
 						key={m.value}
 						onClick={() => save({ mode: m.value })}
 						disabled={loading || saving}
@@ -152,7 +153,7 @@ export default function ThinkingBudgetTab() {
 						max="131072"
 						step="1024"
 						value={config.customBudget}
-						onChange={(e) => save({ customBudget: parseInt(e.target.value) })}
+						onChange={(e) => save({ customBudget: parseInt(e.target.value, 10) })}
 						className="w-full accent-violet-500"
 					/>
 					<div className="flex justify-between text-xs text-text-muted mt-1">
@@ -173,6 +174,7 @@ export default function ThinkingBudgetTab() {
 					<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 						{EFFORTS.map((e) => (
 							<button
+								type="button"
 								key={e.value}
 								onClick={() => save({ effortLevel: e.value })}
 								disabled={loading || saving}

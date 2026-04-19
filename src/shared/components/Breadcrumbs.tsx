@@ -47,7 +47,7 @@ export default function Breadcrumbs() {
 	const segments = pathname.split("/").filter(Boolean);
 	const crumbs = segments.map((seg, idx) => ({
 		label: getLabel(seg),
-		href: "/" + segments.slice(0, idx + 1).join("/"),
+		href: `/${segments.slice(0, idx + 1).join("/")}`,
 		isLast: idx === segments.length - 1,
 	}));
 

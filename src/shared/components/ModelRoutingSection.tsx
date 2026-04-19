@@ -55,7 +55,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [loadMappings]);
 
 	useEffect(() => {
 		if (externalCombos !== undefined) return;
@@ -166,6 +166,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 				</div>
 				{!adding && (
 					<button
+						type="button"
 						onClick={() => setAdding(true)}
 						className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg
                        bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
@@ -239,6 +240,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 					</div>
 					<div className="flex items-center gap-2 mt-2.5">
 						<button
+							type="button"
 							onClick={handleSave}
 							disabled={!pattern.trim() || !comboId}
 							className="px-3 py-1 text-xs font-medium rounded-lg bg-primary text-white
@@ -247,6 +249,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 							{editingId ? t("update") : t("save")}
 						</button>
 						<button
+							type="button"
 							onClick={resetForm}
 							className="px-3 py-1 text-xs font-medium rounded-lg
                          bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
@@ -296,6 +299,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 							</div>
 							<div className="flex items-center gap-1 shrink-0">
 								<button
+									type="button"
 									onClick={() => handleToggle(m)}
 									className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
 									title={m.enabled ? t("disable") : t("enable")}
@@ -307,6 +311,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 									</span>
 								</button>
 								<button
+									type="button"
 									onClick={() => handleEdit(m)}
 									className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
 									title="Edit"
@@ -316,6 +321,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 									</span>
 								</button>
 								<button
+									type="button"
 									onClick={() => handleDelete(m.id)}
 									className="p-1 rounded hover:bg-red-500/10 transition-colors"
 									title="Delete"

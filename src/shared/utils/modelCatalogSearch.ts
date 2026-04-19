@@ -34,7 +34,6 @@ export function getModelCatalogSourceLabel(source?: string | null): string {
 			return "Fallback";
 		case "alias":
 			return "Alias";
-		case "system":
 		default:
 			return "Built-in";
 	}
@@ -50,7 +49,6 @@ function getModelCatalogSourceSearchText(source?: string | null): string {
 			return "fallback compatible";
 		case "alias":
 			return "alias shortcut";
-		case "system":
 		default:
 			return "built-in builtin official catalog";
 	}

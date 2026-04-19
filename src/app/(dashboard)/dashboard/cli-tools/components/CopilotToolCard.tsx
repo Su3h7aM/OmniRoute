@@ -267,12 +267,14 @@ export default function CopilotToolCard({
 								</div>
 								<div className="flex gap-2">
 									<button
+										type="button"
 										onClick={selectAll}
 										className="px-2 py-1 text-xs bg-bg-secondary hover:bg-bg-tertiary rounded border border-border transition-colors"
 									>
 										Select All
 									</button>
 									<button
+										type="button"
 										onClick={deselectAll}
 										className="px-2 py-1 text-xs bg-bg-secondary hover:bg-bg-tertiary rounded border border-border transition-colors"
 									>

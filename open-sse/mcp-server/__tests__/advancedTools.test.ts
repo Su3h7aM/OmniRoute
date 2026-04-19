@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "bun:test";
 
-const originalFetch = globalThis.fetch;
+const _originalFetch = globalThis.fetch;
 const mockFetch = vi.fn();
 globalThis.fetch = mockFetch as typeof globalThis.fetch;
 

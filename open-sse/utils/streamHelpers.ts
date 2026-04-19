@@ -26,7 +26,7 @@ export function parseSSELine(line) {
 
 	try {
 		return JSON.parse(data);
-	} catch (error) {
+	} catch (_error) {
 		if (data.length > 0) {
 			console.log(
 				`[WARN] Failed to parse SSE line (${data.length} chars): ${data.substring(0, 200)}...`
@@ -124,10 +124,10 @@ function cleanPerfMetrics(data) {
 // Format output as SSE
 export function formatSSE(data, sourceFormat) {
 	if (data === null || data === undefined) return ""; // Skip null/undefined — never send `data: null` (#483)
-	if (data && data.done) return "data: [DONE]\n\n";
+	if (data?.done) return "data: [DONE]\n\n";
 
 	// OpenAI Responses API format
-	if (data && data.event && data.data) {
+	if (data?.event && data.data) {
 		return `event: ${data.event}\ndata: ${JSON.stringify(data.data)}\n\n`;
 	}
 

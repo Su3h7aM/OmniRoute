@@ -111,7 +111,7 @@ function compactPipelinePayloads(
 	return hasOwnValues(result) ? result : null;
 }
 
-function createNoOpLogger(): RequestLogger {
+function _createNoOpLogger(): RequestLogger {
 	return {
 		sessionPath: null,
 		logClientRawRequest() {},

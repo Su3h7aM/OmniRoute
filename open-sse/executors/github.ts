@@ -65,7 +65,7 @@ export class GithubExecutor extends BaseExecutor {
 		return [{ role: "system", content: formatInstruction }, ...messages];
 	}
 
-	transformRequest(model: string, body: any, stream: boolean, credentials: any): any {
+	transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
 		const modifiedBody = JSON.parse(JSON.stringify(body));
 		if (modifiedBody.response_format && model.toLowerCase().includes("claude")) {
 			modifiedBody.messages = this.injectResponseFormat(
@@ -94,7 +94,7 @@ export class GithubExecutor extends BaseExecutor {
 		this._clientHeaders = input.clientHeaders ?? null;
 		try {
 			const result = await super.execute(input);
-			if (!result || !result.response) return result;
+			if (!result?.response) return result;
 
 			if (!input.stream) {
 				// wreq-js clone/text semantics consume the original response body. Materialize

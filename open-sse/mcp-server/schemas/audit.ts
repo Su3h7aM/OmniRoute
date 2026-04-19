@@ -117,5 +117,5 @@ export function summarizeOutput(output: unknown, maxLength = 200): string {
 	if (output === null || output === undefined) return "(null)";
 	const str = typeof output === "string" ? output : JSON.stringify(output);
 	if (str.length <= maxLength) return str;
-	return str.slice(0, maxLength) + "…";
+	return `${str.slice(0, maxLength)}…`;
 }

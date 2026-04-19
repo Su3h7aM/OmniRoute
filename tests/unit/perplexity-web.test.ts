@@ -28,7 +28,7 @@ function mockPplxStream(events) {
 
 function mockFetch(status, streamEvents) {
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, _opts) => {
 		return new Response(mockPplxStream(streamEvents), {
 			status,
 			headers: { "Content-Type": "text/event-stream" },
@@ -402,7 +402,7 @@ test("Non-streaming: Perplexity stream error returns 502", async () => {
 test("Message parsing: system + user + assistant history", async () => {
 	let capturedBody = null;
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, opts) => {
 		capturedBody = JSON.parse(opts.body);
 		return new Response(
 			mockPplxStream([
@@ -453,7 +453,7 @@ test("Message parsing: system + user + assistant history", async () => {
 test("Message parsing: developer role treated as system", async () => {
 	let capturedBody = null;
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, opts) => {
 		capturedBody = JSON.parse(opts.body);
 		return new Response(
 			mockPplxStream([
@@ -500,7 +500,7 @@ test("Message parsing: developer role treated as system", async () => {
 test("Auth: cookie-based auth sends Cookie header", async () => {
 	let capturedHeaders = null;
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, opts) => {
 		capturedHeaders = opts.headers;
 		return new Response(
 			mockPplxStream([
@@ -530,11 +530,11 @@ test("Auth: cookie-based auth sends Cookie header", async () => {
 		});
 
 		assert.equal(
-			capturedHeaders["Cookie"],
+			capturedHeaders.Cookie,
 			"__Secure-next-auth.session-token=my-session-token-value"
 		);
 		assert.ok(
-			!capturedHeaders["Authorization"],
+			!capturedHeaders.Authorization,
 			"Should not have Authorization header for cookie auth"
 		);
 	} finally {
@@ -545,7 +545,7 @@ test("Auth: cookie-based auth sends Cookie header", async () => {
 test("Auth: JWT auth sends Authorization Bearer header", async () => {
 	let capturedHeaders = null;
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, opts) => {
 		capturedHeaders = opts.headers;
 		return new Response(
 			mockPplxStream([
@@ -574,8 +574,8 @@ test("Auth: JWT auth sends Authorization Bearer header", async () => {
 			log: null,
 		});
 
-		assert.equal(capturedHeaders["Authorization"], "Bearer jwt-token-value");
-		assert.ok(!capturedHeaders["Cookie"], "Should not have Cookie header for JWT auth");
+		assert.equal(capturedHeaders.Authorization, "Bearer jwt-token-value");
+		assert.ok(!capturedHeaders.Cookie, "Should not have Cookie header for JWT auth");
 	} finally {
 		globalThis.fetch = original;
 	}
@@ -586,7 +586,7 @@ test("Auth: JWT auth sends Authorization Bearer header", async () => {
 test("Model mapping: pplx-gpt sends correct internal preference", async () => {
 	let capturedBody = null;
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, opts) => {
 		capturedBody = JSON.parse(opts.body);
 		return new Response(
 			mockPplxStream([
@@ -625,7 +625,7 @@ test("Model mapping: pplx-gpt sends correct internal preference", async () => {
 test("Model mapping: thinking mode uses thinking variant", async () => {
 	let capturedBody = null;
 	const original = globalThis.fetch;
-	globalThis.fetch = async (url, opts) => {
+	globalThis.fetch = async (_url, opts) => {
 		capturedBody = JSON.parse(opts.body);
 		return new Response(
 			mockPplxStream([
@@ -744,9 +744,9 @@ test("Request: posts to correct Perplexity SSE endpoint", async () => {
 		});
 
 		assert.equal(capturedUrl, "https://www.perplexity.ai/rest/sse/perplexity_ask");
-		assert.equal(capturedHeaders["Origin"], "https://www.perplexity.ai");
+		assert.equal(capturedHeaders.Origin, "https://www.perplexity.ai");
 		assert.equal(capturedHeaders["X-App-ApiVersion"], "2.18");
-		assert.equal(capturedHeaders["Accept"], "text/event-stream");
+		assert.equal(capturedHeaders.Accept, "text/event-stream");
 	} finally {
 		globalThis.fetch = original;
 	}

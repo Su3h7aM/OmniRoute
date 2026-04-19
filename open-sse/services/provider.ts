@@ -320,7 +320,7 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
 		if (credentials.apiKey) {
 			headers["x-api-key"] = credentials.apiKey;
 		} else if (credentials.accessToken) {
-			headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+			headers.Authorization = `Bearer ${credentials.accessToken}`;
 		}
 		if (!headers["anthropic-version"]) {
 			headers["anthropic-version"] = "2023-06-01";
@@ -328,16 +328,16 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
 	} else if (provider === "github") {
 		// GitHub Copilot requires special dynamic headers (x-request-id)
 		const githubToken = credentials.copilotToken || credentials.accessToken;
-		headers["Authorization"] = `Bearer ${githubToken}`;
+		headers.Authorization = `Bearer ${githubToken}`;
 		headers["x-request-id"] = crypto.randomUUID
 			? crypto.randomUUID()
 			: "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
 					const r = (Math.random() * 16) | 0;
-					const v = c == "x" ? r : (r & 0x3) | 0x8;
+					const v = c === "x" ? r : (r & 0x3) | 0x8;
 					return v.toString(16);
 				});
 		if (!stream) {
-			headers["Accept"] = "application/json";
+			headers.Accept = "application/json";
 		}
 	} else if (entry) {
 		// Registry-driven auth
@@ -351,20 +351,20 @@ export function buildProviderHeaders(provider, credentials, stream = true, body 
 			if (credentials.apiKey) {
 				headers["x-goog-api-key"] = credentials.apiKey;
 			} else if (credentials.accessToken) {
-				headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+				headers.Authorization = `Bearer ${credentials.accessToken}`;
 			}
 		} else {
 			// bearer (default)
-			headers["Authorization"] = `Bearer ${credentials.apiKey || credentials.accessToken}`;
+			headers.Authorization = `Bearer ${credentials.apiKey || credentials.accessToken}`;
 		}
 	} else {
 		// Fallback for unknown providers
-		headers["Authorization"] = `Bearer ${credentials.apiKey || credentials.accessToken}`;
+		headers.Authorization = `Bearer ${credentials.apiKey || credentials.accessToken}`;
 	}
 
 	// Stream accept header
 	if (stream) {
-		headers["Accept"] = "text/event-stream";
+		headers.Accept = "text/event-stream";
 	}
 
 	return headers;

@@ -73,7 +73,7 @@ export async function GET() {
 		}
 
 		const globalState = await readGlobalState();
-		const secrets = await readSecrets();
+		const _secrets = await readSecrets();
 
 		return NextResponse.json({
 			installed: runtime.installed,

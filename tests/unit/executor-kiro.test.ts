@@ -22,7 +22,7 @@ function crc32(buf) {
 	return (crc ^ 0xffffffff) >>> 0;
 }
 
-function concatArrays(...arrays) {
+function _concatArrays(...arrays) {
 	const total = arrays.reduce((sum, array) => sum + array.length, 0);
 	const result = new Uint8Array(total);
 	let offset = 0;

@@ -957,7 +957,7 @@ test("embeddings route tolerates non-array provider nodes and remote fallback lo
 				new Proxy(statement, {
 					get(target, prop, receiver) {
 						if (prop === "all") {
-							return (...args) => {
+							return (..._args) => {
 								providerNodeSelects++;
 								if (providerNodeSelects === 1) {
 									return [];

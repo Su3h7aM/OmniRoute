@@ -67,6 +67,7 @@ function ServiceToggle({
 			</div>
 
 			<button
+				type="button"
 				onClick={onToggle}
 				disabled={toggling}
 				className="relative inline-flex items-center h-7 w-[52px] rounded-full transition-all duration-300 focus:outline-none border"
@@ -145,6 +146,7 @@ function TransportSelector({
 			<div className="flex gap-2 flex-wrap">
 				{options.map((opt) => (
 					<button
+						type="button"
 						key={opt.value}
 						onClick={() => onChange(opt.value)}
 						disabled={disabled}
@@ -199,6 +201,7 @@ function TransportSelector({
 				</code>
 				{value !== "stdio" && (
 					<button
+						type="button"
 						className="ml-auto text-xs px-2 py-0.5 rounded border hover:opacity-80 transition-opacity"
 						style={{
 							borderColor: "var(--color-border)",

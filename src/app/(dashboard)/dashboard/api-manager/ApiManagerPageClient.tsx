@@ -36,7 +36,7 @@ function validateKeyName(
 	name: string,
 	t: (key: string, values?: Record<string, unknown>) => string
 ): { valid: boolean; error?: string } {
-	if (!name || !name.trim()) {
+	if (!name?.trim()) {
 		return { valid: false, error: t("keyNameRequired") };
 	}
 	if (name.length > MAX_KEY_NAME_LENGTH) {
@@ -108,7 +108,7 @@ export default function ApiManagerPageClient() {
 	const [showPermissionsModal, setShowPermissionsModal] = useState(false);
 	const [searchModel, setSearchModel] = useState("");
 	const [error, setError] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [_isSubmitting, setIsSubmitting] = useState(false);
 	const [usageStats, setUsageStats] = useState<Record<string, KeyUsageStats>>({});
 	const [sessionCounts, setSessionCounts] = useState<Record<string, number>>({});
 	const [allowKeyReveal, setAllowKeyReveal] = useState(false);
@@ -119,7 +119,7 @@ export default function ApiManagerPageClient() {
 		fetchData();
 		fetchModels();
 		fetchConnections();
-	}, []);
+	}, [fetchModels, fetchData, fetchConnections]);
 
 	const fetchModels = async () => {
 		try {
@@ -294,7 +294,7 @@ export default function ApiManagerPageClient() {
 	};
 
 	const handleOpenPermissions = (key: ApiKey) => {
-		if (!key || !key.id) return;
+		if (!key?.id) return;
 		setEditingKey(key);
 		setShowPermissionsModal(true);
 	};
@@ -327,7 +327,7 @@ export default function ApiManagerPageClient() {
 		maxSessions: number,
 		accessSchedule: AccessSchedule | null
 	) => {
-		if (!editingKey || !editingKey.id) return;
+		if (!editingKey?.id) return;
 
 		// Validate models array
 		if (!Array.isArray(allowedModels)) {
@@ -401,7 +401,7 @@ export default function ApiManagerPageClient() {
 			grouped[provider].push(model);
 		}
 		return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
-	}, [allModels]);
+	}, [allModels, t]);
 
 	// Filter models based on debounced search
 	const filteredModelsByProvider = useMemo((): ProviderGroup[] => {
@@ -439,6 +439,7 @@ export default function ApiManagerPageClient() {
 					<span className="material-symbols-outlined text-red-500">error</span>
 					<p className="text-sm text-red-700 dark:text-red-300 flex-1">{error}</p>
 					<button
+						type="button"
 						onClick={clearError}
 						className="text-red-500 hover:text-red-700 transition-colors"
 					>
@@ -616,6 +617,7 @@ export default function ApiManagerPageClient() {
 										</code>
 										{allowKeyReveal ? (
 											<button
+												type="button"
 												onClick={() => handleCopyExistingKey(key.id)}
 												className="p-1 text-text-muted/60 hover:text-primary transition-colors shrink-0"
 												title={tc("copy")}
@@ -642,6 +644,7 @@ export default function ApiManagerPageClient() {
 										<div className="flex flex-col items-start gap-1">
 											{isRestricted ? (
 												<button
+													type="button"
 													onClick={() => handleOpenPermissions(key)}
 													className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors"
 												>
@@ -654,6 +657,7 @@ export default function ApiManagerPageClient() {
 												</button>
 											) : (
 												<button
+													type="button"
 													onClick={() => handleOpenPermissions(key)}
 													className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium hover:bg-green-500/20 transition-colors"
 												>
@@ -665,6 +669,7 @@ export default function ApiManagerPageClient() {
 											)}
 											{hasConnectionRestrictions && (
 												<button
+													type="button"
 													onClick={() => handleOpenPermissions(key)}
 													className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors"
 												>
@@ -742,6 +747,7 @@ export default function ApiManagerPageClient() {
 									</div>
 									<div className="col-span-2 flex items-center justify-end gap-1">
 										<button
+											type="button"
 											onClick={() => handleOpenPermissions(key)}
 											className="p-2 hover:bg-primary/10 rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-all"
 											title={t("editPermissions")}
@@ -751,6 +757,7 @@ export default function ApiManagerPageClient() {
 											</span>
 										</button>
 										<button
+											type="button"
 											onClick={() => handleDeleteKey(key.id)}
 											className="p-2 hover:bg-red-500/10 rounded text-red-500 opacity-0 group-hover:opacity-100 transition-all"
 											title={t("deleteKey")}
@@ -995,7 +1002,7 @@ const PermissionsModal = memo(function PermissionsModal({
 	);
 
 	const handleToggleProvider = useCallback(
-		(provider: string, models: Model[]) => {
+		(_provider: string, models: Model[]) => {
 			if (allowAll) return;
 
 			const modelIds = models.map((m) => m.id);
@@ -1104,6 +1111,7 @@ const PermissionsModal = memo(function PermissionsModal({
 				{/* Access Mode Toggle */}
 				<div className="flex gap-2 p-1 bg-surface rounded-lg">
 					<button
+						type="button"
 						onClick={handleSelectAll}
 						className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
 							allowAll
@@ -1115,6 +1123,7 @@ const PermissionsModal = memo(function PermissionsModal({
 						{t("allowAll")}
 					</button>
 					<button
+						type="button"
 						onClick={handleRestrictMode}
 						className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
 							!allowAll
@@ -1372,12 +1381,14 @@ const PermissionsModal = memo(function PermissionsModal({
 							</span>
 							<div className="flex gap-1">
 								<button
+									type="button"
 									onClick={handleSelectAllModels}
 									className="text-[10px] text-primary hover:bg-primary/10 px-1.5 py-0.5 rounded transition-colors"
 								>
 									{tc("all")}
 								</button>
 								<button
+									type="button"
 									onClick={handleDeselectAllModels}
 									className="text-[10px] text-red-500 hover:bg-red-500/10 px-1.5 py-0.5 rounded transition-colors"
 								>
@@ -1398,6 +1409,7 @@ const PermissionsModal = memo(function PermissionsModal({
 										{modelId}
 									</span>
 									<button
+										type="button"
 										onClick={() => handleToggleModel(modelId)}
 										className="text-text-muted hover:text-red-500 transition-colors"
 									>
@@ -1423,6 +1435,7 @@ const PermissionsModal = memo(function PermissionsModal({
 							/>
 							{searchModel && (
 								<button
+									type="button"
 									onClick={() => onSearchChange("")}
 									className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main"
 								>
@@ -1454,6 +1467,7 @@ const PermissionsModal = memo(function PermissionsModal({
 									return (
 										<div key={provider} className="group">
 											<button
+												type="button"
 												onClick={() => handleToggleExpand(provider)}
 												className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface/50 transition-colors text-left"
 											>
@@ -1518,6 +1532,7 @@ const PermissionsModal = memo(function PermissionsModal({
 																selectedModels.includes(model.id);
 															return (
 																<button
+																	type="button"
 																	key={model.id}
 																	onClick={() =>
 																		handleToggleModel(model.id)
@@ -1553,6 +1568,7 @@ const PermissionsModal = memo(function PermissionsModal({
 							</p>
 							<div className="flex gap-1 p-0.5 bg-surface rounded-md">
 								<button
+									type="button"
 									onClick={() => {
 										setAllowAllConnections(true);
 										setSelectedConnections([]);
@@ -1566,6 +1582,7 @@ const PermissionsModal = memo(function PermissionsModal({
 									All
 								</button>
 								<button
+									type="button"
 									onClick={() => setAllowAllConnections(false)}
 									className={`px-2 py-1 rounded text-xs font-medium transition-all ${
 										!allowAllConnections
@@ -1607,6 +1624,7 @@ const PermissionsModal = memo(function PermissionsModal({
 												);
 												return (
 													<button
+														type="button"
 														key={conn.id}
 														onClick={() =>
 															handleToggleConnection(conn.id)

@@ -141,7 +141,7 @@ describe("SSE remainingCredits extraction logic", () => {
 
 		const googleCredit = remainingCredits.find((c) => c.creditType === "GOOGLE_ONE_AI");
 		const balance = parseInt(googleCredit.creditAmount, 10);
-		assert.ok(isNaN(balance), "NaN guard prevents invalid balance storage");
+		assert.ok(Number.isNaN(balance), "NaN guard prevents invalid balance storage");
 	});
 
 	it("balance update is correctly reflected in the cache after a successful parse", () => {
@@ -151,7 +151,7 @@ describe("SSE remainingCredits extraction logic", () => {
 		const googleCredit = remainingCredits.find((c) => c.creditType === "GOOGLE_ONE_AI");
 		if (googleCredit) {
 			const balance = parseInt(googleCredit.creditAmount, 10);
-			if (!isNaN(balance)) {
+			if (!Number.isNaN(balance)) {
 				updateAntigravityRemainingCredits(accountId, balance);
 			}
 		}
@@ -166,7 +166,7 @@ describe("SSE remainingCredits extraction logic", () => {
 		const googleCredit = remainingCredits.find((c) => c.creditType === "GOOGLE_ONE_AI");
 		if (googleCredit) {
 			const balance = parseInt(googleCredit.creditAmount, 10);
-			if (!isNaN(balance)) {
+			if (!Number.isNaN(balance)) {
 				updateAntigravityRemainingCredits(accountId, balance);
 			}
 			// NaN — no update should happen

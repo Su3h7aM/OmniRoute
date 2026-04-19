@@ -72,7 +72,7 @@ export function updateAntigravityRemainingCredits(accountId: string, balance: nu
 	}
 }
 
-function isCreditsExhausted(accountId: string): boolean {
+function _isCreditsExhausted(accountId: string): boolean {
 	const until = creditsExhaustedUntil.get(accountId);
 	if (!until) return false;
 	if (Date.now() >= until) {
@@ -107,7 +107,7 @@ export class AntigravityExecutor extends BaseExecutor {
 		super("antigravity", PROVIDERS.antigravity);
 	}
 
-	buildUrl(model, stream, urlIndex = 0) {
+	buildUrl(_model, _stream, urlIndex = 0) {
 		const baseUrls = this.getBaseUrls();
 		const baseUrl = baseUrls[urlIndex] || baseUrls[0];
 		// Always use streaming endpoint — the non-streaming `generateContent` causes
@@ -118,7 +118,7 @@ export class AntigravityExecutor extends BaseExecutor {
 		return `${baseUrl}/v1internal:streamGenerateContent?alt=sse`;
 	}
 
-	buildHeaders(credentials, stream = true) {
+	buildHeaders(credentials, _stream = true) {
 		const raw = {
 			"Content-Type": "application/json",
 			Authorization: `Bearer ${credentials.accessToken}`,
@@ -130,7 +130,7 @@ export class AntigravityExecutor extends BaseExecutor {
 		return scrubProxyAndFingerprintHeaders(raw);
 	}
 
-	transformRequest(model, body, stream, credentials) {
+	transformRequest(model, body, _stream, credentials) {
 		// TODO: Consider removing project override like gemini-cli.ts — stored projectId
 		// can become stale for Cloud Code accounts, causing 403 "has not been used in project X".
 		// Antigravity accounts may have more stable project IDs, but the risk exists.
@@ -285,10 +285,10 @@ export class AntigravityExecutor extends BaseExecutor {
 		const retryAfter = headers.get("retry-after");
 		if (retryAfter) {
 			const seconds = parseInt(retryAfter, 10);
-			if (!isNaN(seconds) && seconds > 0) return seconds * 1000;
+			if (!Number.isNaN(seconds) && seconds > 0) return seconds * 1000;
 
 			const date = new Date(retryAfter);
-			if (!isNaN(date.getTime())) {
+			if (!Number.isNaN(date.getTime())) {
 				const diff = date.getTime() - Date.now();
 				return diff > 0 ? diff : null;
 			}
@@ -297,7 +297,7 @@ export class AntigravityExecutor extends BaseExecutor {
 		const resetAfter = headers.get("x-ratelimit-reset-after");
 		if (resetAfter) {
 			const seconds = parseInt(resetAfter, 10);
-			if (!isNaN(seconds) && seconds > 0) return seconds * 1000;
+			if (!Number.isNaN(seconds) && seconds > 0) return seconds * 1000;
 		}
 
 		const resetTimestamp = headers.get("x-ratelimit-reset");
@@ -319,9 +319,9 @@ export class AntigravityExecutor extends BaseExecutor {
 		if (!match) return null;
 
 		let totalMs = 0;
-		if (match[1]) totalMs += parseInt(match[1]) * 3600 * 1000; // hours
-		if (match[2]) totalMs += parseInt(match[2]) * 60 * 1000; // minutes
-		if (match[3]) totalMs += parseInt(match[3]) * 1000; // seconds
+		if (match[1]) totalMs += parseInt(match[1], 10) * 3600 * 1000; // hours
+		if (match[2]) totalMs += parseInt(match[2], 10) * 60 * 1000; // minutes
+		if (match[3]) totalMs += parseInt(match[3], 10) * 1000; // seconds
 
 		// "reset after 0s" = burst/RPM limit, not quota exhaustion.
 		// Return a minimum backoff so the auto-retry loop handles it
@@ -413,7 +413,7 @@ export class AntigravityExecutor extends BaseExecutor {
 					if (Array.isArray(parsed?.remainingCredits)) {
 						remainingCredits = parsed.remainingCredits;
 					}
-				} catch (e) {
+				} catch (_e) {
 					log?.debug?.(
 						"SSE_PARSE",
 						`Skipping malformed SSE line: ${payload.slice(0, 80)}`
@@ -540,7 +540,7 @@ export class AntigravityExecutor extends BaseExecutor {
 							// 2. Classify 429 (pass header-parsed retry hint as fallback
 							//    signal — multi-hour Retry-After upgrades rate_limited to
 							//    quota_exhausted so the GOOGLE_ONE_AI credits retry fires).
-							const effectiveRetryHintMs = retryMs ?? parsedRetryMs ?? null;
+							const _effectiveRetryHintMs = retryMs ?? parsedRetryMs ?? null;
 							const category = classify429(errorMessage);
 
 							// 3. For quota_exhausted, attempt Google One AI credits retry FIRST!
@@ -610,7 +610,7 @@ export class AntigravityExecutor extends BaseExecutor {
 															googleCredit.creditAmount,
 															10
 														);
-														if (!isNaN(balance))
+														if (!Number.isNaN(balance))
 															updateAntigravityRemainingCredits(
 																accountId,
 																balance
@@ -652,7 +652,7 @@ export class AntigravityExecutor extends BaseExecutor {
 								"AG_429",
 								`Category: ${category}, Decision: ${decision.kind} — ${decision.reason}`
 							);
-						} catch (e) {
+						} catch (_e) {
 							// Ignore parse errors, will fall back to exponential backoff
 						}
 					}
@@ -760,7 +760,7 @@ export class AntigravityExecutor extends BaseExecutor {
 							);
 							if (googleCredit) {
 								const balance = parseInt(googleCredit.creditAmount, 10);
-								if (!isNaN(balance))
+								if (!Number.isNaN(balance))
 									updateAntigravityRemainingCredits(accountId, balance);
 							}
 						}
@@ -806,7 +806,7 @@ export class AntigravityExecutor extends BaseExecutor {
 													googleCredit.creditAmount,
 													10
 												);
-												if (!isNaN(balance)) {
+												if (!Number.isNaN(balance)) {
 													updateAntigravityRemainingCredits(
 														accountId,
 														balance

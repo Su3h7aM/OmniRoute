@@ -68,7 +68,7 @@ test("fetchBailianQuota uses apiKey when consoleApiKey is absent", async () => {
 	});
 
 	assert.equal(calls.length, 1);
-	assert.equal(calls[0].init.headers["Authorization"], "Bearer test-api-key");
+	assert.equal(calls[0].init.headers.Authorization, "Bearer test-api-key");
 	assert.equal(quota?.percentUsed, 0.5);
 
 	invalidateBailianQuotaCache(connectionId);
@@ -117,7 +117,7 @@ test("fetchBailianQuota uses apiKey when consoleApiKey is empty string", async (
 	});
 
 	assert.equal(calls.length, 1);
-	assert.equal(calls[0].init.headers["Authorization"], "Bearer fallback-key");
+	assert.equal(calls[0].init.headers.Authorization, "Bearer fallback-key");
 	assert.equal(quota?.percentUsed, 0.6);
 
 	invalidateBailianQuotaCache(connectionId);
@@ -166,7 +166,7 @@ test("fetchBailianQuota prefers consoleApiKey when present", async () => {
 	});
 
 	assert.equal(calls.length, 1);
-	assert.equal(calls[0].init.headers["Authorization"], "Bearer ck-test");
+	assert.equal(calls[0].init.headers.Authorization, "Bearer ck-test");
 	assert.equal(quota?.percentUsed, 0.7);
 
 	invalidateBailianQuotaCache(connectionId);
@@ -399,7 +399,7 @@ test("fetchBailianQuota caches results within TTL", async () => {
 
 	invalidateBailianQuotaCache(connectionId);
 
-	const third = await fetchBailianQuota(connectionId, {
+	const _third = await fetchBailianQuota(connectionId, {
 		apiKey: "test-key",
 	});
 

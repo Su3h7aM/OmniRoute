@@ -49,7 +49,7 @@ export default function ModelSelectModal({
 
 	useEffect(() => {
 		if (isOpen) fetchCombos();
-	}, [isOpen]);
+	}, [isOpen, fetchCombos]);
 
 	const fetchProviderNodes = async () => {
 		try {
@@ -65,7 +65,7 @@ export default function ModelSelectModal({
 
 	useEffect(() => {
 		if (isOpen) fetchProviderNodes();
-	}, [isOpen]);
+	}, [isOpen, fetchProviderNodes]);
 
 	const fetchCustomModels = async () => {
 		try {
@@ -81,7 +81,7 @@ export default function ModelSelectModal({
 
 	useEffect(() => {
 		if (isOpen) fetchCustomModels();
-	}, [isOpen]);
+	}, [isOpen, fetchCustomModels]);
 
 	const allProviders = useMemo(
 		() => ({ ...OAUTH_PROVIDERS, ...FREE_PROVIDERS, ...APIKEY_PROVIDERS }),
@@ -339,6 +339,7 @@ export default function ModelSelectModal({
 								const isSelected = selectedModel === combo.name;
 								return (
 									<button
+										type="button"
 										key={combo.id}
 										onClick={() =>
 											handleSelect({
@@ -385,6 +386,7 @@ export default function ModelSelectModal({
 								const isAdded = addedModelValues.includes(model.value);
 								return (
 									<button
+										type="button"
 										key={model.id}
 										onClick={() => handleSelect(model)}
 										className={`

@@ -7,7 +7,7 @@ import PricingModal from "@/shared/components/PricingModal";
 import { useTranslations } from "next-intl";
 
 export default function PricingSettingsPage() {
-	const router = useRouter();
+	const _router = useRouter();
 	const [showModal, setShowModal] = useState(false);
 	const [currentPricing, setCurrentPricing] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -15,7 +15,7 @@ export default function PricingSettingsPage() {
 
 	useEffect(() => {
 		loadPricing();
-	}, []);
+	}, [loadPricing]);
 
 	const loadPricing = async () => {
 		setLoading(true);
@@ -61,6 +61,7 @@ export default function PricingSettingsPage() {
 					<p className="text-text-muted mt-1">{t("modelPricingDesc")}</p>
 				</div>
 				<button
+					type="button"
 					onClick={() => setShowModal(true)}
 					className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
 				>
@@ -135,6 +136,7 @@ export default function PricingSettingsPage() {
 				<div className="flex items-center justify-between mb-4">
 					<h2 className="text-xl font-semibold">{t("currentPricing")}</h2>
 					<button
+						type="button"
 						onClick={() => setShowModal(true)}
 						className="text-primary hover:underline text-sm"
 					>

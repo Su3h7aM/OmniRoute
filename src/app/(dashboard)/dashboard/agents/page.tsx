@@ -294,6 +294,7 @@ export default function AgentsPage() {
 							const color = providerMeta?.color || "#888";
 							return (
 								<button
+									type="button"
 									key={providerId}
 									onClick={() => {
 										const current: string[] = settings.cliCompatProviders || [];
@@ -396,6 +397,7 @@ export default function AgentsPage() {
 							</span>
 							{agent.isCustom && (
 								<button
+									type="button"
 									onClick={() => handleRemoveAgent(agent.id)}
 									className="text-xs text-red-500 hover:text-red-400 transition-colors flex items-center gap-0.5"
 									title={t("remove")}
@@ -455,7 +457,7 @@ export default function AgentsPage() {
 											models[m.id] = { name: m.id };
 										}
 										// Build opencode.json
-										const baseURL = window.location.origin + "/v1";
+										const baseURL = `${window.location.origin}/v1`;
 										const config = {
 											$schema: "https://opencode.ai/config.json",
 											provider: {

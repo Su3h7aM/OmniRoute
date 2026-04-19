@@ -18,9 +18,9 @@ const { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } = await import(
 );
 
 function resetRuntime() {
-	skillRegistry["registeredSkills"].clear();
-	skillRegistry["versionCache"].clear();
-	skillExecutor["handlers"].clear();
+	skillRegistry.registeredSkills.clear();
+	skillRegistry.versionCache.clear();
+	skillExecutor.handlers.clear();
 	skillExecutor.setTimeout(50);
 }
 

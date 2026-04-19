@@ -105,11 +105,11 @@ export function getCodexResetTime(quota: CodexQuotaSnapshot): number | null {
 	const times: number[] = [];
 	if (quota.resetAt7d) {
 		const t = new Date(quota.resetAt7d).getTime();
-		if (!isNaN(t) && t > Date.now()) times.push(t);
+		if (!Number.isNaN(t) && t > Date.now()) times.push(t);
 	}
 	if (quota.resetAt5h) {
 		const t = new Date(quota.resetAt5h).getTime();
-		if (!isNaN(t) && t > Date.now()) times.push(t);
+		if (!Number.isNaN(t) && t > Date.now()) times.push(t);
 	}
 	if (times.length === 0) return null;
 	return Math.max(...times); // Use furthest-out reset to avoid premature unblock
@@ -396,9 +396,9 @@ export class CodexExecutor extends BaseExecutor {
 	 * Always request event-stream from upstream, even when client requested stream=false.
 	 * Includes chatgpt-account-id header for strict workspace binding.
 	 */
-	buildHeaders(credentials, stream = true) {
+	buildHeaders(credentials, _stream = true) {
 		const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
-		const headers = super.buildHeaders(credentials, isCompactRequest ? false : true);
+		const headers = super.buildHeaders(credentials, !isCompactRequest);
 		headers.Version = getCodexClientVersion();
 		setUserAgentHeader(headers, getCodexUserAgent());
 
@@ -442,7 +442,7 @@ export class CodexExecutor extends BaseExecutor {
 	/**
 	 * Transform request before sending - inject default instructions if missing
 	 */
-	transformRequest(model, body, stream, credentials) {
+	transformRequest(model, body, _stream, credentials) {
 		// Do not mutate the caller's payload in place. Combo quality checks and
 		// other post-execute paths still inspect the original request body.
 		body =

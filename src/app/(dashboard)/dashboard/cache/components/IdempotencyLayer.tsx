@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Card } from "@/shared/components";
 import { useTranslations } from "next-intl";
 
@@ -63,6 +62,7 @@ export default function IdempotencyLayer({
 						<p className="text-sm text-red-500">{error}</p>
 						{onRetry && (
 							<button
+								type="button"
 								onClick={onRetry}
 								className="self-start text-sm px-3 py-1 rounded bg-surface/50 hover:bg-surface/80 transition-colors"
 								aria-label="Retry"

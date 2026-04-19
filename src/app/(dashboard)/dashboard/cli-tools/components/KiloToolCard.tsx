@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
 import { useTranslations } from "next-intl";
 
-const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
+const _CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 
 export default function KiloToolCard({
 	tool,
@@ -29,7 +29,7 @@ export default function KiloToolCard({
 	const [selectedApiKey, setSelectedApiKey] = useState("");
 	const [selectedModel, setSelectedModel] = useState("");
 	const [modalOpen, setModalOpen] = useState(false);
-	const [modelAliases, setModelAliases] = useState({});
+	const [_modelAliases, setModelAliases] = useState({});
 	const [showManualConfigModal, setShowManualConfigModal] = useState(false);
 	const [customBaseUrl, setCustomBaseUrl] = useState("");
 	const hasInitializedModel = useRef(false);
@@ -56,15 +56,7 @@ export default function KiloToolCard({
 		}
 	}, [apiKeys, selectedApiKey]);
 
-	useEffect(() => {
-		if (isExpanded && !kiloStatus) {
-			checkKiloStatus();
-			fetchModelAliases();
-			fetchBackups();
-		}
-	}, [isExpanded, kiloStatus]);
-
-	const fetchModelAliases = async () => {
+	const fetchModelAliases = useCallback(async () => {
 		try {
 			const res = await fetch("/api/models/alias");
 			if (res.ok) {
@@ -74,9 +66,9 @@ export default function KiloToolCard({
 		} catch {
 			/* ignore */
 		}
-	};
+	}, []);
 
-	const fetchBackups = async () => {
+	const fetchBackups = useCallback(async () => {
 		try {
 			const res = await fetch("/api/cli-tools/backups?tool=kilo");
 			if (res.ok) {
@@ -86,7 +78,7 @@ export default function KiloToolCard({
 		} catch {
 			/* ignore */
 		}
-	};
+	}, []);
 
 	const handleRestoreBackup = async (backupId) => {
 		setRestoringBackup(backupId);
@@ -111,7 +103,7 @@ export default function KiloToolCard({
 		}
 	};
 
-	const checkKiloStatus = async () => {
+	const checkKiloStatus = useCallback(async () => {
 		setCheckingKilo(true);
 		try {
 			const res = await fetch("/api/cli-tools/kilo-settings");
@@ -122,7 +114,15 @@ export default function KiloToolCard({
 		} finally {
 			setCheckingKilo(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (isExpanded && !kiloStatus) {
+			checkKiloStatus();
+			fetchModelAliases();
+			fetchBackups();
+		}
+	}, [isExpanded, kiloStatus, fetchModelAliases, fetchBackups, checkKiloStatus]);
 
 	const getEffectiveBaseUrl = () => {
 		if (customBaseUrl) return customBaseUrl;
@@ -198,8 +198,9 @@ export default function KiloToolCard({
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -244,7 +245,7 @@ export default function KiloToolCard({
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-6 pt-6 border-t border-border">
@@ -318,11 +319,15 @@ export default function KiloToolCard({
 
 									{/* Model selection */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm text-text-muted">
+										<label
+											htmlFor="kilo-model"
+											className="text-sm text-text-muted"
+										>
 											{t("model")}
 										</label>
 										<div className="flex items-center gap-2">
 											<input
+												id="kilo-model"
 												type="text"
 												value={selectedModel}
 												onChange={(e) => setSelectedModel(e.target.value)}
@@ -351,11 +356,15 @@ export default function KiloToolCard({
 
 									{/* API Key selection */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm text-text-muted">
+										<label
+											htmlFor="kilo-api-key"
+											className="text-sm text-text-muted"
+										>
 											{t("apiKey")}
 										</label>
 										{apiKeys && apiKeys.length > 0 ? (
 											<select
+												id="kilo-api-key"
 												value={selectedApiKey}
 												onChange={(e) => setSelectedApiKey(e.target.value)}
 												className="px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
@@ -423,6 +432,7 @@ export default function KiloToolCard({
 									{/* Backups section */}
 									<div className="border-t border-border pt-3 mt-1">
 										<button
+											type="button"
 											onClick={() => setShowBackups(!showBackups)}
 											className="flex items-center gap-2 text-sm text-text-muted hover:text-text transition-colors"
 										>

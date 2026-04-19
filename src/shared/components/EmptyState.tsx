@@ -85,6 +85,7 @@ export default function EmptyState({
 			)}
 			{actionLabel && onAction && (
 				<button
+					type="button"
 					onClick={onAction}
 					style={{
 						marginTop: "20px",

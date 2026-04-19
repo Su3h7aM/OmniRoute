@@ -39,7 +39,7 @@ export class OAuthService {
 	/**
 	 * Start local server and wait for callback
 	 */
-	async startAuthFlow(authUrl: string | null, providerName: string) {
+	async startAuthFlow(_authUrl: string | null, providerName: string) {
 		const spinner = createSpinner("Starting local server...").start();
 
 		// Start local server for callback

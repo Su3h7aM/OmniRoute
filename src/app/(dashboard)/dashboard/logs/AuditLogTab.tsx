@@ -95,6 +95,7 @@ export default function AuditLogTab() {
 					</p>
 				</div>
 				<button
+					type="button"
 					onClick={fetchEntries}
 					disabled={loading}
 					aria-label={t("refreshAuditLogAria")}
@@ -129,6 +130,7 @@ export default function AuditLogTab() {
 					className="flex-1 min-w-[180px] px-3 py-2 rounded-lg text-sm bg-[var(--color-bg)] border border-[var(--color-border)] text-[var(--color-text-main)] placeholder:text-[var(--color-text-muted)] focus:outline-2 focus:outline-[var(--color-accent)]"
 				/>
 				<button
+					type="button"
 					onClick={handleSearch}
 					className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-[var(--color-accent)]"
 				>
@@ -148,7 +150,7 @@ export default function AuditLogTab() {
 
 			{/* Table */}
 			<div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
-				<table className="w-full text-sm" role="table" aria-label={t("tableAria")}>
+				<table className="w-full text-sm" aria-label={t("tableAria")}>
 					<thead>
 						<tr className="bg-[var(--color-bg-alt)] border-b border-[var(--color-border)]">
 							<th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)]">
@@ -225,6 +227,7 @@ export default function AuditLogTab() {
 				</p>
 				<div className="flex gap-2">
 					<button
+						type="button"
 						onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
 						disabled={offset === 0}
 						className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] disabled:opacity-30 transition-colors"
@@ -232,6 +235,7 @@ export default function AuditLogTab() {
 						← {t("previous")}
 					</button>
 					<button
+						type="button"
 						onClick={() => setOffset(offset + PAGE_SIZE)}
 						disabled={!hasMore}
 						className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-main)] hover:bg-[var(--color-bg-alt)] disabled:opacity-30 transition-colors"

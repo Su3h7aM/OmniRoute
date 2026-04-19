@@ -346,7 +346,7 @@ async function validateGeminiLikeProvider({
 	// - gemini-cli (OAuth): Bearer token
 	const headers: Record<string, string> = { "Content-Type": "application/json" };
 	if (authType === "oauth") {
-		headers["Authorization"] = `Bearer ${apiKey}`;
+		headers.Authorization = `Bearer ${apiKey}`;
 	} else {
 		headers["x-goog-api-key"] = apiKey;
 	}
@@ -1311,7 +1311,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 				await getAccessToken(sa);
 				return { valid: true, error: null };
 			} catch (error: any) {
-				return { valid: false, error: "Invalid Service Account JSON: " + error.message };
+				return { valid: false, error: `Invalid Service Account JSON: ${error.message}` };
 			}
 		},
 		// LongCat AI — does not expose /v1/models; validate via chat completions directly (#592)
@@ -1392,7 +1392,7 @@ export async function validateProviderApiKey({ provider, apiKey, providerSpecifi
 			if ((entry.authHeader || "").toLowerCase() === "x-api-key") {
 				requestHeaders["x-api-key"] = apiKey;
 			} else {
-				requestHeaders["Authorization"] = `Bearer ${apiKey}`;
+				requestHeaders.Authorization = `Bearer ${apiKey}`;
 			}
 
 			return await validateAnthropicLikeProvider({

@@ -9,7 +9,7 @@ import * as path from "path";
 // Dynamic import for Node.js-only modules (fs/path unavailable in Workers)
 let _fs = null;
 let _path = null;
-async function getFs() {
+async function _getFs() {
 	if (_fs === null) {
 		try {
 			_fs = (await import("fs")).default;
@@ -19,7 +19,7 @@ async function getFs() {
 	}
 	return _fs || null;
 }
-async function getPath() {
+async function _getPath() {
 	if (_path === null) {
 		try {
 			_path = (await import("path")).default;
@@ -191,7 +191,7 @@ export function createResponsesApiTransformStream(logger = null) {
 			emit(controller, "response.output_text.done", {
 				type: "response.output_text.done",
 				item_id: msgId,
-				output_index: parseInt(idx),
+				output_index: parseInt(idx, 10),
 				content_index: 0,
 				text: fullText,
 				logprobs: [],
@@ -200,14 +200,14 @@ export function createResponsesApiTransformStream(logger = null) {
 			emit(controller, "response.content_part.done", {
 				type: "response.content_part.done",
 				item_id: msgId,
-				output_index: parseInt(idx),
+				output_index: parseInt(idx, 10),
 				content_index: 0,
 				part: { type: "output_text", annotations: [], logprobs: [], text: fullText },
 			});
 
 			emit(controller, "response.output_item.done", {
 				type: "response.output_item.done",
-				output_index: parseInt(idx),
+				output_index: parseInt(idx, 10),
 				item: {
 					id: msgId,
 					type: "message",
@@ -228,13 +228,13 @@ export function createResponsesApiTransformStream(logger = null) {
 			emit(controller, "response.function_call_arguments.done", {
 				type: "response.function_call_arguments.done",
 				item_id: `fc_${callId}`,
-				output_index: parseInt(idx),
+				output_index: parseInt(idx, 10),
 				arguments: args,
 			});
 
 			emit(controller, "response.output_item.done", {
 				type: "response.output_item.done",
-				output_index: parseInt(idx),
+				output_index: parseInt(idx, 10),
 				item: {
 					id: `fc_${callId}`,
 					type: "function_call",

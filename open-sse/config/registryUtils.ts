@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 /**
  * Shared Registry Utilities
  *
@@ -33,7 +32,7 @@ export function parseModelFromRegistry<P extends BaseProvider>(
 
 	// Try each provider prefix
 	for (const [providerId] of Object.entries(registry)) {
-		if (modelStr.startsWith(providerId + "/")) {
+		if (modelStr.startsWith(`${providerId}/`)) {
 			return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
 		}
 	}
@@ -93,7 +92,6 @@ export function buildAuthHeaders(
 			return { "xi-api-key": token };
 		case "x-api-key":
 			return { "x-api-key": token };
-		case "bearer":
 		default:
 			return { Authorization: `Bearer ${token}` };
 	}

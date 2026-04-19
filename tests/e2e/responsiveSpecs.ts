@@ -55,7 +55,7 @@ export const A11Y_CHECKS = [
 export function generateTestMatrix() {
 	const matrix = [];
 
-	for (const [vpKey, viewport] of Object.entries(VIEWPORTS)) {
+	for (const [_vpKey, viewport] of Object.entries(VIEWPORTS)) {
 		for (const page of PAGES) {
 			matrix.push({
 				viewport,

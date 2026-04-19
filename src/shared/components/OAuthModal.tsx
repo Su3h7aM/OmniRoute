@@ -441,7 +441,7 @@ export default function OAuthModal({
 		try {
 			channel = new BroadcastChannel("oauth_callback");
 			channel.onmessage = (event) => handleCallback(event.data);
-		} catch (e) {
+		} catch (_e) {
 			console.log("BroadcastChannel not supported");
 		}
 
@@ -452,7 +452,7 @@ export default function OAuthModal({
 					const data = JSON.parse(event.newValue);
 					handleCallback(data);
 					localStorage.removeItem("oauth_callback");
-				} catch (e) {
+				} catch (_e) {
 					console.log("Failed to parse localStorage data");
 				}
 			}
@@ -487,7 +487,7 @@ export default function OAuthModal({
 	useEffect(() => {
 		if (step !== "waiting" || isDeviceCode || !popupRef.current) return;
 
-		let closed = false;
+		let _closed = false;
 		const popupClosedInterval = setInterval(() => {
 			if (callbackProcessedRef.current) {
 				clearInterval(popupClosedInterval);
@@ -495,7 +495,7 @@ export default function OAuthModal({
 			}
 			try {
 				if (popupRef.current?.closed) {
-					closed = true;
+					_closed = true;
 					clearInterval(popupClosedInterval);
 					// Popup was closed without completing OAuth — switch to manual input mode
 					// so user can paste the callback URL from their browser address bar

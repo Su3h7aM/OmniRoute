@@ -39,7 +39,6 @@ function getDateRange(range: string) {
 		case "ytd":
 			start = new Date(end.getFullYear(), 0, 1);
 			break;
-		case "all":
 		default:
 			start = new Date(0);
 			break;

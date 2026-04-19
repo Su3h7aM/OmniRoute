@@ -8,7 +8,6 @@ import proxyFetch, {
 	runWithTlsTracking,
 	isTlsFingerprintActive,
 } from "../../open-sse/utils/proxyFetch.ts";
-import { getDefaultDispatcher } from "../../open-sse/utils/proxyDispatcher.ts";
 import tlsClient from "../../open-sse/utils/tlsClient.ts";
 
 const isBunRuntime = typeof Bun !== "undefined";

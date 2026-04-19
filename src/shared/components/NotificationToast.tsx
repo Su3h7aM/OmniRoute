@@ -10,7 +10,7 @@
  */
 
 import { useNotificationStore } from "@/store/notificationStore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const ICONS = {
 	success: "✓",
@@ -110,6 +110,7 @@ function Toast({ notification, onDismiss }) {
 			</div>
 			{notification.dismissible && (
 				<button
+					type="button"
 					onClick={handleDismiss}
 					aria-label="Dismiss notification"
 					style={{

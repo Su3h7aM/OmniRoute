@@ -257,7 +257,7 @@ async function prepareInstalledVersions(versions) {
 	fs.symlinkSync(path.join(binDir, "cliproxyapi-2.0.0", "CLIProxyAPI"), symlinkPath);
 }
 
-async function flushAsyncTurns(count = 3) {
+async function _flushAsyncTurns(count = 3) {
 	for (let i = 0; i < count; i++) {
 		await Promise.resolve();
 	}

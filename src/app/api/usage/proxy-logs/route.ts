@@ -1,4 +1,4 @@
-import { getProxyLogs, clearProxyLogs, getProxyLogStats } from "@/lib/proxyLogger";
+import { getProxyLogs, clearProxyLogs } from "@/lib/proxyLogger";
 
 /**
  * GET /api/usage/proxy-logs — get proxy usage logs

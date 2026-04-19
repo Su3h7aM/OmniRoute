@@ -73,19 +73,24 @@ export class KiroExecutor extends BaseExecutor {
 		};
 
 		if (credentials.accessToken) {
-			headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+			headers.Authorization = `Bearer ${credentials.accessToken}`;
 		}
 
 		return headers;
 	}
 
-	transformRequest(model: string, body: unknown, stream: boolean, credentials: unknown): unknown {
+	transformRequest(
+		_model: string,
+		body: unknown,
+		stream: boolean,
+		credentials: unknown
+	): unknown {
 		void stream;
 		void credentials;
 		// Kiro uses conversationState.currentMessage.userInputMessage.modelId,
 		// not a top-level "model" field. chatCore injects translatedBody.model
 		// which Kiro API rejects as unknown top-level field.
-		const { model: _model, ...rest } = body as Record<string, unknown>;
+		const { model: _unusedModel, ...rest } = body as Record<string, unknown>;
 		return rest;
 	}
 
@@ -528,7 +533,7 @@ export class KiroExecutor extends BaseExecutor {
 function parseEventFrame(data: Uint8Array): EventFrame | null {
 	try {
 		const view = new DataView(data.buffer, data.byteOffset);
-		const totalLength = view.getUint32(0, false);
+		const _totalLength = view.getUint32(0, false);
 		const headersLength = view.getUint32(4, false);
 
 		// ── CRC32 validation ──
@@ -590,7 +595,7 @@ function parseEventFrame(data: Uint8Array): EventFrame | null {
 			const payloadStr = new TextDecoder().decode(data.slice(payloadStart, payloadEnd));
 
 			// Skip empty or whitespace-only payloads
-			if (!payloadStr || !payloadStr.trim()) {
+			if (!payloadStr?.trim()) {
 				return { headers, payload: null };
 			}
 

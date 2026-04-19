@@ -35,7 +35,6 @@ export class StreamTracker {
 	private _error: string | null;
 	private _finishReason: string | null;
 	private _lastProgressAt: number;
-	private _buffer: string;
 
 	constructor(options: StreamTrackerOptions = {}) {
 		this._onProgress = options.onProgress || null;

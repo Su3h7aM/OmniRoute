@@ -1,6 +1,6 @@
 import type { SkillHandler } from "../types";
 
-export const browserSkill: SkillHandler = async (input, context) => {
+export const browserSkill: SkillHandler = async (input, _context) => {
 	const { action, ...params } = input as {
 		action: "navigate" | "click" | "type" | "screenshot" | "extract";
 		url?: string;

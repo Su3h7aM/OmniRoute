@@ -3,13 +3,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { NextResponse } from "next/server";
 
 const guideSettingsRoute = await import(
 	"../../src/app/api/cli-tools/guide-settings/[toolId]/route.ts"
 );
 
-const DUMMY_HOME = path.join(os.tmpdir(), "omniroute-qwen-test-" + Date.now());
+const DUMMY_HOME = path.join(os.tmpdir(), `omniroute-qwen-test-${Date.now()}`);
 const QWEN_CONFIG_PATH = path.join(DUMMY_HOME, ".qwen", "settings.json");
 
 function buildRequest(body: any) {

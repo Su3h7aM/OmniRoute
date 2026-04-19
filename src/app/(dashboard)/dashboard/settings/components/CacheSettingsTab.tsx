@@ -72,6 +72,7 @@ export default function CacheSettingsTab() {
 					<label className="flex items-center justify-between">
 						<span className="text-sm text-text-muted">{t("enabled")}</span>
 						<button
+							type="button"
 							onClick={() =>
 								setConfig((c) => ({
 									...c,
@@ -100,7 +101,7 @@ export default function CacheSettingsTab() {
 							onChange={(e) =>
 								setConfig((c) => ({
 									...c,
-									semanticCacheMaxSize: parseInt(e.target.value) || 100,
+									semanticCacheMaxSize: parseInt(e.target.value, 10) || 100,
 								}))
 							}
 							className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
@@ -117,7 +118,7 @@ export default function CacheSettingsTab() {
 							onChange={(e) =>
 								setConfig((c) => ({
 									...c,
-									semanticCacheTTL: (parseInt(e.target.value) || 30) * 60000,
+									semanticCacheTTL: (parseInt(e.target.value, 10) || 30) * 60000,
 								}))
 							}
 							className="w-24 px-2 py-1 text-sm rounded border border-border bg-surface text-text-main"
@@ -132,6 +133,7 @@ export default function CacheSettingsTab() {
 					<label className="flex items-center justify-between">
 						<span className="text-sm text-text-muted">{t("enabled")}</span>
 						<button
+							type="button"
 							onClick={() =>
 								setConfig((c) => ({
 									...c,

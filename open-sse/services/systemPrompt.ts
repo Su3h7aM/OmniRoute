@@ -48,7 +48,7 @@ export function injectSystemPrompt(body, promptText = null) {
 		if (sysIdx >= 0) {
 			// Prepend to existing system message
 			const msg = { ...result.messages[sysIdx] };
-			msg.content = text + "\n\n" + (msg.content || "");
+			msg.content = `${text}\n\n${msg.content || ""}`;
 			result.messages[sysIdx] = msg;
 		} else {
 			result.messages = [{ role: "system", content: text }, ...result.messages];
@@ -58,7 +58,7 @@ export function injectSystemPrompt(body, promptText = null) {
 	// Claude format (system field)
 	if (result.system !== undefined) {
 		if (typeof result.system === "string") {
-			result.system = text + "\n\n" + result.system;
+			result.system = `${text}\n\n${result.system}`;
 		} else if (Array.isArray(result.system)) {
 			result.system = [{ type: "text", text }, ...result.system];
 		}

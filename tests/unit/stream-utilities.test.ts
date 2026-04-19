@@ -1,11 +1,7 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 
-import {
-	pipeWithDisconnect,
-	createStreamController,
-	createDisconnectAwareStream,
-} from "../../open-sse/utils/streamHandler.ts";
+import { createStreamController } from "../../open-sse/utils/streamHandler.ts";
 
 import { wantsProgress, createProgressTransform } from "../../open-sse/utils/progressTracker.ts";
 

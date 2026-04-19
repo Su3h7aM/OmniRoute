@@ -185,10 +185,10 @@ export async function getUnifiedModelsResponse(
 
 		// Get active provider connections
 		let connections = [];
-		let totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
+		let _totalConnectionCount = 0; // Track if DB has ANY connections (even disabled)
 		try {
 			connections = await getProviderConnections();
-			totalConnectionCount = connections.length;
+			_totalConnectionCount = connections.length;
 			// Filter to only active connections
 			connections = connections.filter((c) => c.isActive !== false);
 		} catch (e) {
@@ -200,7 +200,7 @@ export async function getUnifiedModelsResponse(
 		let providerNodes = [];
 		try {
 			providerNodes = await getProviderNodes();
-		} catch (e) {
+		} catch (_e) {
 			console.log("Could not fetch provider nodes");
 		}
 
@@ -220,7 +220,7 @@ export async function getUnifiedModelsResponse(
 		let combos = [];
 		try {
 			combos = await getCombos();
-		} catch (e) {
+		} catch (_e) {
 			console.log("Could not fetch combos");
 		}
 
@@ -629,7 +629,7 @@ export async function getUnifiedModelsResponse(
 					}
 				}
 			}
-		} catch (e) {
+		} catch (_e) {
 			console.log("Could not fetch custom models");
 		}
 
@@ -678,7 +678,7 @@ export async function getUnifiedModelsResponse(
 		// Filter by API key permissions if requested
 		const authHeader = request.headers.get("authorization");
 		let finalModels = models;
-		if (authHeader && authHeader.startsWith("Bearer ")) {
+		if (authHeader?.startsWith("Bearer ")) {
 			const apiKey = authHeader.slice(7);
 			const { isModelAllowedForKey } = await import("@/lib/db/apiKeys");
 

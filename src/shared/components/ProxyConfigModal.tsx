@@ -117,7 +117,7 @@ export default function ProxyConfigModal({
 				if (res.ok) {
 					const data = await res.json();
 					const proxy = data.proxy;
-					if (proxy && proxy.host) {
+					if (proxy?.host) {
 						const normalizedType = String(proxy.type || "http").toLowerCase();
 						const hasTypeOption = PROXY_TYPES.some(
 							(entry) => entry.value === normalizedType
@@ -172,7 +172,7 @@ export default function ProxyConfigModal({
 		};
 
 		loadProxy();
-	}, [isOpen, level, levelId]);
+	}, [isOpen, level, levelId, t, resetFields]);
 
 	const resetFields = () => {
 		setProxyType(PROXY_TYPES[0]?.value || "http");
@@ -400,6 +400,7 @@ export default function ProxyConfigModal({
 						</label>
 						<div className="flex gap-2">
 							<button
+								type="button"
 								onClick={() => setMode("saved")}
 								className={`px-3 py-2 rounded text-sm border transition-colors ${
 									mode === "saved"
@@ -410,6 +411,7 @@ export default function ProxyConfigModal({
 								{t("savedProxy")}
 							</button>
 							<button
+								type="button"
 								onClick={() => setMode("custom")}
 								className={`px-3 py-2 rounded text-sm border transition-colors ${
 									mode === "custom"
@@ -451,6 +453,7 @@ export default function ProxyConfigModal({
 								<div className="flex gap-1 bg-bg-subtle rounded-lg p-1 border border-border">
 									{PROXY_TYPES.map((t) => (
 										<button
+											type="button"
 											key={t.value}
 											onClick={() => setProxyType(t.value)}
 											className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
@@ -496,6 +499,7 @@ export default function ProxyConfigModal({
 							{/* Auth Toggle */}
 							<div>
 								<button
+									type="button"
 									onClick={() => setShowAuth(!showAuth)}
 									className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors"
 								>

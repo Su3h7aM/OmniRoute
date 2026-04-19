@@ -100,7 +100,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
 		super("gemini-cli", PROVIDERS["gemini-cli"]);
 	}
 
-	buildUrl(model, stream, urlIndex = 0) {
+	buildUrl(model, stream, _urlIndex = 0) {
 		this._currentModel = normalizeGeminiModel(model);
 		const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
 		return `${this.config.baseUrl}:${action}`;
@@ -279,7 +279,7 @@ export class GeminiCLIExecutor extends BaseExecutor {
 		}
 	}
 
-	async transformRequest(model, body, stream, credentials) {
+	async transformRequest(model, body, _stream, credentials) {
 		this._currentModel = normalizeGeminiModel(model);
 
 		// Refresh the project ID via loadCodeAssist (cached for 30s).

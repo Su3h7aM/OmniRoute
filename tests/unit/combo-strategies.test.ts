@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 
 import { handleComboChat } from "../../open-sse/services/combo.ts";
 import * as combosDb from "../../src/lib/db/combos.ts";
-import * as modelsDb from "../../src/lib/db/models.ts";
 
 function stubConnection() {
 	return [
@@ -48,7 +47,7 @@ test("handleComboChat with 'usage' strategy hits sortModelsByUsage", async () =>
 	try {
 		const res = await handleComboChat(id, req, stubConnection());
 		assert.equal(res.status >= 200, true);
-	} catch (e) {
+	} catch (_e) {
 		// Expect error as fetch is not globally mocked for this quick edge branch test, that's fine
 	}
 });
@@ -69,8 +68,8 @@ test("handleComboChat with 'context' strategy hits sortModelsByContextSize", asy
 	});
 
 	try {
-		const res = await handleComboChat(id, req, stubConnection());
-	} catch (e) {}
+		const _res = await handleComboChat(id, req, stubConnection());
+	} catch (_e) {}
 });
 
 test("handleComboChat hits extractPromptForIntent edge cases", async () => {
@@ -99,8 +98,8 @@ test("handleComboChat hits extractPromptForIntent edge cases", async () => {
 
 	try {
 		await handleComboChat(id, reqNull, stubConnection());
-	} catch (e) {}
+	} catch (_e) {}
 	try {
 		await handleComboChat(id, reqEmpty, stubConnection());
-	} catch (e) {}
+	} catch (_e) {}
 });

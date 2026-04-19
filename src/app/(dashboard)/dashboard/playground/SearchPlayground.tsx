@@ -177,6 +177,7 @@ export default function SearchPlayground() {
 						</div>
 						<div className="flex items-center gap-1">
 							<button
+								type="button"
 								onClick={() => navigator.clipboard.writeText(requestBody)}
 								className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
 								title="Copy"
@@ -186,6 +187,7 @@ export default function SearchPlayground() {
 								</span>
 							</button>
 							<button
+								type="button"
 								onClick={() =>
 									setRequestBody(
 										JSON.stringify(
@@ -287,6 +289,7 @@ export default function SearchPlayground() {
 						{response && (
 							<div className="flex gap-1">
 								<button
+									type="button"
 									className={`text-xs px-3 py-1 rounded-md ${
 										!showJson
 											? "bg-primary/15 text-primary font-medium"
@@ -297,6 +300,7 @@ export default function SearchPlayground() {
 									{t("formatted")}
 								</button>
 								<button
+									type="button"
 									className={`text-xs px-3 py-1 rounded-md ${
 										showJson
 											? "bg-primary/15 text-primary font-medium"

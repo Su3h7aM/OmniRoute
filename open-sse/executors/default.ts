@@ -1,5 +1,5 @@
 import { BaseExecutor } from "./base.ts";
-import { PROVIDERS, OAUTH_ENDPOINTS } from "../config/constants.ts";
+import { PROVIDERS } from "../config/constants.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import {
@@ -145,26 +145,25 @@ export class DefaultExecutor extends BaseExecutor {
 			case "gemini":
 				effectiveKey
 					? (headers["x-goog-api-key"] = effectiveKey)
-					: (headers["Authorization"] = `Bearer ${credentials.accessToken}`);
+					: (headers.Authorization = `Bearer ${credentials.accessToken}`);
 				break;
 			case "snowflake": {
 				const rawToken = effectiveKey || credentials.accessToken || "";
 				const usesProgrammaticAccessToken = rawToken.startsWith("pat/");
-				headers["Authorization"] =
-					`Bearer ${usesProgrammaticAccessToken ? rawToken.slice(4) : rawToken}`;
+				headers.Authorization = `Bearer ${usesProgrammaticAccessToken ? rawToken.slice(4) : rawToken}`;
 				headers["X-Snowflake-Authorization-Token-Type"] = usesProgrammaticAccessToken
 					? "PROGRAMMATIC_ACCESS_TOKEN"
 					: "KEYPAIR_JWT";
 				break;
 			}
 			case "gigachat":
-				headers["Authorization"] = `Bearer ${credentials.accessToken || effectiveKey}`;
+				headers.Authorization = `Bearer ${credentials.accessToken || effectiveKey}`;
 				break;
 			case "claude":
 			case "anthropic":
 				effectiveKey
 					? (headers["x-api-key"] = effectiveKey)
-					: (headers["Authorization"] = `Bearer ${credentials.accessToken}`);
+					: (headers.Authorization = `Bearer ${credentials.accessToken}`);
 				break;
 			case "glm":
 			case "glmt":
@@ -185,17 +184,17 @@ export class DefaultExecutor extends BaseExecutor {
 					if (effectiveKey) {
 						headers["x-api-key"] = effectiveKey;
 					} else if (credentials.accessToken) {
-						headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+						headers.Authorization = `Bearer ${credentials.accessToken}`;
 					}
 					if (!headers["anthropic-version"]) {
 						headers["anthropic-version"] = "2023-06-01";
 					}
 				} else {
-					headers["Authorization"] = `Bearer ${effectiveKey || credentials.accessToken}`;
+					headers.Authorization = `Bearer ${effectiveKey || credentials.accessToken}`;
 				}
 		}
 
-		headers["Accept"] = stream ? "text/event-stream" : "application/json";
+		headers.Accept = stream ? "text/event-stream" : "application/json";
 
 		// Qwen header cleanup: Remove X-Dashscope-* headers if using an API key (DashScope compatible mode).
 		// If using OAuth (Qwen Code), we MUST keep them for portal.qwen.ai to accept the request.

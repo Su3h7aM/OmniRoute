@@ -9,5 +9,5 @@ export function isApiKeyRevealEnabled(): boolean {
 
 export function maskStoredApiKey(key: unknown): string | null {
 	if (typeof key !== "string") return null;
-	return key.slice(0, 8) + "****" + key.slice(-4);
+	return `${key.slice(0, 8)}****${key.slice(-4)}`;
 }

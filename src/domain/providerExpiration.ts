@@ -62,7 +62,7 @@ function calculateStatus(expiresAt: string | null, alertDays: number): ExpirySta
 	const now = new Date();
 	const expiry = new Date(expiresAt);
 
-	if (isNaN(expiry.getTime())) return "unknown";
+	if (Number.isNaN(expiry.getTime())) return "unknown";
 	if (expiry <= now) return "expired";
 
 	const daysUntilExpiry = (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
@@ -207,7 +207,7 @@ export function removeExpiration(connectionId: string): boolean {
  * @returns Detected expiration date or null
  */
 export function detectExpirationFromResponse(
-	provider: string,
+	_provider: string,
 	status: number,
 	headers: Record<string, string>
 ): { expiresAt: string; expiryType: ExpiryType } | null {
@@ -235,7 +235,7 @@ export function detectExpirationFromResponse(
 
 	if (resetHeader && status === 429) {
 		const resetTime = parseInt(resetHeader, 10);
-		if (!isNaN(resetTime)) {
+		if (!Number.isNaN(resetTime)) {
 			// Could be epoch seconds or seconds-from-now
 			const date =
 				resetTime > 1_000_000_000

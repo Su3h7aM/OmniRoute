@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 /**
  * Embedding Handler
  *
@@ -109,7 +108,7 @@ export async function handleEmbedding({
 		providerConfig.authType === "none" ? null : credentials?.apiKey || credentials?.accessToken;
 	if (token) {
 		if (providerConfig.authHeader === "bearer") {
-			headers["Authorization"] = `Bearer ${token}`;
+			headers.Authorization = `Bearer ${token}`;
 		} else if (providerConfig.authHeader === "x-api-key") {
 			headers["x-api-key"] = token;
 		}
@@ -124,7 +123,7 @@ export async function handleEmbedding({
 	if (log) {
 		log.info(
 			"EMBED",
-			`${provider}/${model} | input: ${Array.isArray(body.input) ? body.input.length + " items" : "1 item"}`
+			`${provider}/${model} | input: ${Array.isArray(body.input) ? `${body.input.length} items` : "1 item"}`
 		);
 	}
 

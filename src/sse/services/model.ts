@@ -107,7 +107,7 @@ export async function getModelInfo(modelStr) {
 export async function getCombo(modelStr) {
 	// Check combo DB first (supports names with /)
 	const combo = await getComboByName(modelStr);
-	if (combo && combo.models && combo.models.length > 0) {
+	if (combo?.models && combo.models.length > 0) {
 		return combo;
 	}
 	return null;

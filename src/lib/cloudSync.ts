@@ -71,7 +71,7 @@ export async function syncToCloud(machineId, createdKey = null) {
 
 	if (!response.ok) {
 		const errorText = await response.text();
-		const truncated = errorText.length > 200 ? errorText.slice(0, 200) + "…" : errorText;
+		const truncated = errorText.length > 200 ? `${errorText.slice(0, 200)}…` : errorText;
 		console.log(`Cloud sync failed (${response.status}):`, truncated);
 		return { error: "Cloud sync failed" };
 	}
@@ -79,7 +79,7 @@ export async function syncToCloud(machineId, createdKey = null) {
 	const result = await response.json();
 
 	// Update local db with tokens from Cloud (providers stored by ID)
-	if (result.data && result.data.providers) {
+	if (result.data?.providers) {
 		await updateLocalTokens(result.data.providers);
 	}
 

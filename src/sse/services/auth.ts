@@ -223,7 +223,7 @@ function isCodexScopeUnavailable(
 	return new Date(until).getTime() > Date.now();
 }
 
-function getEarliestCodexScopeRateLimitedUntil(
+function _getEarliestCodexScopeRateLimitedUntil(
 	connections: ProviderConnectionView[],
 	model: string | null
 ): string | null {
@@ -946,7 +946,7 @@ export async function getProviderCredentials(
 				const current = byRecency[0];
 				const currentCount = current?.consecutiveUseCount || 0;
 
-				if (current && current.lastUsedAt && currentCount < stickyLimit) {
+				if (current?.lastUsedAt && currentCount < stickyLimit) {
 					// Stay with current account
 					connection = current;
 					log.debug(

@@ -333,23 +333,23 @@ function parseAccessSchedule(value: unknown): AccessSchedule | null {
 		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
 		const obj = parsed as Record<string, unknown>;
 		if (
-			typeof obj["enabled"] !== "boolean" ||
-			typeof obj["from"] !== "string" ||
-			typeof obj["until"] !== "string" ||
-			!Array.isArray(obj["days"]) ||
-			typeof obj["tz"] !== "string"
+			typeof obj.enabled !== "boolean" ||
+			typeof obj.from !== "string" ||
+			typeof obj.until !== "string" ||
+			!Array.isArray(obj.days) ||
+			typeof obj.tz !== "string"
 		) {
 			return null;
 		}
-		const days = (obj["days"] as unknown[]).filter(
+		const days = (obj.days as unknown[]).filter(
 			(d): d is number => typeof d === "number" && Number.isInteger(d) && d >= 0 && d <= 6
 		);
 		return {
-			enabled: obj["enabled"],
-			from: obj["from"],
-			until: obj["until"],
+			enabled: obj.enabled,
+			from: obj.from,
+			until: obj.until,
 			days,
-			tz: obj["tz"],
+			tz: obj.tz,
 		};
 	} catch {
 		return null;
@@ -708,7 +708,7 @@ export async function isModelAllowedForKey(
 		}
 		if (pattern.endsWith("/*")) {
 			const prefix = pattern.slice(0, -2); // Remove "/*"
-			if (modelId.startsWith(prefix + "/") || modelId.startsWith(prefix)) {
+			if (modelId.startsWith(`${prefix}/`) || modelId.startsWith(prefix)) {
 				allowed = true;
 				break;
 			}

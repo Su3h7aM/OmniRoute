@@ -120,7 +120,7 @@ export async function getOpenRouterCatalog(): Promise<{
 	const now = Date.now();
 
 	// Return cached data if still within TTL
-	if (cache && cache.fetchedAt) {
+	if (cache?.fetchedAt) {
 		const age = now - new Date(cache.fetchedAt).getTime();
 		if (age < ttl) {
 			return {

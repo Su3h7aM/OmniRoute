@@ -118,7 +118,7 @@ export class VertexExecutor extends BaseExecutor {
 		return super.execute(input);
 	}
 
-	buildUrl(model: string, stream: boolean, urlIndex = 0, credentials: any = null) {
+	buildUrl(model: string, stream: boolean, _urlIndex = 0, credentials: any = null) {
 		const region = credentials?.providerSpecificData?.region || "us-central1";
 		let project = "unknown-project";
 
@@ -140,10 +140,10 @@ export class VertexExecutor extends BaseExecutor {
 	buildHeaders(credentials: any, stream = true) {
 		const headers: Record<string, string> = { "Content-Type": "application/json" };
 		if (credentials.accessToken) {
-			headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+			headers.Authorization = `Bearer ${credentials.accessToken}`;
 		}
 		if (stream) {
-			headers["Accept"] = "text/event-stream";
+			headers.Accept = "text/event-stream";
 		}
 		return headers;
 	}

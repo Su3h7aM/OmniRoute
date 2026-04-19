@@ -26,7 +26,7 @@ async function resetStorage() {
 }
 
 function maskKey(key) {
-	return key.slice(0, 8) + "****" + key.slice(-4);
+	return `${key.slice(0, 8)}****${key.slice(-4)}`;
 }
 
 beforeEach(async () => {

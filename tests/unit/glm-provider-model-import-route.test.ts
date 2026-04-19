@@ -187,7 +187,7 @@ test("GLM import prefers apiKey over accessToken and sends only Authorization Be
 	});
 
 	const originalFetch = globalThis.fetch;
-	globalThis.fetch = async (url, init = {}) => {
+	globalThis.fetch = async (_url, init = {}) => {
 		assert.equal(init.headers.Authorization, "Bearer glm-api-key");
 		assert.equal(init.headers["x-api-key"], undefined);
 		return Response.json({ data: [] });
@@ -215,7 +215,7 @@ test("GLM import falls back to accessToken when apiKey is absent", async () => {
 	});
 
 	const originalFetch = globalThis.fetch;
-	globalThis.fetch = async (url, init = {}) => {
+	globalThis.fetch = async (_url, init = {}) => {
 		assert.equal(init.headers.Authorization, "Bearer glm-access-token");
 		return Response.json({ data: [] });
 	};

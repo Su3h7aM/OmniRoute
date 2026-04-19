@@ -48,7 +48,7 @@ export class OpencodeExecutor extends BaseExecutor {
 			if (this._requestFormat === "claude") {
 				headers["x-api-key"] = key;
 			} else {
-				headers["Authorization"] = `Bearer ${key}`;
+				headers.Authorization = `Bearer ${key}`;
 			}
 		}
 
@@ -57,7 +57,7 @@ export class OpencodeExecutor extends BaseExecutor {
 		}
 
 		if (stream) {
-			headers["Accept"] = "text/event-stream";
+			headers.Accept = "text/event-stream";
 		}
 
 		return headers;

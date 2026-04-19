@@ -31,7 +31,7 @@ const readSettings = async () => {
 
 // Check if settings has OmniRoute customModels
 const hasOmniRouteConfig = (settings: any) => {
-	if (!settings || !settings.customModels) return false;
+	if (!settings?.customModels) return false;
 	return settings.customModels.some((m) => m.id === "custom:OmniRoute-0");
 };
 

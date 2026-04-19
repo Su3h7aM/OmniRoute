@@ -25,7 +25,7 @@ import { PROVIDERS } from "../config/constants.ts";
  */
 export class PuterExecutor extends BaseExecutor {
 	constructor() {
-		super("puter", PROVIDERS["puter"] || { format: "openai" });
+		super("puter", PROVIDERS.puter || { format: "openai" });
 	}
 
 	buildUrl(_model: string, _stream: boolean, _urlIndex = 0, _credentials = null): string {
@@ -39,17 +39,17 @@ export class PuterExecutor extends BaseExecutor {
 
 		const key = credentials?.apiKey || credentials?.accessToken;
 		if (key) {
-			headers["Authorization"] = `Bearer ${key}`;
+			headers.Authorization = `Bearer ${key}`;
 		}
 
 		if (stream) {
-			headers["Accept"] = "text/event-stream";
+			headers.Accept = "text/event-stream";
 		}
 
 		return headers;
 	}
 
-	transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
+	transformRequest(_model: string, body: any, _stream: boolean, _credentials: any): any {
 		// Puter accepts model IDs directly from its catalog.
 		// No transformation required — model string is passed as-is.
 		return body;

@@ -206,14 +206,11 @@ function toRecord(value: unknown): Record<string, unknown> {
 }
 
 function parseWindowReset(window: Record<string, unknown>): string | null {
-	const resetAt = toNumber(window["reset_at"] ?? window["resetAt"], 0);
+	const resetAt = toNumber(window.reset_at ?? window.resetAt, 0);
 	if (resetAt > 0) {
 		return new Date(resetAt * 1000).toISOString();
 	}
-	const resetAfterSeconds = toNumber(
-		window["reset_after_seconds"] ?? window["resetAfterSeconds"],
-		0
-	);
+	const resetAfterSeconds = toNumber(window.reset_after_seconds ?? window.resetAfterSeconds, 0);
 	if (resetAfterSeconds > 0) {
 		return new Date(Date.now() + resetAfterSeconds * 1000).toISOString();
 	}
@@ -222,9 +219,9 @@ function parseWindowReset(window: Record<string, unknown>): string | null {
 
 function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
 	const obj = toRecord(data);
-	const rateLimit = toRecord(obj["rate_limit"] ?? obj["rateLimit"]);
-	const primaryWindow = toRecord(rateLimit["primary_window"] ?? rateLimit["primaryWindow"]);
-	const secondaryWindow = toRecord(rateLimit["secondary_window"] ?? rateLimit["secondaryWindow"]);
+	const rateLimit = toRecord(obj.rate_limit ?? obj.rateLimit);
+	const primaryWindow = toRecord(rateLimit.primary_window ?? rateLimit.primaryWindow);
+	const secondaryWindow = toRecord(rateLimit.secondary_window ?? rateLimit.secondaryWindow);
 
 	// Require at least one window to be present
 	const hasPrimary = Object.keys(primaryWindow).length > 0;
@@ -233,13 +230,13 @@ function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
 
 	// Parse 5h window
 	const usedPercent5h = hasPrimary
-		? toNumber(primaryWindow["used_percent"] ?? primaryWindow["usedPercent"], 0)
+		? toNumber(primaryWindow.used_percent ?? primaryWindow.usedPercent, 0)
 		: 0;
 	const resetAt5h = hasPrimary ? parseWindowReset(primaryWindow) : null;
 
 	// Parse 7d window
 	const usedPercent7d = hasSecondary
-		? toNumber(secondaryWindow["used_percent"] ?? secondaryWindow["usedPercent"], 0)
+		? toNumber(secondaryWindow.used_percent ?? secondaryWindow.usedPercent, 0)
 		: 0;
 	const resetAt7d = hasSecondary ? parseWindowReset(secondaryWindow) : null;
 
@@ -247,7 +244,7 @@ function parseCodexUsageResponse(data: unknown): CodexDualWindowQuota | null {
 	const worstPercentUsed = Math.max(usedPercent5h, usedPercent7d);
 	const percentUsedNormalized = worstPercentUsed / 100; // QuotaInfo uses 0..1
 
-	const limitReached = Boolean(rateLimit["limit_reached"] ?? rateLimit["limitReached"]);
+	const limitReached = Boolean(rateLimit.limit_reached ?? rateLimit.limitReached);
 
 	return {
 		used: worstPercentUsed,

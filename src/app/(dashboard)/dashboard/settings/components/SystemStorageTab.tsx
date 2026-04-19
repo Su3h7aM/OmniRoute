@@ -176,7 +176,7 @@ export default function SystemStorageTab() {
 
 	useEffect(() => {
 		loadStorageHealth();
-	}, []);
+	}, [loadStorageHealth]);
 
 	/** Triggers a browser file download from an existing Blob. */
 	const triggerDownload = (blob: Blob, filename: string) => {
@@ -265,7 +265,7 @@ export default function SystemStorageTab() {
 						message: data.error || "Failed to import JSON",
 					});
 				}
-			} catch (err) {
+			} catch (_err) {
 				setImportStatus({ type: "error", message: "Error during JSON import" });
 			} finally {
 				setImportLoading(false);
@@ -958,6 +958,7 @@ export default function SystemStorageTab() {
 										{t("backupsAvailable", { count: backups.length })}
 									</span>
 									<button
+										type="button"
 										onClick={loadBackups}
 										className="text-xs text-primary hover:underline flex items-center gap-1"
 									>

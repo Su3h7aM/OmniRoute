@@ -164,6 +164,7 @@ export default function HealthPage() {
 					</span>
 					<p className="text-red-400">{t("failedToLoad", { error })}</p>
 					<button
+						type="button"
 						onClick={fetchHealth}
 						className="mt-4 px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors"
 					>
@@ -201,6 +202,7 @@ export default function HealthPage() {
 						</span>
 					)}
 					<button
+						type="button"
 						onClick={() => {
 							fetchHealth();
 							fetchExtras();
@@ -294,6 +296,7 @@ export default function HealthPage() {
 					</div>
 					<div className="flex flex-col items-stretch gap-2 min-w-[180px]">
 						<button
+							type="button"
 							onClick={handleRepairDb}
 							disabled={repairingDb}
 							className="px-4 py-2 rounded-lg bg-primary/10 text-primary text-sm hover:bg-primary/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
@@ -556,7 +559,7 @@ export default function HealthPage() {
 			</div>
 
 			{/* Graceful Degradation Status */}
-			{degradation && degradation.features && degradation.features.length > 0 && (
+			{degradation?.features && degradation.features.length > 0 && (
 				<Card className="p-5" role="region" aria-label="Graceful Degradation Status">
 					<div className="flex items-center justify-between mb-4">
 						<h2 className="text-lg font-semibold text-text-main flex items-center gap-2">
@@ -582,7 +585,7 @@ export default function HealthPage() {
 					</div>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
 						{degradation.features.map((feat: any) => {
-							const bg =
+							const _bg =
 								feat.level === "full"
 									? "bg-green-500/5 border-green-500/10"
 									: feat.level === "reduced"
@@ -590,7 +593,7 @@ export default function HealthPage() {
 										: feat.level === "minimal"
 											? "bg-orange-500/5 border-orange-500/20"
 											: "bg-red-500/5 border-red-500/20";
-							const dot =
+							const _dot =
 								feat.level === "full"
 									? "bg-green-500"
 									: feat.level === "reduced"
@@ -621,7 +624,7 @@ export default function HealthPage() {
 											title={feat.reason}
 										>
 											{feat.reason.length > 80
-												? feat.reason.substring(0, 80) + "..."
+												? `${feat.reason.substring(0, 80)}...`
 												: feat.reason}
 										</div>
 									)}
@@ -756,6 +759,7 @@ export default function HealthPage() {
 					<div className="flex items-center gap-3">
 						{cbEntries.some(([, cb]: [string, any]) => cb.state !== "CLOSED") && (
 							<button
+								type="button"
 								onClick={handleResetHealth}
 								disabled={resetting}
 								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
@@ -1018,7 +1022,7 @@ export default function HealthPage() {
 														{connectionId && (
 															<p className="text-[10px] text-text-muted font-mono truncate">
 																{connectionId.length > 12
-																	? connectionId.slice(0, 8) + "…"
+																	? `${connectionId.slice(0, 8)}…`
 																	: connectionId}
 																{model && (
 																	<span className="ml-1 text-text-muted/60">

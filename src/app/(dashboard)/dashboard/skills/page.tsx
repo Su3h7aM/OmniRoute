@@ -285,6 +285,7 @@ export default function SkillsPage() {
 					<p className="text-text-muted mt-1">{t("description")}</p>
 				</div>
 				<button
+					type="button"
 					onClick={() => setShowInstallModal(true)}
 					className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 transition-colors"
 				>
@@ -294,6 +295,7 @@ export default function SkillsPage() {
 
 			<div className="flex gap-2 border-b border-border">
 				<button
+					type="button"
 					onClick={() => setActiveTab("skills")}
 					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
 						activeTab === "skills"
@@ -304,6 +306,7 @@ export default function SkillsPage() {
 					{t("skillsTab")}
 				</button>
 				<button
+					type="button"
 					onClick={() => setActiveTab("executions")}
 					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
 						activeTab === "executions"
@@ -314,6 +317,7 @@ export default function SkillsPage() {
 					{t("executionsTab")}
 				</button>
 				<button
+					type="button"
 					onClick={() => setActiveTab("sandbox")}
 					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
 						activeTab === "sandbox"
@@ -324,6 +328,7 @@ export default function SkillsPage() {
 					{t("sandboxTab")}
 				</button>
 				<button
+					type="button"
 					onClick={() => setActiveTab("marketplace")}
 					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
 						activeTab === "marketplace"
@@ -334,6 +339,7 @@ export default function SkillsPage() {
 					Marketplace
 				</button>
 				<button
+					type="button"
 					onClick={() => setActiveTab("skillssh")}
 					className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
 						activeTab === "skillssh"
@@ -368,12 +374,14 @@ export default function SkillsPage() {
 									</div>
 									<div className="flex items-center gap-3">
 										<button
+											type="button"
 											onClick={() => deleteSkill(skill.id)}
 											className="text-xs px-2 py-1 rounded text-red-400 hover:bg-red-500/10 transition-colors"
 										>
 											Delete
 										</button>
 										<button
+											type="button"
 											onClick={() => toggleSkill(skill.id, skill.enabled)}
 											className={`relative w-11 h-6 rounded-full transition-colors ${
 												skill.enabled ? "bg-violet-500" : "bg-border"
@@ -400,6 +408,7 @@ export default function SkillsPage() {
 						</span>
 						<div className="flex gap-2">
 							<button
+								type="button"
 								onClick={() => {
 									const p = Math.max(1, skillsPage - 1);
 									setSkillsPage(p);
@@ -411,6 +420,7 @@ export default function SkillsPage() {
 								Prev
 							</button>
 							<button
+								type="button"
 								onClick={() => {
 									const p = Math.min(skillsTotalPages, skillsPage + 1);
 									setSkillsPage(p);
@@ -483,6 +493,7 @@ export default function SkillsPage() {
 						</span>
 						<div className="flex gap-2">
 							<button
+								type="button"
 								onClick={() => {
 									const p = Math.max(1, execPage - 1);
 									setExecPage(p);
@@ -494,6 +505,7 @@ export default function SkillsPage() {
 								Prev
 							</button>
 							<button
+								type="button"
 								onClick={() => {
 									const p = Math.min(execTotalPages, execPage + 1);
 									setExecPage(p);
@@ -565,6 +577,7 @@ export default function SkillsPage() {
 								className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
 							/>
 							<button
+								type="button"
 								onClick={searchMarketplace}
 								disabled={mpLoading}
 								className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
@@ -590,6 +603,7 @@ export default function SkillsPage() {
 											</p>
 										</div>
 										<button
+											type="button"
 											onClick={() => installFromMarketplace(skill)}
 											disabled={mpInstallingId === skill.name}
 											className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
@@ -628,6 +642,7 @@ export default function SkillsPage() {
 								className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
 							/>
 							<button
+								type="button"
 								onClick={searchSkillsSh}
 								disabled={shLoading}
 								className="px-4 py-2 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
@@ -654,6 +669,7 @@ export default function SkillsPage() {
 											</p>
 										</div>
 										<button
+											type="button"
 											onClick={() => installFromSkillsSh(skill)}
 											disabled={shInstallingId === skill.id}
 											className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
@@ -684,6 +700,7 @@ export default function SkillsPage() {
 						<div className="flex items-center justify-between mb-4">
 							<h2 className="text-lg font-semibold">Install Skill</h2>
 							<button
+								type="button"
 								onClick={() => {
 									setShowInstallModal(false);
 									setInstallStatus(null);
@@ -712,6 +729,7 @@ export default function SkillsPage() {
 								className="hidden"
 							/>
 							<button
+								type="button"
 								onClick={() => fileInputRef.current?.click()}
 								className="px-3 py-1.5 text-sm rounded-lg border border-border text-text-muted hover:text-text-main transition-colors"
 							>
@@ -719,6 +737,7 @@ export default function SkillsPage() {
 							</button>
 							<div className="flex-1" />
 							<button
+								type="button"
 								onClick={() => {
 									setShowInstallModal(false);
 									setInstallStatus(null);
@@ -729,6 +748,7 @@ export default function SkillsPage() {
 								Cancel
 							</button>
 							<button
+								type="button"
 								onClick={handleInstall}
 								disabled={installing || !installJson.trim()}
 								className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"

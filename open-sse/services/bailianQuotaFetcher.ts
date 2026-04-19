@@ -125,45 +125,45 @@ function buildHeaders(authKey: string): Record<string, string> {
 function parseBailianQuotaResponse(data: unknown): BailianTripleWindowQuota | null {
 	const obj = toRecord(data);
 
-	if (obj["code"] === "ConsoleNeedLogin") {
+	if (obj.code === "ConsoleNeedLogin") {
 		// Caller will handle fallback — return null here to signal no usable data
 		return null;
 	}
 
-	if (obj["code"] !== "Success" && obj["code"] !== "200") {
+	if (obj.code !== "Success" && obj.code !== "200") {
 		return null;
 	}
 
-	const dataObj = toRecord(obj["data"]);
-	const instanceInfos = dataObj["codingPlanInstanceInfos"];
+	const dataObj = toRecord(obj.data);
+	const instanceInfos = dataObj.codingPlanInstanceInfos;
 
 	if (!Array.isArray(instanceInfos) || instanceInfos.length === 0) {
 		return null;
 	}
 
 	const instance = toRecord(instanceInfos[0]);
-	const quotaInfo = toRecord(instance["codingPlanQuotaInfo"]);
+	const quotaInfo = toRecord(instance.codingPlanQuotaInfo);
 
 	if (Object.keys(quotaInfo).length === 0) {
 		return null;
 	}
 
 	// Parse 5h window
-	const used5h = toNumber(quotaInfo["per5HourUsedQuota"]);
-	const total5h = toNumber(quotaInfo["per5HourTotalQuota"]);
-	const resetAt5h = toNumber(quotaInfo["per5HourQuotaNextRefreshTime"]);
+	const used5h = toNumber(quotaInfo.per5HourUsedQuota);
+	const total5h = toNumber(quotaInfo.per5HourTotalQuota);
+	const resetAt5h = toNumber(quotaInfo.per5HourQuotaNextRefreshTime);
 	const pct5h = total5h > 0 ? used5h / total5h : 0;
 
 	// Parse weekly window
-	const usedWeekly = toNumber(quotaInfo["perWeekUsedQuota"]);
-	const totalWeekly = toNumber(quotaInfo["perWeekTotalQuota"]);
-	const resetAtWeekly = toNumber(quotaInfo["perWeekQuotaNextRefreshTime"]);
+	const usedWeekly = toNumber(quotaInfo.perWeekUsedQuota);
+	const totalWeekly = toNumber(quotaInfo.perWeekTotalQuota);
+	const resetAtWeekly = toNumber(quotaInfo.perWeekQuotaNextRefreshTime);
 	const pctWeekly = totalWeekly > 0 ? usedWeekly / totalWeekly : 0;
 
 	// Parse monthly window
-	const usedMonthly = toNumber(quotaInfo["perBillMonthUsedQuota"]);
-	const totalMonthly = toNumber(quotaInfo["perBillMonthTotalQuota"]);
-	const resetAtMonthly = toNumber(quotaInfo["perBillMonthQuotaNextRefreshTime"]);
+	const usedMonthly = toNumber(quotaInfo.perBillMonthUsedQuota);
+	const totalMonthly = toNumber(quotaInfo.perBillMonthTotalQuota);
+	const resetAtMonthly = toNumber(quotaInfo.perBillMonthQuotaNextRefreshTime);
 	const pctMonthly = totalMonthly > 0 ? usedMonthly / totalMonthly : 0;
 
 	// Most restrictive window = highest percentUsed
@@ -255,7 +255,7 @@ export async function fetchBailianQuota(
 		const obj = toRecord(rawData);
 
 		// ConsoleNeedLogin → retry with China host exactly once
-		if (obj["code"] === "ConsoleNeedLogin") {
+		if (obj.code === "ConsoleNeedLogin") {
 			try {
 				const chinaUrl = process.env.ALIBABA_CODING_PLAN_QUOTA_URL
 					? url

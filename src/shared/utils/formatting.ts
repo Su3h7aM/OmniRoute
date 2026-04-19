@@ -43,9 +43,7 @@ export function formatDuration(ms) {
 export function formatDateTime(iso) {
 	try {
 		const d = new Date(iso);
-		return (
-			d.toLocaleDateString("pt-BR") + ", " + d.toLocaleTimeString("en-US", { hour12: false })
-		);
+		return `${d.toLocaleDateString("pt-BR")}, ${d.toLocaleTimeString("en-US", { hour12: false })}`;
 	} catch {
 		return iso;
 	}
@@ -73,10 +71,10 @@ export function maskAccount(account) {
 	if (!account || account === "-") return "-";
 	const atIdx = account.indexOf("@");
 	if (atIdx > 3) {
-		return account.slice(0, 3) + "***" + account.slice(atIdx);
+		return `${account.slice(0, 3)}***${account.slice(atIdx)}`;
 	}
 	if (account.length > 8) {
-		return account.slice(0, 5) + "***";
+		return `${account.slice(0, 5)}***`;
 	}
 	return account;
 }
@@ -145,9 +143,9 @@ export function truncateUrl(url, max = 50) {
 	try {
 		const parsed = new URL(url);
 		const display = parsed.hostname + parsed.pathname;
-		return display.length > max ? display.slice(0, max) + "…" : display;
+		return display.length > max ? `${display.slice(0, max)}…` : display;
 	} catch {
-		return url.length > max ? url.slice(0, max) + "…" : url;
+		return url.length > max ? `${url.slice(0, max)}…` : url;
 	}
 }
 
@@ -156,5 +154,5 @@ export function truncateUrl(url, max = 50) {
  * Used by quota normalization in both backend (quotaCache) and frontend (ProviderLimits).
  */
 export function safePercentage(value: unknown): number | undefined {
-	return typeof value === "number" && isFinite(value) ? value : undefined;
+	return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }

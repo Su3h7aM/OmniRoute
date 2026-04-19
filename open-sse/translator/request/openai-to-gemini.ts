@@ -111,7 +111,7 @@ function extractClientThoughtSignature(toolCall) {
 }
 
 // Core: Convert OpenAI request to Gemini format (base for all variants)
-function openaiToGeminiBase(model, body, stream, toolNameOptions: GeminiToolNameOptions = {}) {
+function openaiToGeminiBase(model, body, _stream, toolNameOptions: GeminiToolNameOptions = {}) {
 	const result: GeminiRequest = {
 		model: model,
 		contents: [],

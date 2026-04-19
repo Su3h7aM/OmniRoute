@@ -72,8 +72,6 @@ export function selectAccount(
 				state: { ...state, lastIndex: nextIndex },
 			};
 		}
-
-		case "fill-first":
 		default:
 			return { account: accounts[0], state };
 	}

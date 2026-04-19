@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { getDefaultPricing, formatCost } from "@/shared/constants/pricing";
+import { getDefaultPricing } from "@/shared/constants/pricing";
 
 export default function PricingModal({ isOpen, onClose, onSave }) {
 	const t = useTranslations("pricingModal");
@@ -14,7 +14,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 		if (isOpen) {
 			loadPricing();
 		}
-	}, [isOpen]);
+	}, [isOpen, loadPricing]);
 
 	const loadPricing = async () => {
 		setLoading(true);
@@ -39,7 +39,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 
 	const handlePricingChange = (provider, model, field, value) => {
 		const numValue = parseFloat(value);
-		if (isNaN(numValue) || numValue < 0) return;
+		if (Number.isNaN(numValue) || numValue < 0) return;
 
 		setPricingData((prev) => {
 			const newData = { ...prev };
@@ -102,6 +102,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 				<div className="p-4 border-b border-border flex items-center justify-between">
 					<h2 className="text-xl font-semibold">{t("title")}</h2>
 					<button
+						type="button"
 						onClick={onClose}
 						className="text-text-muted hover:text-text text-2xl leading-none"
 					>
@@ -218,6 +219,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 				{/* Footer */}
 				<div className="p-4 border-t border-border flex items-center justify-between gap-2">
 					<button
+						type="button"
 						onClick={handleReset}
 						className="px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded border border-red-500/20 transition-colors"
 						disabled={saving}
@@ -226,6 +228,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 					</button>
 					<div className="flex gap-2">
 						<button
+							type="button"
 							onClick={onClose}
 							className="px-4 py-2 text-sm text-text-muted hover:text-text border border-border rounded transition-colors"
 							disabled={saving}
@@ -233,6 +236,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 							{t("cancel")}
 						</button>
 						<button
+							type="button"
 							onClick={handleSave}
 							className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
 							disabled={saving}

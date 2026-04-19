@@ -154,7 +154,7 @@ async function getGlmUsage(apiKey: string, providerSpecificData?: Record<string,
 		const resetMs = toNumber(src.nextResetTime, 0);
 		const remaining = Math.max(0, 100 - usedPercent);
 
-		quotas["session"] = {
+		quotas.session = {
 			used: usedPercent,
 			total: 100,
 			remaining,
@@ -273,7 +273,7 @@ function parseResetTime(resetValue) {
 		if (date.getTime() <= 0) return null;
 
 		return date.toISOString();
-	} catch (error) {
+	} catch (_error) {
 		return null;
 	}
 }
@@ -282,7 +282,7 @@ function parseResetTime(resetValue) {
  * GitHub Copilot Usage
  * Uses GitHub accessToken (not copilotToken) to call copilot_internal/user API
  */
-async function getGitHubUsage(accessToken, providerSpecificData) {
+async function getGitHubUsage(accessToken, _providerSpecificData) {
 	try {
 		if (!accessToken) {
 			throw new Error(
@@ -962,7 +962,7 @@ async function probeAntigravityCreditBalance(
 							);
 							if (googleCredit) {
 								const balance = parseInt(googleCredit.creditAmount, 10);
-								if (!isNaN(balance)) {
+								if (!Number.isNaN(balance)) {
 									updateAntigravityRemainingCredits(accountId, balance);
 									return balance;
 								}
@@ -992,7 +992,7 @@ async function probeAntigravityCreditBalance(
  */
 async function getAntigravityUsage(
 	accessToken,
-	providerSpecificData,
+	_providerSpecificData,
 	connectionProjectId?,
 	connectionId?
 ) {
@@ -1533,7 +1533,7 @@ function getKimiPlanName(level) {
  */
 async function getKimiUsage(accessToken) {
 	// Generate device info for headers (same as OAuth flow)
-	const deviceId = "kimi-usage-" + Date.now();
+	const deviceId = `kimi-usage-${Date.now()}`;
 	const platform = "omniroute";
 	const version = "2.1.2";
 	const deviceModel =
@@ -1588,7 +1588,7 @@ async function getKimiUsage(accessToken) {
 		if (usageLimit > 0) {
 			const percentRemaining = usageLimit > 0 ? (usageRemaining / usageLimit) * 100 : 0;
 
-			quotas["Weekly"] = {
+			quotas.Weekly = {
 				used: usageUsed,
 				total: usageLimit,
 				remaining: usageRemaining,
@@ -1602,7 +1602,7 @@ async function getKimiUsage(accessToken) {
 		const limitsArray = Array.isArray(dataObj.limits) ? dataObj.limits : [];
 		for (let i = 0; i < limitsArray.length; i++) {
 			const limitItem = toRecord(limitsArray[i]);
-			const window = toRecord(limitItem.window);
+			const _window = toRecord(limitItem.window);
 			const detail = toRecord(limitItem.detail);
 
 			const limit = toNumber(detail.limit || detail.Limit, 0);
@@ -1610,7 +1610,7 @@ async function getKimiUsage(accessToken) {
 			const resetTime = detail.resetTime || detail.reset_at || detail.resetAt;
 
 			if (limit > 0) {
-				quotas["Ratelimit"] = {
+				quotas.Ratelimit = {
 					used: limit - remaining,
 					total: limit,
 					remaining,
@@ -1689,7 +1689,7 @@ async function getKimiUsage(accessToken) {
 /**
  * Qwen Usage
  */
-async function getQwenUsage(accessToken, providerSpecificData) {
+async function getQwenUsage(_accessToken, providerSpecificData) {
 	try {
 		const resourceUrl = providerSpecificData?.resourceUrl;
 		if (!resourceUrl) {
@@ -1698,7 +1698,7 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 
 		// Qwen may have usage endpoint at resource URL
 		return { message: "Qwen connected. Usage tracked per request." };
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Qwen usage." };
 	}
 }
@@ -1706,11 +1706,11 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 /**
  * Qoder Usage
  */
-async function getQoderUsage(accessToken) {
+async function getQoderUsage(_accessToken) {
 	try {
 		// Qoder may have usage endpoint
 		return { message: "Qoder connected. Usage tracked per request." };
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Qoder usage." };
 	}
 }

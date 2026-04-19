@@ -95,7 +95,11 @@ export default function RerankPanel({ query, results, onClose }: RerankPanelProp
 				<span className="text-xs font-semibold text-text-main flex items-center gap-1.5">
 					⇅ {t("rerankResults")}
 				</span>
-				<button onClick={onClose} className="text-text-muted text-xs hover:text-text-main">
+				<button
+					type="button"
+					onClick={onClose}
+					className="text-text-muted text-xs hover:text-text-main"
+				>
 					✕
 				</button>
 			</div>

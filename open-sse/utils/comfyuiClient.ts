@@ -71,7 +71,7 @@ export async function pollComfyResult(
 		const data = toRecord(await res.json());
 		const entry = toRecord(data[promptId]) as ComfyHistoryEntry;
 
-		if (entry && entry.outputs && Object.keys(entry.outputs).length > 0) {
+		if (entry?.outputs && Object.keys(entry.outputs).length > 0) {
 			return entry;
 		}
 	}

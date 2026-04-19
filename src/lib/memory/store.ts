@@ -280,7 +280,7 @@ export async function listMemories(filters: {
 	// Run COUNT query + byType aggregation in a single query
 	let countQuery = "SELECT COUNT(*) as total FROM memories";
 	if (whereClauses.length > 0) {
-		countQuery += " WHERE " + whereClauses.join(" AND ");
+		countQuery += ` WHERE ${whereClauses.join(" AND ")}`;
 	}
 	const countStmt = db.prepare(countQuery);
 	const countRow = countStmt.get(...whereParams) as { total: number };
@@ -290,7 +290,7 @@ export async function listMemories(filters: {
 	let byTypeQuery = "SELECT type, COUNT(*) as count FROM memories";
 	const byTypeParams: unknown[] = [...whereParams];
 	if (whereClauses.length > 0) {
-		byTypeQuery += " WHERE " + whereClauses.join(" AND ");
+		byTypeQuery += ` WHERE ${whereClauses.join(" AND ")}`;
 	}
 	byTypeQuery += " GROUP BY type";
 	const byTypeStmt = db.prepare(byTypeQuery);
@@ -308,7 +308,7 @@ export async function listMemories(filters: {
 	// Build SELECT query with pagination
 	let query = "SELECT * FROM memories";
 	if (whereClauses.length > 0) {
-		query += " WHERE " + whereClauses.join(" AND ");
+		query += ` WHERE ${whereClauses.join(" AND ")}`;
 	}
 
 	// Add ordering and pagination

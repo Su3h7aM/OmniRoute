@@ -52,6 +52,7 @@ export default function SettingsPage() {
 					>
 						{tabs.map((tab) => (
 							<button
+								type="button"
 								key={tab.id}
 								role="tab"
 								aria-selected={activeTab === tab.id}

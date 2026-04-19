@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Card } from "@/shared/components";
 
 interface CachePerformanceProps {
@@ -88,6 +87,7 @@ export default function CachePerformance({
 						<p className="text-sm text-red-400">{error}</p>
 						{onRetry && (
 							<button
+								type="button"
 								onClick={onRetry}
 								className="self-start text-xs px-3 py-1.5 rounded bg-surface border border-border/50 hover:bg-surface/80 transition-colors"
 								aria-label="Retry"

@@ -14,8 +14,8 @@ const { injectSkills, injectSkillTools, detectProvider } = await import(
 );
 
 function resetRegistryState() {
-	skillRegistry["registeredSkills"].clear();
-	skillRegistry["versionCache"].clear();
+	skillRegistry.registeredSkills.clear();
+	skillRegistry.versionCache.clear();
 }
 
 async function resetStorage() {

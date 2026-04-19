@@ -206,7 +206,7 @@ export default function ProvidersPage() {
 			} else {
 				notify.error(data.error || "Failed to import from Zed IDE.");
 			}
-		} catch (error) {
+		} catch (_error) {
 			notify.error("Network error while trying to import from Zed.");
 		} finally {
 			setImportingZed(false);
@@ -518,6 +518,7 @@ export default function ProvidersPage() {
 							className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
 						/>
 						<button
+							type="button"
 							onClick={handleZedImport}
 							disabled={importingZed}
 							className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
@@ -533,6 +534,7 @@ export default function ProvidersPage() {
 						{oauthEnvRepairStatus?.available &&
 							oauthEnvRepairStatus.missingCount > 0 && (
 								<button
+									type="button"
 									onClick={handleRepairEnv}
 									disabled={repairingEnv}
 									className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -550,6 +552,7 @@ export default function ProvidersPage() {
 								</button>
 							)}
 						<button
+							type="button"
 							onClick={() => handleBatchTest("oauth")}
 							disabled={!!testingMode}
 							className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -596,6 +599,7 @@ export default function ProvidersPage() {
 						/>
 					</h2>
 					<button
+						type="button"
 						onClick={() => handleBatchTest("apikey")}
 						disabled={!!testingMode}
 						className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -642,6 +646,7 @@ export default function ProvidersPage() {
 							/>
 						</h2>
 						<button
+							type="button"
 							onClick={() => handleBatchTest("web-cookie")}
 							disabled={!!testingMode}
 							className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -685,6 +690,7 @@ export default function ProvidersPage() {
 							<span className="size-2.5 rounded-full bg-teal-500" title="Search" />
 						</h2>
 						<button
+							type="button"
 							onClick={() => handleBatchTest("search")}
 							disabled={!!testingMode}
 							className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -728,6 +734,7 @@ export default function ProvidersPage() {
 							<span className="size-2.5 rounded-full bg-rose-500" title="Audio" />
 						</h2>
 						<button
+							type="button"
 							onClick={() => handleBatchTest("audio")}
 							disabled={!!testingMode}
 							className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -777,6 +784,7 @@ export default function ProvidersPage() {
 							anthropicCompatibleProviders.length > 0 ||
 							ccCompatibleProviders.length > 0) && (
 							<button
+								type="button"
 								onClick={() => handleBatchTest("compatible")}
 								disabled={!!testingMode}
 								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
@@ -886,6 +894,7 @@ export default function ProvidersPage() {
 						<div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
 							<h3 className="font-semibold">{t("testResults")}</h3>
 							<button
+								type="button"
 								onClick={() => setTestResults(null)}
 								className="p-1 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
 								aria-label={tc("close")}
@@ -983,7 +992,7 @@ function ProviderCard({ providerId, provider, stats, authType, onToggle }) {
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									onToggle(!allDisabled ? false : true);
+									onToggle(!!allDisabled);
 								}}
 								className=""
 							>
@@ -1145,7 +1154,7 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									onToggle(!allDisabled ? false : true);
+									onToggle(!!allDisabled);
 								}}
 								className=""
 							>
@@ -1216,7 +1225,7 @@ function AddOpenAICompatibleModal({ isOpen, onClose, onCreated }) {
 			...prev,
 			baseUrl: defaultBaseUrl,
 		}));
-	}, [formData.apiType]);
+	}, []);
 
 	const handleSubmit = async () => {
 		if (!formData.name.trim() || !formData.prefix.trim() || !formData.baseUrl.trim()) return;

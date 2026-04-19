@@ -8,7 +8,7 @@ import { Card } from "@/shared/components";
 export default function SessionsTab() {
 	const t = useTranslations("usage");
 	const [data, setData] = useState({ count: 0, sessions: [] });
-	const [loading, setLoading] = useState(true);
+	const [_loading, setLoading] = useState(true);
 
 	const loadSessions = useCallback(async () => {
 		try {

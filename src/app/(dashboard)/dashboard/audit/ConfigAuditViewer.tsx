@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 interface AuditEntry {
@@ -18,16 +18,12 @@ interface AuditEntry {
 }
 
 export default function ConfigAuditViewer() {
-	const t = useTranslations("logs");
+	const _t = useTranslations("logs");
 	const [entries, setEntries] = useState<AuditEntry[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null);
 
-	useEffect(() => {
-		fetchLogs();
-	}, []);
-
-	const fetchLogs = async () => {
+	const fetchLogs = useCallback(async () => {
 		setLoading(true);
 		try {
 			const res = await fetch("/api/audit");
@@ -38,7 +34,11 @@ export default function ConfigAuditViewer() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		fetchLogs();
+	}, [fetchLogs]);
 
 	const getActionColor = (action: string) => {
 		const act = action.toLowerCase();
@@ -70,6 +70,7 @@ export default function ConfigAuditViewer() {
 					viewBox="0 0 24 24"
 					stroke="currentColor"
 					className="w-12 h-12 mb-4 opacity-50"
+					aria-hidden="true"
 				>
 					<path
 						strokeLinecap="round"
@@ -124,6 +125,7 @@ export default function ConfigAuditViewer() {
 								</td>
 								<td className="px-6 py-3 whitespace-nowrap text-right">
 									<button
+										type="button"
 										onClick={() => setSelectedEntry(entry)}
 										className="px-3 py-1 text-xs font-medium text-[var(--text-primary,#fff)] bg-[var(--accent,#7c3aed)] hover:bg-opacity-80 rounded-md transition-colors invisible group-hover:visible"
 									>
@@ -151,6 +153,7 @@ export default function ConfigAuditViewer() {
 								</p>
 							</div>
 							<button
+								type="button"
 								onClick={() => setSelectedEntry(null)}
 								className="p-2 text-[var(--text-muted,#666)] hover:text-white bg-[var(--hover-bg,#2a2a3e)] hover:bg-[#333] rounded-full transition-colors"
 								title="Close"
@@ -160,6 +163,7 @@ export default function ConfigAuditViewer() {
 									viewBox="0 0 24 24"
 									stroke="currentColor"
 									className="w-5 h-5"
+									aria-hidden="true"
 								>
 									<path
 										strokeLinecap="round"

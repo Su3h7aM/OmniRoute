@@ -123,7 +123,7 @@ test("getAllModelsFromRegistry: each model has provider field", () => {
 });
 
 test("getAllModelsFromRegistry: extra callback adds fields per provider", () => {
-	const models = getAllModelsFromRegistry(MOCK_REGISTRY, (providerId, config) => ({
+	const models = getAllModelsFromRegistry(MOCK_REGISTRY, (_providerId, config) => ({
 		authType: config.authType,
 	}));
 

@@ -31,8 +31,8 @@ export function getModerationProvider(providerId) {
 export function parseModerationModel(modelStr) {
 	if (!modelStr) return { provider: null, model: null };
 
-	for (const [providerId, config] of Object.entries(MODERATION_PROVIDERS)) {
-		if (modelStr.startsWith(providerId + "/")) {
+	for (const [providerId, _config] of Object.entries(MODERATION_PROVIDERS)) {
+		if (modelStr.startsWith(`${providerId}/`)) {
 			return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
 		}
 	}

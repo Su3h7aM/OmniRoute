@@ -40,7 +40,7 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
 				} else {
 					setError(data.error || t("errorAutoDetect"));
 				}
-			} catch (err) {
+			} catch (_err) {
 				setError(t("errorAutoDetectFailed"));
 			} finally {
 				setAutoDetecting(false);
@@ -48,7 +48,7 @@ export default function CursorAuthModal({ isOpen, onSuccess, onClose }) {
 		};
 
 		autoDetect();
-	}, [isOpen]);
+	}, [isOpen, t]);
 
 	const handleImportToken = async () => {
 		if (!accessToken.trim()) {

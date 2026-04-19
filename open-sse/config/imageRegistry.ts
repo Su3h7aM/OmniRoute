@@ -455,14 +455,14 @@ export function parseImageModel(modelStr) {
 
 	// Try each provider prefix
 	for (const [providerId, config] of Object.entries(IMAGE_PROVIDERS)) {
-		if (modelStr.startsWith(providerId + "/")) {
+		if (modelStr.startsWith(`${providerId}/`)) {
 			const model = modelStr.slice(providerId.length + 1);
 			const aliased =
 				resolveImageModelAlias(`${providerId}/${model}`) || resolveImageModelAlias(model);
 			return aliased || { provider: providerId, model };
 		}
 		// Check alias if available
-		if (config.alias && modelStr.startsWith(config.alias + "/")) {
+		if (config.alias && modelStr.startsWith(`${config.alias}/`)) {
 			const model = modelStr.slice(config.alias.length + 1);
 			const aliased =
 				resolveImageModelAlias(`${providerId}/${model}`) || resolveImageModelAlias(model);

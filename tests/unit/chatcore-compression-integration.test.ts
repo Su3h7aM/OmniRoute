@@ -119,7 +119,7 @@ test("chatCore integration: compression handles tool messages", async () => {
 
 	const provider = "openai";
 	const model = "gpt-4";
-	const contextLimit = 8192;
+	const _contextLimit = 8192;
 
 	const longToolOutput = "x".repeat(50000);
 	const body = {

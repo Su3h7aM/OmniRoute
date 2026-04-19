@@ -13,7 +13,7 @@ import { PROVIDERS } from "../config/constants.ts";
  */
 export class PollinationsExecutor extends BaseExecutor {
 	constructor() {
-		super("pollinations", PROVIDERS["pollinations"] || { format: "openai" });
+		super("pollinations", PROVIDERS.pollinations || { format: "openai" });
 	}
 
 	buildUrl(_model: string, _stream: boolean, urlIndex = 0, _credentials = null): string {
@@ -37,13 +37,13 @@ export class PollinationsExecutor extends BaseExecutor {
 		}
 
 		if (stream) {
-			headers["Accept"] = "text/event-stream";
+			headers.Accept = "text/event-stream";
 		}
 
 		return headers;
 	}
 
-	transformRequest(model: string, body: any, _stream: boolean, _credentials: any): any {
+	transformRequest(_model: string, body: any, _stream: boolean, _credentials: any): any {
 		// Pollinations uses provider aliases directly: "openai", "claude", "gemini", etc.
 		return body;
 	}

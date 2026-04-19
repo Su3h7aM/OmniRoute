@@ -60,9 +60,9 @@ export async function GET() {
 						tags: Array.isArray(spec.tags) ? spec.tags : [],
 						summary: spec.summary || "",
 						description: spec.description || "",
-						security: spec.security ? true : false,
+						security: !!spec.security,
 						parameters: spec.parameters || [],
-						requestBody: spec.requestBody ? true : false,
+						requestBody: !!spec.requestBody,
 						responses: Object.keys(spec.responses || {}),
 					});
 				}

@@ -36,7 +36,7 @@ export default function ComplianceTab() {
 				setLoading(false);
 				notify.error(t("failedLoadAuditLog"));
 			});
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [t, notify.error]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const actionOptions = [...new Set(logs.map((l) => l.action).filter(Boolean))];
 	const actorOptions = [...new Set(logs.map((l) => l.actor).filter(Boolean))];

@@ -87,10 +87,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 		<div className="flex flex-col h-full">
 			{/* Query */}
 			<div className="p-4 border-b border-border">
-				<label className="block text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-2">
+				<label
+					htmlFor="search-query"
+					className="block text-[10px] font-semibold text-text-muted uppercase tracking-wider mb-2"
+				>
 					{t("searchQuery")}
 				</label>
 				<textarea
+					id="search-query"
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
 					placeholder={t("queryPlaceholder")}
@@ -108,10 +112,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 			<div className="p-4 border-b border-border space-y-2">
 				<div className="flex gap-2">
 					<div className="flex-1">
-						<label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+						<label
+							htmlFor="search-provider"
+							className="block text-[10px] text-text-muted uppercase tracking-wider mb-1"
+						>
 							{t("provider")}
 						</label>
 						<Select
+							id="search-provider"
 							value={provider}
 							onChange={(e: any) => setProvider(e.target.value)}
 							options={[
@@ -125,10 +133,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 						/>
 					</div>
 					<div className="flex-1">
-						<label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+						<label
+							htmlFor="search-type"
+							className="block text-[10px] text-text-muted uppercase tracking-wider mb-1"
+						>
 							{t("searchType")}
 						</label>
 						<Select
+							id="search-type"
 							value={searchType}
 							onChange={(e: any) => setSearchType(e.target.value)}
 							options={[
@@ -140,13 +152,17 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 					</div>
 				</div>
 				<div className="w-20">
-					<label className="block text-[10px] text-text-muted uppercase tracking-wider mb-1">
+					<label
+						htmlFor="search-max-results"
+						className="block text-[10px] text-text-muted uppercase tracking-wider mb-1"
+					>
 						{t("maxResults")}
 					</label>
 					<input
+						id="search-max-results"
 						type="number"
 						value={maxResults}
-						onChange={(e) => setMaxResults(parseInt(e.target.value) || 5)}
+						onChange={(e) => setMaxResults(parseInt(e.target.value, 10) || 5)}
 						min={1}
 						max={100}
 						className="w-full bg-surface border border-border rounded-lg px-2.5 py-1.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -157,6 +173,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 			{/* Filters (collapsible) */}
 			<div className="p-4 border-b border-border">
 				<button
+					type="button"
 					className="flex justify-between items-center w-full"
 					onClick={() => setShowFilters(!showFilters)}
 				>
@@ -169,10 +186,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 					<div className="mt-3 space-y-2">
 						<div className="flex gap-2">
 							<div className="flex-1">
-								<label className="block text-[10px] text-text-muted mb-1">
+								<label
+									htmlFor="search-country"
+									className="block text-[10px] text-text-muted mb-1"
+								>
 									{t("country")}
 								</label>
 								<input
+									id="search-country"
 									value={country}
 									onChange={(e) => setCountry(e.target.value)}
 									placeholder={t("optionAny")}
@@ -180,10 +201,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 								/>
 							</div>
 							<div className="flex-1">
-								<label className="block text-[10px] text-text-muted mb-1">
+								<label
+									htmlFor="search-language"
+									className="block text-[10px] text-text-muted mb-1"
+								>
 									{t("language")}
 								</label>
 								<input
+									id="search-language"
 									value={language}
 									onChange={(e) => setLanguage(e.target.value)}
 									placeholder={t("optionAny")}
@@ -192,10 +217,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 							</div>
 						</div>
 						<div>
-							<label className="block text-[10px] text-text-muted mb-1">
+							<label
+								htmlFor="search-time-range"
+								className="block text-[10px] text-text-muted mb-1"
+							>
 								{t("timeRange")}
 							</label>
 							<Select
+								id="search-time-range"
 								value={timeRange}
 								onChange={(e: any) => setTimeRange(e.target.value)}
 								options={[
@@ -209,11 +238,15 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 							/>
 						</div>
 						<div>
-							<label className="block text-[10px] text-text-muted mb-1">
+							<label
+								htmlFor="search-include-domains"
+								className="block text-[10px] text-text-muted mb-1"
+							>
 								{t("includeDomains")}
 							</label>
 							<div className="flex gap-1">
 								<input
+									id="search-include-domains"
 									value={domainInput}
 									onChange={(e) => setDomainInput(e.target.value)}
 									placeholder={t("domainPlaceholder")}
@@ -221,6 +254,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 									onKeyDown={(e) => e.key === "Enter" && addDomain("include")}
 								/>
 								<button
+									type="button"
 									onClick={() => addDomain("include")}
 									className="text-primary text-lg px-1"
 								>
@@ -236,6 +270,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 										>
 											{d}
 											<button
+												type="button"
 												onClick={() => removeDomain(d, "include")}
 												className="text-primary/60"
 											>
@@ -247,11 +282,15 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 							)}
 						</div>
 						<div>
-							<label className="block text-[10px] text-text-muted mb-1">
+							<label
+								htmlFor="search-exclude-domains"
+								className="block text-[10px] text-text-muted mb-1"
+							>
 								{t("excludeDomains")}
 							</label>
 							<div className="flex gap-1">
 								<input
+									id="search-exclude-domains"
 									value={excludeDomainInput}
 									onChange={(e) => setExcludeDomainInput(e.target.value)}
 									placeholder={t("domainPlaceholder")}
@@ -259,6 +298,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 									onKeyDown={(e) => e.key === "Enter" && addDomain("exclude")}
 								/>
 								<button
+									type="button"
 									onClick={() => addDomain("exclude")}
 									className="text-primary text-lg px-1"
 								>
@@ -274,6 +314,7 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 										>
 											{d}
 											<button
+												type="button"
 												onClick={() => removeDomain(d, "exclude")}
 												className="text-error/60"
 											>
@@ -285,10 +326,14 @@ export default function SearchForm({ onSearch, loading, onCancel, providers }: S
 							)}
 						</div>
 						<div>
-							<label className="block text-[10px] text-text-muted mb-1">
+							<label
+								htmlFor="search-safe-search"
+								className="block text-[10px] text-text-muted mb-1"
+							>
 								{t("safeSearch")}
 							</label>
 							<Select
+								id="search-safe-search"
 								value={safeSearch}
 								onChange={(e: any) => setSafeSearch(e.target.value)}
 								options={[

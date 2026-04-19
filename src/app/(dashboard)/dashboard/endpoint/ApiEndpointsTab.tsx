@@ -110,7 +110,7 @@ export default function ApiEndpointsTab() {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [loadCatalog]);
 
 	// Load webhooks
 	const fetchWebhooksData = async (): Promise<WebhookItem[]> => {
@@ -143,7 +143,7 @@ export default function ApiEndpointsTab() {
 		return () => {
 			cancelled = true;
 		};
-	}, [section]);
+	}, [section, fetchWebhooksData]);
 
 	// Filter endpoints
 	const filteredEndpoints = useMemo(() => {
@@ -335,6 +335,7 @@ export default function ApiEndpointsTab() {
 					{ id: "webhooks" as const, label: "Webhooks", icon: "webhook" },
 				].map((tab) => (
 					<button
+						type="button"
 						key={tab.id}
 						onClick={() => setSection(tab.id)}
 						className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all
@@ -369,6 +370,7 @@ export default function ApiEndpointsTab() {
 						</div>
 						<div className="flex gap-1 flex-wrap">
 							<button
+								type="button"
 								onClick={() => setSelectedTag(null)}
 								className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors
                   ${
@@ -381,6 +383,7 @@ export default function ApiEndpointsTab() {
 							</button>
 							{allTags.slice(0, 8).map((tag) => (
 								<button
+									type="button"
 									key={tag}
 									onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
 									className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors
@@ -496,6 +499,7 @@ export default function ApiEndpointsTab() {
 															</div>
 														</div>
 														<button
+															type="button"
 															onClick={(e) => {
 																e.stopPropagation();
 																handleTryIt(ep);
@@ -557,6 +561,7 @@ export default function ApiEndpointsTab() {
 																</div>
 															)}
 															<button
+																type="button"
 																onClick={() => executeTryIt(ep)}
 																disabled={trying}
 																className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg
@@ -676,6 +681,7 @@ export default function ApiEndpointsTab() {
 							</div>
 							{!showAddWebhook && (
 								<button
+									type="button"
 									onClick={() => setShowAddWebhook(true)}
 									className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg
                              bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
@@ -723,6 +729,7 @@ export default function ApiEndpointsTab() {
 									</label>
 									<div className="flex flex-wrap gap-1.5 mt-1">
 										<button
+											type="button"
 											onClick={() => setWhEvents(["*"])}
 											className={`px-2 py-0.5 text-[10px] font-medium rounded transition-colors
                         ${
@@ -735,6 +742,7 @@ export default function ApiEndpointsTab() {
 										</button>
 										{WEBHOOK_EVENTS.map((ev) => (
 											<button
+												type="button"
 												key={ev}
 												onClick={() => {
 													if (whEvents.includes("*")) {
@@ -761,6 +769,7 @@ export default function ApiEndpointsTab() {
 								</div>
 								<div className="flex gap-2 mt-2">
 									<button
+										type="button"
 										onClick={addWebhook}
 										disabled={!whUrl.trim()}
 										className="px-3 py-1 text-xs font-medium rounded-lg bg-primary text-white
@@ -769,6 +778,7 @@ export default function ApiEndpointsTab() {
 										Save
 									</button>
 									<button
+										type="button"
 										onClick={() => setShowAddWebhook(false)}
 										className="px-3 py-1 text-xs font-medium rounded-lg
                                bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
@@ -840,6 +850,7 @@ export default function ApiEndpointsTab() {
 										</div>
 										<div className="flex items-center gap-1 shrink-0 ml-2">
 											<button
+												type="button"
 												onClick={() => testWebhook(wh.id)}
 												disabled={testingWebhookId === wh.id}
 												className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -852,6 +863,7 @@ export default function ApiEndpointsTab() {
 												</span>
 											</button>
 											<button
+												type="button"
 												onClick={() => toggleWebhook(wh)}
 												className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
 												title={wh.enabled ? "Disable" : "Enable"}
@@ -863,6 +875,7 @@ export default function ApiEndpointsTab() {
 												</span>
 											</button>
 											<button
+												type="button"
 												onClick={() => deleteWebhook(wh.id)}
 												className="p-1 rounded hover:bg-red-500/10 transition-colors"
 												title="Delete"

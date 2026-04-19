@@ -92,19 +92,19 @@ export function parseAntigravityRetryTime(message) {
 
 	// Extract hours
 	if (match[1]) {
-		const hours = parseInt(match[1]);
+		const hours = parseInt(match[1], 10);
 		totalMs += hours * 60 * 60 * 1000;
 	}
 
 	// Extract minutes
 	if (match[2]) {
-		const minutes = parseInt(match[2]);
+		const minutes = parseInt(match[2], 10);
 		totalMs += minutes * 60 * 1000;
 	}
 
 	// Extract seconds
 	if (match[3]) {
-		const seconds = parseInt(match[3]);
+		const seconds = parseInt(match[3], 10);
 		totalMs += seconds * 1000;
 	}
 
@@ -300,7 +300,7 @@ export function modelCooldownResponse({
  * @param {number|string} statusCode - HTTP status code or error code
  * @returns {string} Formatted error message
  */
-export function formatProviderError(error, provider, model, statusCode) {
+export function formatProviderError(error, _provider, _model, statusCode) {
 	const code = statusCode || error.code || "FETCH_FAILED";
 	const message = error.message || "Unknown error";
 	return `[${code}]: ${message}`;

@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import PropTypes from "prop-types";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardSkeleton, Button, Modal } from "@/shared/components";
@@ -399,7 +398,7 @@ export default function HomePageClient({ machineId }) {
 		return () => clearTimeout(timer);
 	}, [updatePhase]);
 
-	const stepIcons: Record<string, string> = {
+	const _stepIcons: Record<string, string> = {
 		install: "download",
 		rebuild: "build",
 		restart: "restart_alt",
@@ -797,6 +796,7 @@ function ProviderOverviewCard({ item, metrics, onClick }) {
 
 	return (
 		<button
+			type="button"
 			onClick={onClick}
 			className="border border-border rounded-lg p-3 hover:bg-surface/40 transition-colors text-left cursor-pointer w-full"
 		>
@@ -942,6 +942,7 @@ function ProviderModelsModal({ provider, models, onClose }) {
 									)}
 								</div>
 								<button
+									type="button"
 									onClick={() => handleCopy(m.fullModel)}
 									className="shrink-0 ml-2 p-1.5 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-subtle transition-colors opacity-0 group-hover:opacity-100"
 									title={t("copyModelName")}

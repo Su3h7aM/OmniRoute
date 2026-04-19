@@ -218,7 +218,7 @@ export async function getUsageHistory(filter: any = {}) {
 	}
 
 	if (conditions.length > 0) {
-		sql += " WHERE " + conditions.join(" AND ");
+		sql += ` WHERE ${conditions.join(" AND ")}`;
 	}
 	sql += " ORDER BY timestamp ASC";
 

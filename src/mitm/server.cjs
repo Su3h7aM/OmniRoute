@@ -76,7 +76,7 @@ function saveRequestLog(url, bodyBuffer) {
 	}
 }
 
-function saveResponseLog(url, data) {
+function _saveResponseLog(url, data) {
 	if (!ENABLE_FILE_LOG) return;
 	try {
 		const ts = new Date().toISOString().replace(/[:.]/g, "-");
@@ -203,7 +203,7 @@ async function passthrough(req, res, bodyBuffer) {
 	forwardReq.end();
 }
 
-async function intercept(req, res, bodyBuffer, mappedModel) {
+async function intercept(_req, res, bodyBuffer, mappedModel) {
 	try {
 		const body = JSON.parse(bodyBuffer.toString());
 		body.model = mappedModel;

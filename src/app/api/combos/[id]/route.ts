@@ -16,7 +16,7 @@ import { updateComboSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 
 // GET /api/combos/[id] - Get combo by ID
-export async function GET(request, { params }) {
+export async function GET(_request, { params }) {
 	try {
 		const { id } = await params;
 		const combo = await getComboById(id);
@@ -115,7 +115,7 @@ export async function PUT(request, { params }) {
 }
 
 // DELETE /api/combos/[id] - Delete combo
-export async function DELETE(request, { params }) {
+export async function DELETE(_request, { params }) {
 	try {
 		const { id } = await params;
 		const success = await deleteCombo(id);

@@ -16,7 +16,7 @@ const providerExpiration = await import("../../src/domain/providerExpiration.ts"
 const quotaCache = await import("../../src/domain/quotaCache.ts");
 const comboResolver = await import("../../src/domain/comboResolver.ts");
 const policyEngineModule = await import("../../src/domain/policyEngine.ts");
-const domainState = await import("../../src/lib/db/domainState.ts");
+const _domainState = await import("../../src/lib/db/domainState.ts");
 
 const originalDateNow = Date.now;
 const originalMathRandom = Math.random;

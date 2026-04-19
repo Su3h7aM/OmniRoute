@@ -269,6 +269,7 @@ export default function EvalsTab() {
 			{/* {t("howItWorks")} — Collapsible */}
 			<Card className="p-0 overflow-hidden">
 				<button
+					type="button"
 					onClick={() => setShowHowItWorks(!showHowItWorks)}
 					className="w-full flex items-center justify-between px-6 py-4 hover:bg-surface/30 transition-colors text-left"
 				>

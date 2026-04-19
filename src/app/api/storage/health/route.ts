@@ -54,7 +54,7 @@ export async function GET() {
 		// Get the display path (abbreviated with ~)
 		const homeDir = process.env.HOME || process.env.USERPROFILE || "";
 		const displayPath = dbFilePath.startsWith(homeDir)
-			? "~" + dbFilePath.slice(homeDir.length)
+			? `~${dbFilePath.slice(homeDir.length)}`
 			: dbFilePath;
 
 		return NextResponse.json({
@@ -75,7 +75,7 @@ export async function GET() {
 				maxFiles: getDbBackupMaxFiles(),
 				days: getDbBackupRetentionDays(),
 			},
-			dataDir: dataDir.startsWith(homeDir) ? "~" + dataDir.slice(homeDir.length) : dataDir,
+			dataDir: dataDir.startsWith(homeDir) ? `~${dataDir.slice(homeDir.length)}` : dataDir,
 		});
 	} catch (error) {
 		console.error("[API] Error getting storage health:", error);

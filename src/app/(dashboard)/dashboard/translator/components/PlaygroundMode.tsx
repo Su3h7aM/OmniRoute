@@ -156,6 +156,7 @@ export default function PlaygroundMode() {
 
 					{/* Swap Button */}
 					<button
+						type="button"
 						onClick={handleSwapFormats}
 						className="p-2 rounded-full hover:bg-primary/10 text-text-muted hover:text-primary transition-all mt-4 sm:mt-5"
 						title={t("swapFormats")}
@@ -224,6 +225,7 @@ export default function PlaygroundMode() {
 							</div>
 							<div className="flex items-center gap-1">
 								<button
+									type="button"
 									onClick={() => handleCopy(inputContent)}
 									className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
 									title={tc("copy")}
@@ -233,6 +235,7 @@ export default function PlaygroundMode() {
 									</span>
 								</button>
 								<button
+									type="button"
 									onClick={() => {
 										setInputContent("");
 										setOutputContent("");
@@ -289,6 +292,7 @@ export default function PlaygroundMode() {
 							</div>
 							<div className="flex items-center gap-1">
 								<button
+									type="button"
 									onClick={() => handleCopy(outputContent)}
 									className="p-1.5 rounded hover:bg-black/5 dark:hover:bg-white/5 text-text-muted hover:text-text-main transition-colors"
 									title={tc("copy")}
@@ -335,6 +339,7 @@ export default function PlaygroundMode() {
 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
 						{templates.map((template) => (
 							<button
+								type="button"
 								key={template.id}
 								onClick={() => loadTemplate(template)}
 								className={`

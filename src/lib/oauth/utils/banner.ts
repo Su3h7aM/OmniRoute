@@ -12,7 +12,7 @@ export function showBanner() {
 		verticalLayout: "default",
 	});
 
-	console.log("\n" + gradient.pastel.multiline(banner));
+	console.log(`\n${gradient.pastel.multiline(banner)}`);
 	console.log(gradient.cristal("  🚀 OAuth CLI for AI Providers\n"));
 }
 

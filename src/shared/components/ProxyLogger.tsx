@@ -131,7 +131,6 @@ export default function ProxyLogger() {
 					return (b.latencyMs || 0) - (a.latencyMs || 0);
 				case "latency_asc":
 					return (a.latencyMs || 0) - (b.latencyMs || 0);
-				case "newest":
 				default:
 					return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
 			}
@@ -156,6 +155,7 @@ export default function ProxyLogger() {
 			<div className="flex flex-wrap items-center gap-3">
 				{/* Recording Toggle */}
 				<button
+					type="button"
 					onClick={() => setRecording(!recording)}
 					className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
 						recording
@@ -272,6 +272,7 @@ export default function ProxyLogger() {
 
 				{/* Refresh */}
 				<button
+					type="button"
 					onClick={() => fetchLogs(false)}
 					className="p-2 rounded-lg hover:bg-bg-subtle text-text-muted hover:text-text-primary transition-colors"
 					title="Refresh"
@@ -284,6 +285,7 @@ export default function ProxyLogger() {
 			<div className="flex flex-wrap items-center gap-2">
 				{STATUS_FILTERS.map((f) => (
 					<button
+						type="button"
 						key={f.key}
 						onClick={() => setActiveFilter(activeFilter === f.key ? "all" : f.key)}
 						className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all ${
@@ -316,6 +318,7 @@ export default function ProxyLogger() {
 					const isActive = selectedProvider === p;
 					return (
 						<button
+							type="button"
 							key={p}
 							onClick={() => setSelectedProvider(isActive ? "" : p)}
 							className={`px-3 py-1 rounded-full text-xs font-bold uppercase border transition-all ${
@@ -341,6 +344,7 @@ export default function ProxyLogger() {
 				</span>
 				{COLUMNS.map((col) => (
 					<button
+						type="button"
 						key={col.key}
 						onClick={() => toggleColumn(col.key)}
 						className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-all ${

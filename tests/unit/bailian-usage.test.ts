@@ -33,7 +33,7 @@ test("getUsageForProvider with bailian-coding-plan and consoleApiKey returns quo
 		},
 	};
 
-	globalThis.fetch = async (url, options) => {
+	globalThis.fetch = async (_url, _options) => {
 		return new Response(JSON.stringify(mockBailianResponse), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },
@@ -85,7 +85,7 @@ test("getUsageForProvider with bailian-coding-plan and only apiKey falls back to
 	};
 
 	let fetchCalledWith = null;
-	globalThis.fetch = async (url, options) => {
+	globalThis.fetch = async (_url, options) => {
 		fetchCalledWith = options;
 		return new Response(JSON.stringify(mockBailianResponse), {
 			status: 200,
@@ -142,7 +142,7 @@ test("getUsageForProvider with bailian-coding-plan returns quota with percentUse
 		},
 	};
 
-	globalThis.fetch = async (url, options) => {
+	globalThis.fetch = async (_url, _options) => {
 		return new Response(JSON.stringify(mockBailianResponse), {
 			status: 200,
 			headers: { "Content-Type": "application/json" },

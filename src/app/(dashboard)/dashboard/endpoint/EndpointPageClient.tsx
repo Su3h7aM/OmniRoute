@@ -147,7 +147,13 @@ export default function APIPageClient({ machineId }) {
 		]).finally(() => {
 			setLoading(false);
 		});
-	}, [fetchCloudflaredStatus]);
+	}, [
+		fetchCloudflaredStatus,
+		loadCloudSettings,
+		fetchProtocolStatus,
+		fetchSearchProviders,
+		fetchModels,
+	]);
 
 	const fetchModels = async () => {
 		try {
@@ -289,7 +295,7 @@ export default function APIPageClient({ machineId }) {
 			void fetchCloudflaredStatus(true);
 		}, 30000);
 		return () => clearInterval(interval);
-	}, [fetchCloudflaredStatus]);
+	}, [fetchCloudflaredStatus, fetchProtocolStatus]);
 
 	const dispatchCloudChange = () => {
 		globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -586,6 +592,7 @@ export default function APIPageClient({ machineId }) {
 						</span>
 						<span className="flex-1">{cloudStatus.message}</span>
 						<button
+							type="button"
 							onClick={() => setCloudStatus(null)}
 							className="p-0.5 hover:bg-white/10 rounded transition-colors"
 						>
@@ -671,6 +678,7 @@ export default function APIPageClient({ machineId }) {
 								</span>
 								<span className="flex-1">{cloudflaredNotice.message}</span>
 								<button
+									type="button"
 									onClick={() => setCloudflaredNotice(null)}
 									className="rounded p-0.5 transition-colors hover:bg-white/10"
 								>
@@ -1494,6 +1502,7 @@ function ProviderModelsModal({ provider, models, copy, copied, onClose }) {
 									</span>
 								)}
 								<button
+									type="button"
 									onClick={() => copy(m.id, copyKey)}
 									className="p-1 hover:bg-sidebar rounded text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
 									title={tc("copy")}
@@ -1579,6 +1588,7 @@ function EndpointSection({
 		<div className="border border-border rounded-lg overflow-hidden">
 			{/* Header (always visible) */}
 			<button
+				type="button"
 				onClick={onToggle}
 				className="w-full flex items-center gap-3 p-4 hover:bg-surface/50 transition-colors text-left"
 			>
@@ -1613,6 +1623,7 @@ function EndpointSection({
 							{path}
 						</code>
 						<button
+							type="button"
 							onClick={() => copy(`${baseUrl.replace(/\/v1$/, "")}${path}`, copyId)}
 							className="p-1.5 hover:bg-surface rounded-lg text-text-muted hover:text-primary transition-colors shrink-0"
 						>

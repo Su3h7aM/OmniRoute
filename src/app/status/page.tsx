@@ -54,7 +54,7 @@ export default function StatusPage() {
 
 	useEffect(() => {
 		void loadHealth();
-	}, []);
+	}, [loadHealth]);
 
 	const providerStats = useMemo(() => {
 		const providers = Object.entries(health?.providerHealth || {});
@@ -75,6 +75,7 @@ export default function StatusPage() {
 						</p>
 					</div>
 					<button
+						type="button"
 						onClick={() => void loadHealth()}
 						className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-br from-primary to-primary-hover text-white transition-all duration-200 motion-reduce:transition-none"
 					>

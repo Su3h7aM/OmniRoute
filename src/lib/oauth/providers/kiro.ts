@@ -59,7 +59,7 @@ export const kiro = {
 			_clientSecret: clientInfo.clientSecret,
 		};
 	},
-	pollToken: async (config, deviceCode, codeVerifier, extraData) => {
+	pollToken: async (config, deviceCode, _codeVerifier, extraData) => {
 		const response = await fetch(config.tokenUrl, {
 			method: "POST",
 			headers: {
@@ -77,7 +77,7 @@ export const kiro = {
 		let data;
 		try {
 			data = await response.json();
-		} catch (e) {
+		} catch (_e) {
 			const text = await response.text();
 			data = { error: "invalid_response", error_description: text };
 		}

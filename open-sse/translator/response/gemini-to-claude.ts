@@ -15,7 +15,7 @@ export function geminiToClaudeResponse(chunk, state) {
 
 	// Handle Antigravity wrapper
 	const response = chunk.response || chunk;
-	if (!response || !response.candidates?.[0]) return null;
+	if (!response?.candidates?.[0]) return null;
 
 	const results = [];
 	const candidate = response.candidates[0];

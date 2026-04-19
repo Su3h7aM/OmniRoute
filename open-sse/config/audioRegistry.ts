@@ -297,7 +297,7 @@ function parseAudioModel(
 
 	// Phase 1: prefix match in hardcoded registry
 	for (const [providerId] of Object.entries(registry)) {
-		if (modelStr.startsWith(providerId + "/")) {
+		if (modelStr.startsWith(`${providerId}/`)) {
 			return { provider: providerId, model: modelStr.slice(providerId.length + 1) };
 		}
 	}
@@ -312,7 +312,7 @@ function parseAudioModel(
 	// Phase 3: prefix match in dynamic providers (provider_nodes)
 	if (dynamicProviders) {
 		for (const dp of dynamicProviders) {
-			if (modelStr.startsWith(dp.id + "/")) {
+			if (modelStr.startsWith(`${dp.id}/`)) {
 				return { provider: dp.id, model: modelStr.slice(dp.id.length + 1) };
 			}
 		}

@@ -256,7 +256,7 @@ function closeMessage(state, emit, idx) {
 		emit("response.output_text.done", {
 			type: "response.output_text.done",
 			item_id: msgId,
-			output_index: parseInt(idx),
+			output_index: parseInt(idx, 10),
 			content_index: 0,
 			text: fullText,
 			logprobs: [],
@@ -265,14 +265,14 @@ function closeMessage(state, emit, idx) {
 		emit("response.content_part.done", {
 			type: "response.content_part.done",
 			item_id: msgId,
-			output_index: parseInt(idx),
+			output_index: parseInt(idx, 10),
 			content_index: 0,
 			part: { type: "output_text", annotations: [], logprobs: [], text: fullText },
 		});
 
 		emit("response.output_item.done", {
 			type: "response.output_item.done",
-			output_index: parseInt(idx),
+			output_index: parseInt(idx, 10),
 			item: {
 				id: msgId,
 				type: "message",
@@ -341,13 +341,13 @@ function closeToolCall(state, emit, idx) {
 		emit("response.function_call_arguments.done", {
 			type: "response.function_call_arguments.done",
 			item_id: `fc_${callId}`,
-			output_index: parseInt(idx),
+			output_index: parseInt(idx, 10),
 			arguments: args,
 		});
 
 		emit("response.output_item.done", {
 			type: "response.output_item.done",
-			output_index: parseInt(idx),
+			output_index: parseInt(idx, 10),
 			item: {
 				id: `fc_${callId}`,
 				type: "function_call",

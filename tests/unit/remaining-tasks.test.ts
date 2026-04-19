@@ -124,7 +124,7 @@ test("lockoutPolicy: initially not locked", () => {
 
 test("lockoutPolicy: locks after max attempts", () => {
 	const config = { maxAttempts: 3, lockoutDurationMs: 60000, attemptWindowMs: 60000 };
-	const id = "user-lock-test-" + Date.now();
+	const id = `user-lock-test-${Date.now()}`;
 
 	recordFailedAttempt(id, config);
 	recordFailedAttempt(id, config);
@@ -135,7 +135,7 @@ test("lockoutPolicy: locks after max attempts", () => {
 });
 
 test("lockoutPolicy: recordSuccess clears state", () => {
-	const id = "user-success-" + Date.now();
+	const id = `user-success-${Date.now()}`;
 	recordFailedAttempt(id);
 	recordSuccess(id);
 
@@ -146,7 +146,7 @@ test("lockoutPolicy: recordSuccess clears state", () => {
 
 test("lockoutPolicy: forceUnlock works", () => {
 	const config = { maxAttempts: 1, lockoutDurationMs: 60000, attemptWindowMs: 60000 };
-	const id = "user-force-" + Date.now();
+	const id = `user-force-${Date.now()}`;
 
 	recordFailedAttempt(id, config);
 	forceUnlock(id);

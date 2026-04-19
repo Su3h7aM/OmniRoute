@@ -147,7 +147,7 @@ export default function BudgetTab() {
 						? parseFloat(form.monthlyLimitUsd)
 						: undefined,
 					// schema expects a fraction (0–1); UI shows percentage (0–100)
-					warningThreshold: (parseInt(form.warningThreshold) || 80) / 100,
+					warningThreshold: (parseInt(form.warningThreshold, 10) || 80) / 100,
 					resetInterval: form.resetInterval,
 					resetTime: form.resetTime || "00:00",
 				}),
@@ -193,7 +193,7 @@ export default function BudgetTab() {
 	const monthlyCost = budget?.totalCostMonth || 0;
 	const activeLimit = budget?.activeLimitUsd || getActiveLimitFromForm();
 	const activeCost = budget?.totalCostPeriod || 0;
-	const warnPct = (parseInt(form.warningThreshold) || 80) / 100;
+	const warnPct = (parseInt(form.warningThreshold, 10) || 80) / 100;
 
 	return (
 		<div className="flex flex-col gap-6">

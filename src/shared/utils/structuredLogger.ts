@@ -49,7 +49,7 @@ if (logToFile) {
 function writeToFile(entry: Record<string, unknown>) {
 	if (!logToFile) return;
 	try {
-		appendFileSync(logFilePath, JSON.stringify(entry) + "\n");
+		appendFileSync(logFilePath, `${JSON.stringify(entry)}\n`);
 	} catch {
 		// Silently fail — file logging should never break the app
 	}
@@ -170,7 +170,7 @@ export function createLogger(component: string) {
 				const entry = buildEntry("error", component, message, meta);
 				// Use stderr.write to avoid Next.js console patching that triggers EPIPE loops
 				try {
-					process.stderr.write(formatEntry("error", component, message, meta) + "\n");
+					process.stderr.write(`${formatEntry("error", component, message, meta)}\n`);
 				} catch {}
 				writeToFile(entry);
 			}
@@ -179,11 +179,11 @@ export function createLogger(component: string) {
 			if (shouldSuppressError(message)) return;
 			const entry = buildEntry("fatal", component, message, meta);
 			try {
-				process.stderr.write(formatEntry("fatal", component, message, meta) + "\n");
+				process.stderr.write(`${formatEntry("fatal", component, message, meta)}\n`);
 			} catch {}
 			writeToFile(entry);
 		},
-		child(defaultMeta: Record<string, unknown>) {
+		child(_defaultMeta: Record<string, unknown>) {
 			return createLogger(component);
 		},
 	};

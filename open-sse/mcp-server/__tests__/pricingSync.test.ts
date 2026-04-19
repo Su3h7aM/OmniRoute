@@ -9,7 +9,7 @@ describe("omniroute_sync_pricing MCP tool schema", () => {
 	});
 
 	it("should be in MCP_TOOL_MAP", () => {
-		expect(MCP_TOOL_MAP["omniroute_sync_pricing"]).toBeDefined();
+		expect(MCP_TOOL_MAP.omniroute_sync_pricing).toBeDefined();
 	});
 
 	it("should require pricing:write scope", () => {

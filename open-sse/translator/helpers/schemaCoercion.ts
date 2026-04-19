@@ -101,10 +101,11 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
 	if (isPlainObject(result.if)) {
 		result.if = coerceSchemaNumericFields(result.if);
 	}
-	if (isPlainObject(result.then)) {
+	if (Object.prototype.hasOwnProperty.call(result, "then") && isPlainObject(result.then)) {
+		// biome-ignore lint/suspicious/noThenProperty: JSON Schema conditional keyword `then`
 		result.then = coerceSchemaNumericFields(result.then);
 	}
-	if (isPlainObject(result.else)) {
+	if (Object.prototype.hasOwnProperty.call(result, "else") && isPlainObject(result.else)) {
 		result.else = coerceSchemaNumericFields(result.else);
 	}
 

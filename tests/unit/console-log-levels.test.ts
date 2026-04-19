@@ -24,7 +24,7 @@ afterAll(() => {
 test("console log API normalizes numeric pino levels correctly", async () => {
 	fs.writeFileSync(
 		TEST_LOG_PATH,
-		[
+		`${[
 			JSON.stringify({
 				timestamp: new Date().toISOString(),
 				level: 30,
@@ -37,7 +37,7 @@ test("console log API normalizes numeric pino levels correctly", async () => {
 				module: "probe",
 				msg: "warn entry",
 			}),
-		].join("\n") + "\n",
+		].join("\n")}\n`,
 		"utf8"
 	);
 
@@ -56,7 +56,7 @@ test("console log API normalizes numeric pino levels correctly", async () => {
 test("console log API filters by component, time window, and result limit", async () => {
 	fs.writeFileSync(
 		TEST_LOG_PATH,
-		[
+		`${[
 			JSON.stringify({
 				time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
 				level: "warn",
@@ -82,7 +82,7 @@ test("console log API filters by component, time window, and result limit", asyn
 				module: "router-worker",
 				msg: "match two",
 			}),
-		].join("\n") + "\n",
+		].join("\n")}\n`,
 		"utf8"
 	);
 

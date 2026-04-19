@@ -342,7 +342,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 		format: "gemini-cli",
 		executor: "gemini-cli",
 		baseUrl: "https://cloudcode-pa.googleapis.com/v1internal",
-		urlBuilder: (base, model, stream) => {
+		urlBuilder: (base, _model, stream) => {
 			const action = stream ? "streamGenerateContent?alt=sse" : "generateContent";
 			return `${base}:${action}`;
 		},
@@ -470,7 +470,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 		format: "antigravity",
 		executor: "antigravity",
 		baseUrls: [...ANTIGRAVITY_BASE_URLS],
-		urlBuilder: (base, model, stream) => {
+		urlBuilder: (base, _model, stream) => {
 			const path = stream
 				? "/v1internal:streamGenerateContent?alt=sse"
 				: "/v1internal:generateContent";
@@ -1369,7 +1369,7 @@ export const REGISTRY: Record<string, RegistryEntry> = {
 		// URL uses {project_id} and {region} from providerSpecificData — handled by custom executor or fallback
 		// Default to us-central1 / generic endpoint; users configure project via providerSpecificData
 		baseUrl: "https://us-central1-aiplatform.googleapis.com/v1/projects",
-		urlBuilder: (base, model, stream) => {
+		urlBuilder: (_base, model, stream) => {
 			// Full URL: {base}/{project}/locations/{region}/publishers/google/models/{model}:{action}
 			// For a generic fallback, we build a Gemini-compatible URL
 			// The actual project/region are configured via providerSpecificData in the DB connection

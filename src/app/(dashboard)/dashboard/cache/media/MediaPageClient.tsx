@@ -439,7 +439,7 @@ export default function MediaPageClient() {
 				// On error, keep showing all (fail-open)
 			});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [LOCAL_PROVIDERS.includes]);
 
 	// Filter out unconfigured local providers from the provider list
 	const currentProviders = (PROVIDER_MODELS[activeTab] ?? []).filter(
@@ -481,7 +481,7 @@ export default function MediaPageClient() {
 	const initialized = useRef(false);
 	if (!initialized.current) {
 		initialized.current = true;
-		const providers = PROVIDER_MODELS["image"] ?? [];
+		const providers = PROVIDER_MODELS.image ?? [];
 		const firstProvider = providers[0];
 		setSelectedProvider(firstProvider?.id ?? "");
 		setSelectedModel(firstProvider?.models[0]?.id ?? "");
@@ -656,6 +656,7 @@ export default function MediaPageClient() {
 					const isActive = key === activeTab;
 					return (
 						<button
+							type="button"
 							key={key}
 							onClick={() => switchTab(key)}
 							className={`flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
@@ -885,6 +886,7 @@ export default function MediaPageClient() {
 
 				{/* Generate button */}
 				<button
+					type="button"
 					onClick={handleGenerate}
 					disabled={isGenerateDisabled}
 					className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-medium transition-all bg-gradient-to-r ${config.color} ${

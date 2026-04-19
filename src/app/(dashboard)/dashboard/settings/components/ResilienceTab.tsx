@@ -265,7 +265,7 @@ function RateLimitCard({ rateLimitStatus, defaults, onSaveDefaults, saving }) {
 										onChange={(e) =>
 											setDraft((prev) => ({
 												...prev,
-												[key]: parseInt(e.target.value) || 0,
+												[key]: parseInt(e.target.value, 10) || 0,
 											}))
 										}
 										className="w-full px-2 py-1 text-lg font-bold rounded bg-white/10 border border-white/20"

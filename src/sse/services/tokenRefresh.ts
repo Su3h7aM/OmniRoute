@@ -135,7 +135,7 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
 			});
 
 			const newCredentials = await getAccessToken(provider, updatedCredentials);
-			if (newCredentials && newCredentials.accessToken) {
+			if (newCredentials?.accessToken) {
 				await updateProviderCredentials(updatedCredentials.connectionId, newCredentials);
 
 				updatedCredentials = {

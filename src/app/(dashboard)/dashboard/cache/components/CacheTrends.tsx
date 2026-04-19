@@ -62,6 +62,7 @@ export default function CacheTrends({
 					<span className="text-sm text-red-500">{error}</span>
 					{onRetry && (
 						<button
+							type="button"
 							onClick={onRetry}
 							className="px-3 py-1.5 text-xs rounded border border-border hover:bg-surface-raised transition-colors"
 						>

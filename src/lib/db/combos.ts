@@ -165,8 +165,8 @@ export async function updateCombo(id: string, data: JsonRecord) {
 	};
 	const currentName = typeof current.name === "string" ? current.name : "";
 	const nextName =
-		typeof merged["name"] === "string" && merged["name"].trim().length > 0
-			? merged["name"]
+		typeof merged.name === "string" && merged.name.trim().length > 0
+			? merged.name
 			: currentName;
 	const normalizedMerged = normalizeStoredCombo({ ...merged, name: nextName }, db, [nextName]);
 

@@ -69,6 +69,7 @@ export default function MaintenanceBanner() {
 				<span className="text-sm text-amber-200">{message}</span>
 			</div>
 			<button
+				type="button"
 				onClick={() => {
 					dismissedUntilRecoveryRef.current = true;
 					setShow(false);

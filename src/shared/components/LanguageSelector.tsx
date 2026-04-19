@@ -55,6 +55,7 @@ export default function LanguageSelector() {
 		<div ref={ref} className="relative">
 			{/* Trigger button */}
 			<button
+				type="button"
 				onClick={() => setOpen(!open)}
 				className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-text-main hover:bg-surface-hover transition-all border border-transparent hover:border-border"
 				title={currentLang.name}
@@ -78,6 +79,7 @@ export default function LanguageSelector() {
 				<div className="absolute right-0 top-full mt-1 w-56 max-h-80 rounded-xl border border-border bg-bg shadow-xl z-50 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
 					{LANGUAGES.map((lang) => (
 						<button
+							type="button"
 							key={lang.code}
 							onClick={() => handleSelect(lang.code)}
 							className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${

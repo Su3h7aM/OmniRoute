@@ -88,6 +88,7 @@ export default function FilterBar({
 			{filters.map((filter) => (
 				<div key={filter.key} style={{ position: "relative" }}>
 					<button
+						type="button"
 						onClick={() =>
 							setExpandedFilter(expandedFilter === filter.key ? null : filter.key)
 						}
@@ -126,6 +127,7 @@ export default function FilterBar({
 							}}
 						>
 							<button
+								type="button"
 								onClick={() => {
 									onFilterChange(filter.key, "");
 									setExpandedFilter(null);
@@ -147,6 +149,7 @@ export default function FilterBar({
 							</button>
 							{(filter.options || []).map((opt) => (
 								<button
+									type="button"
 									key={opt}
 									onClick={() => {
 										onFilterChange(filter.key, opt);
@@ -182,6 +185,7 @@ export default function FilterBar({
 			{/* Clear all */}
 			{hasActiveFilters && (
 				<button
+					type="button"
 					onClick={handleClear}
 					style={{
 						padding: "6px 12px",

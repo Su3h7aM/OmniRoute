@@ -29,6 +29,7 @@ export default function SettingsError({
 					</p>
 				)}
 				<button
+					type="button"
 					onClick={reset}
 					className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-primary"
 				>

@@ -29,7 +29,7 @@ export default function ClineToolCard({
 	const [selectedApiKey, setSelectedApiKey] = useState("");
 	const [selectedModel, setSelectedModel] = useState("");
 	const [modalOpen, setModalOpen] = useState(false);
-	const [modelAliases, setModelAliases] = useState({});
+	const [_modelAliases, setModelAliases] = useState({});
 	const [showManualConfigModal, setShowManualConfigModal] = useState(false);
 	const [customBaseUrl, setCustomBaseUrl] = useState("");
 	const hasInitializedModel = useRef(false);
@@ -66,7 +66,7 @@ export default function ClineToolCard({
 			fetchModelAliases();
 			fetchBackups();
 		}
-	}, [isExpanded, clineStatus]);
+	}, [isExpanded, clineStatus, fetchModelAliases, fetchBackups, checkClineStatus]);
 
 	useEffect(() => {
 		if (clineStatus?.settings && !hasInitializedModel.current) {
@@ -437,6 +437,7 @@ export default function ClineToolCard({
 									{/* Backups section */}
 									<div className="border-t border-border pt-3 mt-1">
 										<button
+											type="button"
 											onClick={() => setShowBackups(!showBackups)}
 											className="flex items-center gap-2 text-sm text-text-muted hover:text-text transition-colors"
 										>

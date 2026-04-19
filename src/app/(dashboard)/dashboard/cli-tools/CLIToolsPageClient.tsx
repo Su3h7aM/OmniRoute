@@ -3,11 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardSkeleton } from "@/shared/components";
 import { CLI_TOOLS } from "@/shared/constants/cliTools";
-import {
-	PROVIDER_MODELS,
-	getModelsByProviderId,
-	PROVIDER_ID_TO_ALIAS,
-} from "@/shared/constants/models";
+import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
 import {
 	ClaudeToolCard,
 	CodexToolCard,
@@ -51,7 +47,7 @@ export default function CLIToolsPageClient({ machineId }) {
 		fetchApiKeys();
 		fetchToolStatuses();
 		fetchDynamicModels();
-	}, []);
+	}, [fetchConnections, loadCloudSettings, fetchDynamicModels, fetchToolStatuses, fetchApiKeys]);
 
 	const loadCloudSettings = async () => {
 		try {

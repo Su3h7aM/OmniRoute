@@ -263,7 +263,7 @@ const isPathWithin = (childPath: string, parentPath: string): boolean => {
 	// Ensure parent ends with / for proper prefix matching
 	const parentWithSep = normalizedParent.endsWith("/")
 		? normalizedParent
-		: normalizedParent + "/";
+		: `${normalizedParent}/`;
 
 	return normalizedChild.startsWith(parentWithSep);
 };

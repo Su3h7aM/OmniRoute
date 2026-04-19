@@ -52,7 +52,7 @@ export class CliproxyapiExecutor extends BaseExecutor {
 		const effectiveBase = baseUrl ?? resolveCliproxyapiBaseUrl();
 		super("cliproxyapi", {
 			id: "cliproxyapi",
-			baseUrl: effectiveBase + "/v1/chat/completions",
+			baseUrl: `${effectiveBase}/v1/chat/completions`,
 			headers: { "Content-Type": "application/json" },
 		});
 		this.upstreamBaseUrl = effectiveBase;
@@ -77,10 +77,10 @@ export class CliproxyapiExecutor extends BaseExecutor {
 		};
 
 		if (key) {
-			headers["Authorization"] = `Bearer ${key}`;
+			headers.Authorization = `Bearer ${key}`;
 		}
 		if (stream) {
-			headers["Accept"] = "text/event-stream";
+			headers.Accept = "text/event-stream";
 		}
 
 		return headers;

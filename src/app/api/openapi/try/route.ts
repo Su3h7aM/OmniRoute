@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
 
 		// Forward auth from the dashboard session
 		const cookie = request.headers.get("cookie");
-		if (cookie && !forwardHeaders["Cookie"]) {
-			forwardHeaders["Cookie"] = cookie;
+		if (cookie && !forwardHeaders.Cookie) {
+			forwardHeaders.Cookie = cookie;
 		}
 
 		if (reqBody && !forwardHeaders["Content-Type"]) {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 		} else {
 			const text = await res.text();
 			// Truncate very large responses
-			responseBody = text.length > 10000 ? text.slice(0, 10000) + "\n... (truncated)" : text;
+			responseBody = text.length > 10000 ? `${text.slice(0, 10000)}\n... (truncated)` : text;
 		}
 
 		// Collect response headers

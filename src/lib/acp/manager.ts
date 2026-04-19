@@ -116,7 +116,7 @@ export class AcpManager extends EventEmitter {
 		session.stdoutBuffer = "";
 
 		// Send prompt
-		this.sendInput(sessionId, prompt + "\n");
+		this.sendInput(sessionId, `${prompt}\n`);
 
 		// Wait for response (collect until process goes idle or timeout)
 		return new Promise((resolve, reject) => {

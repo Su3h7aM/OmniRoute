@@ -180,7 +180,7 @@ function convertMessages(messages) {
  * Transform OpenAI request to Cursor format
  * Returns modified body with converted messages
  */
-export function buildCursorRequest(model, body, stream, credentials) {
+export function buildCursorRequest(_model, body, _stream, _credentials) {
 	const messages = convertMessages(body.messages || []);
 
 	return {

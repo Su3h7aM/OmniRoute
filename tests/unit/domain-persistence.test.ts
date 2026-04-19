@@ -244,7 +244,7 @@ describe("lockoutPolicy persistence", () => {
 			"../../src/domain/lockoutPolicy.ts"
 		);
 
-		const id = "test-ip-" + Date.now();
+		const id = `test-ip-${Date.now()}`;
 		const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
 
 		// First attempts should not lock
@@ -272,7 +272,7 @@ describe("lockoutPolicy persistence", () => {
 			"../../src/domain/lockoutPolicy.ts"
 		);
 
-		const id = "test-unlock-" + Date.now();
+		const id = `test-unlock-${Date.now()}`;
 		const config = { maxAttempts: 3, lockoutDurationMs: 5000, attemptWindowMs: 10000 };
 
 		recordFailedAttempt(id, config);
@@ -289,7 +289,7 @@ describe("lockoutPolicy persistence", () => {
 			"../../src/domain/lockoutPolicy.ts"
 		);
 
-		const id = "test-force-" + Date.now();
+		const id = `test-force-${Date.now()}`;
 		const config = { maxAttempts: 2, lockoutDurationMs: 60000, attemptWindowMs: 60000 };
 
 		recordFailedAttempt(id, config);
@@ -311,7 +311,7 @@ describe("circuitBreaker persistence", () => {
 	it("should open after threshold failures", async () => {
 		const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-		const cb = new CircuitBreaker("test-cb-" + Date.now(), { failureThreshold: 3 });
+		const cb = new CircuitBreaker(`test-cb-${Date.now()}`, { failureThreshold: 3 });
 		assert.equal(cb.state, STATE.CLOSED);
 
 		// Simulate failures
@@ -330,7 +330,7 @@ describe("circuitBreaker persistence", () => {
 	it("should reset correctly", async () => {
 		const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-		const cb = new CircuitBreaker("test-reset-" + Date.now(), { failureThreshold: 2 });
+		const cb = new CircuitBreaker(`test-reset-${Date.now()}`, { failureThreshold: 2 });
 
 		try {
 			await cb.execute(() => Promise.reject(new Error("fail")));
@@ -350,7 +350,7 @@ describe("circuitBreaker persistence", () => {
 	it("should close on success after half-open", async () => {
 		const { CircuitBreaker, STATE } = await import("../../src/shared/utils/circuitBreaker.ts");
 
-		const cb = new CircuitBreaker("test-halfopen-" + Date.now(), {
+		const cb = new CircuitBreaker(`test-halfopen-${Date.now()}`, {
 			failureThreshold: 2,
 			resetTimeout: 10, // 10ms for test speed
 		});
@@ -378,7 +378,7 @@ describe("circuitBreaker persistence", () => {
 			"../../src/shared/utils/circuitBreaker.ts"
 		);
 
-		const name = "reg-test-" + Date.now();
+		const name = `reg-test-${Date.now()}`;
 		const cb = getCircuitBreaker(name, { failureThreshold: 5 });
 		assert.ok(cb);
 

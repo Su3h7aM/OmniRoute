@@ -783,7 +783,7 @@ test("handleImageGeneration polls NanoBanana task results and converts URLs to b
 	const originalFetch = globalThis.fetch;
 	const calls = [];
 
-	globalThis.fetch = async (url, options = {}) => {
+	globalThis.fetch = async (url, _options = {}) => {
 		const stringUrl = String(url);
 		calls.push(stringUrl);
 

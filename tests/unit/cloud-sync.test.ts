@@ -21,7 +21,7 @@ function setCloudUrl(value) {
 process.env.DATA_DIR = TEST_DATA_DIR;
 // FASE-01: API_KEY_SECRET is required for CRC operations (no hardcoded fallback)
 if (!process.env.API_KEY_SECRET) {
-	process.env.API_KEY_SECRET = "test-cloud-sync-secret-" + Date.now();
+	process.env.API_KEY_SECRET = `test-cloud-sync-secret-${Date.now()}`;
 }
 
 const coreDb = await import("../../src/lib/db/core.ts");

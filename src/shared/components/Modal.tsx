@@ -141,6 +141,7 @@ export default function Modal({
 						</div>
 						{showCloseButton && (
 							<button
+								type="button"
 								onClick={onClose}
 								aria-label="Close"
 								className="p-1.5 rounded-lg text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors"

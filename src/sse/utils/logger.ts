@@ -4,7 +4,7 @@
  *
  * Migrated from console.log to structured Pino logging.
  */
-import { createLogger, logger as rootLogger } from "@/shared/utils/logger";
+import { createLogger } from "@/shared/utils/logger";
 
 const log = createLogger("sse");
 

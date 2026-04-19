@@ -59,7 +59,7 @@ export async function isProxyReachable(
 	const host = url.hostname;
 	const port = parseInt(url.port || defaultPortForScheme(url.protocol), 10);
 
-	if (!host || isNaN(port)) {
+	if (!host || Number.isNaN(port)) {
 		proxyHealthCache.set(proxyUrl, {
 			healthy: false,
 			checkedAt: Date.now(),
@@ -118,7 +118,6 @@ function defaultPortForScheme(protocol: string): string {
 		case "socks5":
 		case "socks5h":
 			return "1080";
-		case "http":
 		default:
 			return "8080";
 	}

@@ -1,4 +1,4 @@
-import { after, afterAll, afterEach, before, beforeEach, test } from "bun:test";
+import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 
 const originalFetch = globalThis.fetch;
@@ -74,7 +74,7 @@ test("fetchWithTimeout converts both pre-aborted and externally aborted requests
 	const external = new AbortController();
 	let fetchSawSignal = false;
 
-	globalThis.fetch = async (_url, options) => {
+	globalThis.fetch = async (_url, _options) => {
 		fetchSawSignal = true;
 		setTimeout(() => external.abort(), 0);
 		await new Promise((resolve) => setTimeout(resolve, 5));

@@ -220,6 +220,7 @@ export default function ComboDefaultsTab() {
 					>
 						{strategyOptions.map((s) => (
 							<button
+								type="button"
 								key={s.value}
 								role="tab"
 								aria-selected={comboDefaults.strategy === s.value}
@@ -262,7 +263,7 @@ export default function ComboDefaultsTab() {
 							max="10"
 							value={comboDefaults.stickyRoundRobinLimit || 3}
 							onChange={async (e) => {
-								const nextLimit = parseInt(e.target.value) || 3;
+								const nextLimit = parseInt(e.target.value, 10) || 3;
 								setComboDefaults((prev) => ({
 									...prev,
 									stickyRoundRobinLimit: nextLimit,
@@ -298,7 +299,7 @@ export default function ComboDefaultsTab() {
 							onChange={(e) =>
 								setComboDefaults((prev) => ({
 									...prev,
-									[key]: parseInt(e.target.value) || 0,
+									[key]: parseInt(e.target.value, 10) || 0,
 								}))
 							}
 							className="text-sm"
@@ -319,7 +320,7 @@ export default function ComboDefaultsTab() {
 							onChange={(e) =>
 								setComboDefaults((prev) => ({
 									...prev,
-									concurrencyPerModel: parseInt(e.target.value) || 0,
+									concurrencyPerModel: parseInt(e.target.value, 10) || 0,
 								}))
 							}
 							className="text-sm"
@@ -335,7 +336,7 @@ export default function ComboDefaultsTab() {
 							onChange={(e) =>
 								setComboDefaults((prev) => ({
 									...prev,
-									queueTimeoutMs: parseInt(e.target.value) || 0,
+									queueTimeoutMs: parseInt(e.target.value, 10) || 0,
 								}))
 							}
 							className="text-sm"
@@ -474,7 +475,7 @@ export default function ComboDefaultsTab() {
 										...prev,
 										[provider]: {
 											...prev[provider],
-											maxRetries: parseInt(e.target.value) || 0,
+											maxRetries: parseInt(e.target.value, 10) || 0,
 										},
 									}))
 								}
@@ -492,7 +493,7 @@ export default function ComboDefaultsTab() {
 										...prev,
 										[provider]: {
 											...prev[provider],
-											timeoutMs: parseInt(e.target.value) || 120000,
+											timeoutMs: parseInt(e.target.value, 10) || 120000,
 										},
 									}))
 								}
@@ -501,6 +502,7 @@ export default function ComboDefaultsTab() {
 							/>
 							<span className="text-[10px] text-text-muted">{t("ms")}</span>
 							<button
+								type="button"
 								onClick={() => removeProviderOverride(provider)}
 								className="ml-auto text-red-400 hover:text-red-500 transition-colors"
 								aria-label={t("removeProviderOverrideAria", { provider })}

@@ -103,9 +103,9 @@ describe("providerDiversity", () => {
 			expect(report.totalRequests).toBe(3);
 			expect(report.score).toBeGreaterThan(0);
 			expect(report.score).toBeLessThan(1);
-			expect(report.providers["claude"].count).toBe(2);
-			expect(report.providers["openai"].count).toBe(1);
-			expect(Math.abs(report.providers["claude"].share - 2 / 3)).toBeLessThan(0.01);
+			expect(report.providers.claude.count).toBe(2);
+			expect(report.providers.openai.count).toBe(1);
+			expect(Math.abs(report.providers.claude.share - 2 / 3)).toBeLessThan(0.01);
 		});
 	});
 

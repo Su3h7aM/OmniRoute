@@ -431,6 +431,6 @@ test("gemini-cli validation uses Bearer auth (OAuth)", async () => {
 	assert.equal(result.valid, true);
 	assert.equal(result.error, null);
 	assert.equal(calls.length, 1);
-	assert.equal(calls[0].headers["Authorization"], "Bearer oauth-access-token");
+	assert.equal(calls[0].headers.Authorization, "Bearer oauth-access-token");
 	assert.equal(calls[0].headers["x-goog-api-key"], undefined);
 });

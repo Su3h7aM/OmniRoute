@@ -217,7 +217,7 @@ test("handleChat returns cached response directly for Idempotency hits", async (
 test("Test 6: handleChat correctly sets isResponsesEndpoint for /v1/responses", async () => {
 	await seedConnection("openai", { apiKey: "sk-openai-responses" });
 
-	globalThis.fetch = async (_url, init) => {
+	globalThis.fetch = async (_url, _init) => {
 		return new Response(
 			JSON.stringify({
 				id: "chatcmpl-responses",

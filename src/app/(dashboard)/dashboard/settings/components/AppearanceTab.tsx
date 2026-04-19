@@ -43,7 +43,7 @@ export default function AppearanceTab() {
 			}
 		});
 		return unsubscribe;
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [customThemeColor]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const themeOptionLabels: Record<string, string> = {
 		light: t("themeLight"),
@@ -153,6 +153,7 @@ export default function AppearanceTab() {
 					>
 						{["light", "dark", "system"].map((option) => (
 							<button
+								type="button"
 								key={option}
 								role="tab"
 								aria-selected={theme === option}
@@ -189,6 +190,7 @@ export default function AppearanceTab() {
 							const active = colorTheme === item.id;
 							return (
 								<button
+									type="button"
 									key={item.id}
 									onClick={() => setColorTheme(item.id)}
 									className={cn(

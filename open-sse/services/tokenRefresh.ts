@@ -41,7 +41,7 @@ function getRefreshCacheKey(provider, refreshToken) {
 export async function refreshAccessToken(
 	provider,
 	refreshToken,
-	credentials,
+	_credentials,
 	log,
 	proxyConfig: unknown = null
 ) {
@@ -179,7 +179,7 @@ export async function refreshKimiCodingToken(refreshToken, log, proxyConfig: unk
 	}
 
 	// Generate device info for headers (same as OAuth flow)
-	const deviceId = "kimi-refresh-" + Date.now();
+	const deviceId = `kimi-refresh-${Date.now()}`;
 	const platform = "omniroute";
 	const version = "2.1.2";
 	const deviceModel =
@@ -841,7 +841,7 @@ export function isUnrecoverableRefreshError(result) {
  * parallel OAuth requests.
  */
 export async function getAccessToken(provider, credentials, log, proxyConfig: unknown = null) {
-	if (!credentials || !credentials.refreshToken || typeof credentials.refreshToken !== "string") {
+	if (!credentials?.refreshToken || typeof credentials.refreshToken !== "string") {
 		log?.warn?.("TOKEN_REFRESH", `No valid refresh token available for provider: ${provider}`);
 		return null;
 	}

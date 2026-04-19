@@ -19,7 +19,7 @@ export const a2aMemorySkill = {
 			},
 		},
 	},
-	handler: async (input: any, context: any) => {
+	handler: async (input: any, _context: any) => {
 		const { task, contextRequired = false } = input;
 		return {
 			recommendedProvider: "auto",

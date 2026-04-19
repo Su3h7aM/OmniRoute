@@ -39,7 +39,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 				} else {
 					setError(data.error || "Could not auto-detect token");
 				}
-			} catch (err) {
+			} catch (_err) {
 				setError("Failed to auto-detect token");
 			} finally {
 				setAutoDetecting(false);
@@ -114,6 +114,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 
 						{/* AWS Builder ID */}
 						<button
+							type="button"
 							onClick={() => onMethodSelect("builder-id")}
 							className="w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
 						>
@@ -132,6 +133,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 
 						{/* AWS IAM Identity Center (IDC) - HIDDEN */}
 						<button
+							type="button"
 							onClick={() => handleMethodSelect("idc")}
 							className="hidden w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
 						>
@@ -150,6 +152,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 
 						{/* Google Social Login - HIDDEN */}
 						<button
+							type="button"
 							onClick={() => handleMethodSelect("social-google")}
 							className="hidden w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
 						>
@@ -168,6 +171,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 
 						{/* GitHub Social Login - HIDDEN */}
 						<button
+							type="button"
 							onClick={() => handleMethodSelect("social-github")}
 							className="hidden w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
 						>
@@ -186,6 +190,7 @@ export default function KiroAuthModal({ isOpen, onMethodSelect, onClose }) {
 
 						{/* Import Token */}
 						<button
+							type="button"
 							onClick={() => handleMethodSelect("import")}
 							className="w-full p-4 text-left border border-border rounded-lg hover:bg-sidebar transition-colors"
 						>

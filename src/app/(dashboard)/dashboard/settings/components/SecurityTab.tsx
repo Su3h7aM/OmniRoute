@@ -219,6 +219,7 @@ export default function SecurityTab() {
 								const isBlocked = blockedProviders.includes(provider.id);
 								return (
 									<button
+										type="button"
 										key={provider.id}
 										onClick={() => toggleBlockedProvider(provider.id)}
 										disabled={loading}

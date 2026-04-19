@@ -148,7 +148,7 @@ test("critical routes: v1 management proxies covers auth, lookup, where-used, pa
 	const whereUsedBody = await whereUsed.json();
 	const missingGetBody = await missingGet.json();
 	const invalidJsonPatchBody = await invalidJsonPatch.json();
-	const invalidPatchBody = await invalidPatch.json();
+	const _invalidPatchBody = await invalidPatch.json();
 	const validPatchBody = await validPatch.json();
 	const missingDeleteBody = await missingDelete.json();
 	const conflictDeleteBody = await conflictDelete.json();

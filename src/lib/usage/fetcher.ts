@@ -2,7 +2,6 @@
  * Usage Fetcher - Get usage data from provider APIs
  */
 
-import { GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
 import {
 	getGitHubCopilotInternalUserHeaders,
 	getKiroServiceHeaders,
@@ -60,7 +59,7 @@ export async function getUsageForProvider(connection) {
 /**
  * GitHub Copilot Usage
  */
-async function getGitHubUsage(accessToken, providerSpecificData) {
+async function getGitHubUsage(_accessToken, providerSpecificData) {
 	try {
 		// Use copilotToken for copilot_internal API, not GitHub OAuth accessToken
 		const copilotToken = providerSpecificData?.copilotToken;
@@ -158,7 +157,7 @@ async function getGeminiUsage(accessToken) {
 		}
 
 		return { message: "Gemini CLI connected. Usage tracked via Google Cloud Console." };
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Gemini usage. Check Google Cloud Console." };
 	}
 }
@@ -232,7 +231,7 @@ async function probeAntigravityCreditBalance(
 					);
 					if (googleCredit) {
 						const balance = parseInt(googleCredit.creditAmount, 10);
-						if (!isNaN(balance)) {
+						if (!Number.isNaN(balance)) {
 							// Cache the balance for future reads (also persists to DB)
 							updateAntigravityRemainingCredits(accountId, balance);
 							return balance;
@@ -261,7 +260,7 @@ async function probeAntigravityCreditBalance(
  */
 async function getAntigravityUsage(
 	accessToken: string,
-	providerSpecificData: Record<string, unknown> = {},
+	_providerSpecificData: Record<string, unknown> = {},
 	projectId?: string | null,
 	connectionId?: string | null
 ) {
@@ -391,13 +390,13 @@ async function getAntigravityUsage(
  * Claude Usage (legacy fallback)
  * Real Claude OAuth quota windows are fetched in @omniroute/open-sse/services/usage.ts.
  */
-async function getClaudeUsage(accessToken?: string) {
+async function getClaudeUsage(_accessToken?: string) {
 	try {
 		return {
 			message:
 				"Claude connected. Detailed quota windows are handled by the open-sse usage service.",
 		};
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Claude usage." };
 	}
 }
@@ -407,7 +406,7 @@ async function getClaudeUsage(accessToken?: string) {
  * Note: Actual quota tracking is handled by open-sse/services/usage.ts
  * This fallback returns a message directing users to the dashboard.
  */
-async function getCodexUsage(accessToken, providerSpecificData: Record<string, any> = {}) {
+async function getCodexUsage(_accessToken, providerSpecificData: Record<string, any> = {}) {
 	try {
 		// Check if workspace is bound
 		const workspaceId = providerSpecificData?.workspaceId;
@@ -417,7 +416,7 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, a
 			};
 		}
 		return { message: "Codex connected. Check OpenAI dashboard for usage." };
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Codex usage." };
 	}
 }
@@ -425,7 +424,7 @@ async function getCodexUsage(accessToken, providerSpecificData: Record<string, a
 /**
  * Qwen Usage
  */
-async function getQwenUsage(accessToken, providerSpecificData) {
+async function getQwenUsage(_accessToken, providerSpecificData) {
 	try {
 		const resourceUrl = providerSpecificData?.resourceUrl;
 		if (!resourceUrl) {
@@ -434,7 +433,7 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 
 		// Qwen may have usage endpoint at resource URL
 		return { message: "Qwen connected. Usage tracked per request." };
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Qwen usage." };
 	}
 }
@@ -442,11 +441,11 @@ async function getQwenUsage(accessToken, providerSpecificData) {
 /**
  * Qoder Usage
  */
-async function getQoderUsage(accessToken) {
+async function getQoderUsage(_accessToken) {
 	try {
 		// Qoder may have usage endpoint
 		return { message: "Qoder connected. Usage tracked per request." };
-	} catch (error) {
+	} catch (_error) {
 		return { message: "Unable to fetch Qoder usage." };
 	}
 }

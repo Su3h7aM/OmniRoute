@@ -406,7 +406,7 @@ export function getQuotaCacheStats() {
 
 	for (const entry of cache.values()) {
 		entries.push({
-			connectionId: entry.connectionId.slice(0, 8) + "...",
+			connectionId: `${entry.connectionId.slice(0, 8)}...`,
 			provider: entry.provider,
 			exhausted: entry.exhausted,
 			nextResetAt: entry.nextResetAt,

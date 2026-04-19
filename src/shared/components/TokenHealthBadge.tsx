@@ -52,6 +52,7 @@ export default function TokenHealthBadge() {
 			onMouseLeave={() => setShowTooltip(false)}
 		>
 			<button
+				type="button"
 				className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-surface/30 transition-colors"
 				title={status.tooltip}
 			>

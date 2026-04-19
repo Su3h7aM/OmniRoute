@@ -8,7 +8,7 @@ const { getExecutor, hasSpecializedExecutor } = await import("../../open-sse/exe
 
 function mockGrokStream(events: unknown[]) {
 	const encoder = new TextEncoder();
-	const lines = events.map((e) => JSON.stringify(e)).join("\n") + "\n";
+	const lines = `${events.map((e) => JSON.stringify(e)).join("\n")}\n`;
 	return new ReadableStream({
 		start(controller) {
 			controller.enqueue(encoder.encode(lines));
@@ -231,7 +231,7 @@ test("Auth: cookie sends sso= header", async () => {
 			signal: AbortSignal.timeout(10000),
 			log: null,
 		});
-		assert.equal(cap.headers["Cookie"], "sso=my-sso-token-value");
+		assert.equal(cap.headers.Cookie, "sso=my-sso-token-value");
 	} finally {
 		cap.restore();
 	}
@@ -249,8 +249,8 @@ test("Auth: strips sso= prefix if user included it", async () => {
 			signal: AbortSignal.timeout(10000),
 			log: null,
 		});
-		assert.equal(cap.headers["Cookie"], "sso=my-token");
-		assert.ok(!cap.headers["Cookie"].includes("sso=sso="));
+		assert.equal(cap.headers.Cookie, "sso=my-token");
+		assert.ok(!cap.headers.Cookie.includes("sso=sso="));
 	} finally {
 		cap.restore();
 	}
@@ -271,10 +271,10 @@ test("Request: posts to correct Grok endpoint", async () => {
 			log: null,
 		});
 		assert.equal(cap.url, "https://grok.com/rest/app-chat/conversations/new");
-		assert.equal(cap.headers["Origin"], "https://grok.com");
+		assert.equal(cap.headers.Origin, "https://grok.com");
 		assert.ok(cap.headers["x-statsig-id"], "Should have x-statsig-id header");
 		assert.ok(cap.headers["x-xai-request-id"], "Should have x-xai-request-id header");
-		assert.ok(cap.headers["traceparent"]?.startsWith("00-"), "Should have W3C traceparent");
+		assert.ok(cap.headers.traceparent?.startsWith("00-"), "Should have W3C traceparent");
 	} finally {
 		cap.restore();
 	}

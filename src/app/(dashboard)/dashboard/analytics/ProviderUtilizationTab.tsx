@@ -203,6 +203,7 @@ export default function ProviderUtilizationTab() {
 					<div className="flex items-center gap-4">
 						<div className="flex rounded-lg border border-border/50 bg-black/5 p-1 dark:bg-white/5">
 							<button
+								type="button"
 								onClick={() => setAggregateBy("provider")}
 								className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
 									aggregateBy === "provider"
@@ -214,6 +215,7 @@ export default function ProviderUtilizationTab() {
 								Global View
 							</button>
 							<button
+								type="button"
 								onClick={() => setAggregateBy("connection")}
 								className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
 									aggregateBy === "connection"

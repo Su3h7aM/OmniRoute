@@ -24,7 +24,6 @@ function getRangeStartIso(range: string): string | null {
 			start.setMonth(0, 1);
 			start.setHours(0, 0, 0, 0);
 			break;
-		case "all":
 		default:
 			return null;
 	}

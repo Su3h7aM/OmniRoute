@@ -51,7 +51,7 @@ export async function getProviderConnections(filter: JsonRecord = {}) {
 	}
 
 	if (conditions.length > 0) {
-		sql += " WHERE " + conditions.join(" AND ");
+		sql += ` WHERE ${conditions.join(" AND ")}`;
 	}
 	sql += " ORDER BY priority ASC, updated_at DESC";
 
@@ -526,14 +526,14 @@ export async function updateProviderNode(id: string, data: JsonRecord) {
   `
 	).run({
 		id,
-		type: merged["type"],
-		name: merged["name"],
-		prefix: merged["prefix"] || null,
-		apiType: merged["apiType"] || null,
-		baseUrl: merged["baseUrl"] || null,
-		chatPath: merged["chatPath"] || null,
-		modelsPath: merged["modelsPath"] || null,
-		updatedAt: merged["updatedAt"],
+		type: merged.type,
+		name: merged.name,
+		prefix: merged.prefix || null,
+		apiType: merged.apiType || null,
+		baseUrl: merged.baseUrl || null,
+		chatPath: merged.chatPath || null,
+		modelsPath: merged.modelsPath || null,
+		updatedAt: merged.updatedAt,
 	});
 
 	backupDbFile("pre-write");
@@ -620,7 +620,7 @@ export function getEffectiveQuotaUsage(
 ): number {
 	if (!resetAt) return used;
 	const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
-	if (isNaN(resetTime)) return used;
+	if (Number.isNaN(resetTime)) return used;
 	// Window has passed — display should show 0 (pending next snapshot)
 	if (Date.now() >= resetTime) return 0;
 	return used;
@@ -633,7 +633,7 @@ export function getEffectiveQuotaUsage(
 export function formatResetCountdown(resetAt: string | number | null | undefined): string | null {
 	if (!resetAt) return null;
 	const resetTime = typeof resetAt === "number" ? resetAt : new Date(resetAt).getTime();
-	if (isNaN(resetTime)) return null;
+	if (Number.isNaN(resetTime)) return null;
 	const diffMs = resetTime - Date.now();
 	if (diffMs <= 0) return null;
 	const totalSeconds = Math.floor(diffMs / 1000);

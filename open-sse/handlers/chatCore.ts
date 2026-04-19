@@ -14,7 +14,7 @@ import { createRequestLogger } from "../utils/requestLogger.ts";
 import { getModelTargetFormat, PROVIDER_ID_TO_ALIAS } from "../config/providerModels.ts";
 import { resolveModelAlias } from "../services/modelDeprecation.ts";
 import { getUnsupportedParams } from "../config/providerRegistry.ts";
-import { hasPerModelQuota, lockModelIfPerModelQuota } from "../services/accountFallback.ts";
+import { lockModelIfPerModelQuota } from "../services/accountFallback.ts";
 import { COOLDOWN_MS } from "../config/constants.ts";
 import {
 	buildErrorBody,
@@ -38,11 +38,7 @@ import {
 	appendRequestLog,
 	saveCallLog,
 } from "@/lib/usageDb";
-import {
-	getLoggedInputTokens,
-	getLoggedOutputTokens,
-	formatUsageLog,
-} from "@/lib/usage/tokenAccounting";
+import { formatUsageLog } from "@/lib/usage/tokenAccounting";
 import { recordCost } from "@/domain/costRules";
 import { calculateCost } from "@/lib/usage/costCalculator";
 import { buildOmniRouteResponseMetaHeaders } from "@/domain/omnirouteResponseMeta";
@@ -64,12 +60,10 @@ import {
 	shouldPreserveCacheControl,
 	providerSupportsCaching,
 } from "../utils/cacheControlPolicy.ts";
-import { getCacheMetrics } from "@/lib/db/settings.ts";
 import { getCachedSettings } from "@/lib/db/readCache";
 
 import {
 	parseCodexQuotaHeaders,
-	getCodexResetTime,
 	getCodexModelScope,
 	getCodexDualWindowCooldownMs,
 } from "../executors/codex.ts";
@@ -919,8 +913,7 @@ export async function handleChatCore({
 	const acceptHeader =
 		clientRawRequest?.headers && typeof clientRawRequest.headers.get === "function"
 			? clientRawRequest.headers.get("accept") || clientRawRequest.headers.get("Accept")
-			: (clientRawRequest?.headers || {})["accept"] ||
-				(clientRawRequest?.headers || {})["Accept"];
+			: clientRawRequest?.headers?.accept || clientRawRequest?.headers?.Accept;
 
 	const explicitStreamAlias = resolveExplicitStreamAlias(body);
 
@@ -1474,7 +1467,7 @@ export async function handleChatCore({
 	// ── Proactive Context Compression (Phase 4) ──
 	// Check if context exceeds 85% of limit and compress proactively before sending to provider.
 	// This prevents "prompt too long" errors for large-but-not-full contexts.
-	if (translatedBody && translatedBody.messages && Array.isArray(translatedBody.messages)) {
+	if (translatedBody?.messages && Array.isArray(translatedBody.messages)) {
 		const estimatedTokens = estimateTokens(JSON.stringify(translatedBody.messages));
 		const contextLimit = getTokenLimit(provider, effectiveModel);
 		const COMPRESSION_THRESHOLD = 0.85;
@@ -1877,8 +1870,7 @@ export async function handleChatCore({
 	const isQwenExpiredError =
 		provider === "qwen" &&
 		parsedStatusCode === HTTP_STATUS.BAD_REQUEST &&
-		parsedMessage &&
-		parsedMessage.toLowerCase().includes("session has expired");
+		parsedMessage?.toLowerCase().includes("session has expired");
 
 	const streamOptionsOnlyFailed = false; // TODO: properly track stream options failure? (placeholder from existing logic)
 
@@ -2052,17 +2044,6 @@ export async function handleChatCore({
 							`[provider] Node ${connectionId} exhausted quota (${statusCode})`
 						);
 					}
-				} else if (errorType === PROVIDER_ERROR_TYPES.ACCOUNT_DEACTIVATED) {
-					await updateProviderConnection(connectionId, {
-						isActive: false,
-						testStatus: "expired",
-						lastErrorType: errorType,
-						lastError: message,
-						errorCode: statusCode,
-					});
-					console.warn(
-						`[provider] Node ${connectionId} account deactivated (${statusCode}) — marked expired`
-					);
 				} else if (errorType === PROVIDER_ERROR_TYPES.UNAUTHORIZED) {
 					// Normal 401 (token/session auth issue): keep account active for refresh/re-auth.
 					await updateProviderConnection(connectionId, {
@@ -2508,8 +2489,8 @@ export async function handleChatCore({
 			console.log(`${COLORS.green}${msg}${COLORS.reset}`);
 
 			// Track cache token metrics
-			const inputTokens = usage.prompt_tokens || 0;
-			const cachedTokens = toPositiveNumber(
+			const _inputTokens = usage.prompt_tokens || 0;
+			const _cachedTokens = toPositiveNumber(
 				usage.cache_read_input_tokens ??
 					usage.cached_tokens ??
 					(
@@ -2518,7 +2499,7 @@ export async function handleChatCore({
 							| undefined
 					)?.cached_tokens
 			);
-			const cacheCreationTokens = toPositiveNumber(
+			const _cacheCreationTokens = toPositiveNumber(
 				usage.cache_creation_input_tokens ??
 					(
 						(usage as Record<string, unknown>).prompt_tokens_details as
@@ -2799,8 +2780,8 @@ export async function handleChatCore({
 
 		// Track cache token metrics for streaming responses
 		if (streamUsage && typeof streamUsage === "object") {
-			const inputTokens = streamUsage.prompt_tokens || 0;
-			const cachedTokens = toPositiveNumber(
+			const _inputTokens = streamUsage.prompt_tokens || 0;
+			const _cachedTokens = toPositiveNumber(
 				streamUsage.cache_read_input_tokens ??
 					streamUsage.cached_tokens ??
 					(
@@ -2809,7 +2790,7 @@ export async function handleChatCore({
 							| undefined
 					)?.cached_tokens
 			);
-			const cacheCreationTokens = toPositiveNumber(
+			const _cacheCreationTokens = toPositiveNumber(
 				streamUsage.cache_creation_input_tokens ??
 					(
 						(streamUsage as Record<string, unknown>).prompt_tokens_details as

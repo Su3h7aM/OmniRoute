@@ -209,6 +209,7 @@ export default function RoutingTab() {
 						},
 					].map((option) => (
 						<button
+							type="button"
 							key={option.value}
 							onClick={() =>
 								updateSetting({ antigravitySignatureCacheMode: option.value })
@@ -279,6 +280,7 @@ export default function RoutingTab() {
 						},
 					].map((option) => (
 						<button
+							type="button"
 							key={option.value}
 							onClick={() =>
 								updateSetting({ alwaysPreserveClientCache: option.value })

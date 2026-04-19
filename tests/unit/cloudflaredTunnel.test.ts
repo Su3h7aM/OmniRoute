@@ -229,7 +229,7 @@ test("getCloudflaredTunnelStatus resets stale runtime state from a previous serv
 		await fs.writeFile(binaryPath, "#!/bin/sh\nexit 0\n", "utf8");
 		await fs.writeFile(
 			statePath,
-			JSON.stringify(
+			`${JSON.stringify(
 				{
 					binaryPath,
 					installSource: "env",
@@ -245,7 +245,7 @@ test("getCloudflaredTunnelStatus resets stale runtime state from a previous serv
 				},
 				null,
 				2
-			) + "\n",
+			)}\n`,
 			"utf8"
 		);
 

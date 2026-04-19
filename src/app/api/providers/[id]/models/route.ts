@@ -824,7 +824,7 @@ export async function GET(
 
 		// Qwen OAuth Fallback: The Dashscope /models API rejects OAuth tokens with 401
 		if (provider === "qwen" && connection.authType === "oauth") {
-			const qwenModels = PROVIDER_MODELS["qwen"] || [];
+			const qwenModels = PROVIDER_MODELS.qwen || [];
 			return buildResponse({
 				provider,
 				connectionId,

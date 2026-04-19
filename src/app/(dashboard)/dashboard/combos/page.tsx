@@ -636,7 +636,7 @@ export default function CombosPage() {
 			.then((r) => (r.ok ? r.json() : null))
 			.then((c) => setProxyConfig(c))
 			.catch(() => {});
-	}, []);
+	}, [fetchData]);
 
 	useEffect(() => {
 		try {
@@ -693,7 +693,7 @@ export default function CombosPage() {
 				const err = await res.json();
 				notify.error(err.error?.message || err.error || t("failedCreate"));
 			}
-		} catch (error) {
+		} catch (_error) {
 			notify.error(t("errorCreating"));
 		}
 	};
@@ -713,7 +713,7 @@ export default function CombosPage() {
 				const err = await res.json();
 				notify.error(err.error?.message || err.error || t("failedUpdate"));
 			}
-		} catch (error) {
+		} catch (_error) {
 			notify.error(t("errorUpdating"));
 		}
 	};
@@ -726,7 +726,7 @@ export default function CombosPage() {
 				setCombos(combos.filter((c) => c.id !== id));
 				notify.success(t("comboDeleted"));
 			}
-		} catch (error) {
+		} catch (_error) {
 			notify.error(t("errorDeleting"));
 		}
 	};
@@ -762,14 +762,14 @@ export default function CombosPage() {
 			});
 			const data = await res.json();
 			setTestResults(data);
-		} catch (error) {
+		} catch (_error) {
 			setTestResults({ error: t("testFailed") });
 			notify.error(t("testFailed"));
 		}
 	};
 
 	const handleToggleCombo = async (combo) => {
-		const newActive = combo.isActive === false ? true : false;
+		const newActive = combo.isActive === false;
 		// Optimistic update
 		setCombos((prev) =>
 			prev.map((c) => (c.id === combo.id ? { ...c, isActive: newActive } : c))
@@ -780,7 +780,7 @@ export default function CombosPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ isActive: newActive }),
 			});
-		} catch (error) {
+		} catch (_error) {
 			// Revert on error
 			setCombos((prev) =>
 				prev.map((c) => (c.id === combo.id ? { ...c, isActive: !newActive } : c))
@@ -1611,6 +1611,7 @@ function ComboCard({
 								</span>
 							)}
 							<button
+								type="button"
 								onClick={(e) => {
 									e.stopPropagation();
 									onCopy(combo.name, `combo-${combo.id}`);
@@ -1692,6 +1693,7 @@ function ComboCard({
 					/>
 					<div className="flex items-center gap-1 transition-opacity">
 						<button
+							type="button"
 							onClick={onTest}
 							disabled={testing}
 							className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-emerald-500 transition-colors"
@@ -1704,6 +1706,7 @@ function ComboCard({
 							</span>
 						</button>
 						<button
+							type="button"
 							onClick={onDuplicate}
 							className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
 							title={t("duplicate")}
@@ -1713,6 +1716,7 @@ function ComboCard({
 							</span>
 						</button>
 						<button
+							type="button"
 							onClick={onProxy}
 							className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
 							title={t("proxyConfig")}
@@ -1720,6 +1724,7 @@ function ComboCard({
 							<span className="material-symbols-outlined text-[16px]">vpn_lock</span>
 						</button>
 						<button
+							type="button"
 							onClick={onEdit}
 							className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded text-text-muted hover:text-primary transition-colors"
 							title={tc("edit")}
@@ -1727,6 +1732,7 @@ function ComboCard({
 							<span className="material-symbols-outlined text-[16px]">edit</span>
 						</button>
 						<button
+							type="button"
 							onClick={onDelete}
 							className="p-1.5 hover:bg-red-500/10 rounded text-red-500 transition-colors"
 							title={tc("delete")}
@@ -1913,32 +1919,29 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 	const usesIntelligentBuilderStage = isIntelligentBuilderStrategy(strategy);
 	const intelligentConfig = useMemo(() => normalizeIntelligentRoutingConfig(config), [config]);
 
-	const resetFormForCombo = useCallback(
-		(nextCombo, comboDefaults = null) => {
-			const nextDefaults =
-				nextCombo || comboDefaults
-					? {
-							...(comboDefaults || {}),
-						}
-					: {};
-			const nextConfig = nextCombo?.config
-				? { ...nextCombo.config }
-				: Object.fromEntries(
-						Object.entries(nextDefaults).filter(([key]) => key !== "strategy")
-					);
+	const resetFormForCombo = useCallback((nextCombo, comboDefaults = null) => {
+		const nextDefaults =
+			nextCombo || comboDefaults
+				? {
+						...(comboDefaults || {}),
+					}
+				: {};
+		const nextConfig = nextCombo?.config
+			? { ...nextCombo.config }
+			: Object.fromEntries(
+					Object.entries(nextDefaults).filter(([key]) => key !== "strategy")
+				);
 
-			setName(nextCombo?.name || "");
-			setModels((nextCombo?.models || []).map((m) => normalizeModelEntry(m)));
-			setStrategy(nextCombo?.strategy || comboDefaults?.strategy || "priority");
-			setConfig(nextConfig);
-			setShowAdvanced(false);
-			setNameError("");
-			setAgentSystemMessage(nextCombo?.system_message || "");
-			setAgentToolFilter(nextCombo?.tool_filter_regex || "");
-			setAgentContextCache(!!nextCombo?.context_cache_protection);
-		},
-		[setAgentContextCache]
-	);
+		setName(nextCombo?.name || "");
+		setModels((nextCombo?.models || []).map((m) => normalizeModelEntry(m)));
+		setStrategy(nextCombo?.strategy || comboDefaults?.strategy || "priority");
+		setConfig(nextConfig);
+		setShowAdvanced(false);
+		setNameError("");
+		setAgentSystemMessage(nextCombo?.system_message || "");
+		setAgentToolFilter(nextCombo?.tool_filter_regex || "");
+		setAgentContextCache(!!nextCombo?.context_cache_protection);
+	}, []);
 
 	useEffect(() => {
 		createDraftStateRef.current = {
@@ -2183,7 +2186,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
 	useEffect(() => {
 		if (isOpen) fetchModalData();
-	}, [isOpen]);
+	}, [isOpen, fetchModalData]);
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -2193,7 +2196,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 		setBuilderComboRefName("");
 		setBuilderError("");
 		setBuilderStage("basics");
-	}, [combo?.id, isOpen]);
+	}, [isOpen]);
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -2258,7 +2261,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 		setShowStrategyNudge(true);
 		const timeoutId = setTimeout(() => setShowStrategyNudge(false), 2600);
 		return () => clearTimeout(timeoutId);
-	}, [strategy]);
+	}, []);
 
 	const validateName = (value) => {
 		if (!value.trim()) {
@@ -2824,6 +2827,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 							<div className="grid grid-cols-3 gap-1 p-0.5 bg-black/5 dark:bg-white/5 rounded-lg">
 								{STRATEGY_OPTIONS.map((s) => (
 									<button
+										type="button"
 										key={s.value}
 										onClick={() => setStrategy(s.value)}
 										data-testid={`strategy-option-${s.value}`}
@@ -2886,6 +2890,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 								<label className="text-sm font-medium">{t("models")}</label>
 								{strategy === "weighted" && models.length > 1 && (
 									<button
+										type="button"
 										onClick={handleAutoBalance}
 										className="text-[10px] text-primary hover:text-primary/80 transition-colors"
 									>
@@ -3252,6 +3257,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 											{strategy === "priority" && (
 												<div className="flex items-center gap-0.5">
 													<button
+														type="button"
 														onClick={() => handleMoveUp(index)}
 														disabled={index === 0}
 														className={`p-0.5 rounded ${index === 0 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
@@ -3262,6 +3268,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 														</span>
 													</button>
 													<button
+														type="button"
 														onClick={() => handleMoveDown(index)}
 														disabled={index === models.length - 1}
 														className={`p-0.5 rounded ${index === models.length - 1 ? "text-text-muted/20 cursor-not-allowed" : "text-text-muted hover:text-primary hover:bg-black/5 dark:hover:bg-white/5"}`}
@@ -3276,6 +3283,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 
 											{/* Remove */}
 											<button
+												type="button"
 												onClick={() => handleRemoveModel(index)}
 												className="p-0.5 hover:bg-red-500/10 rounded text-text-muted hover:text-red-500 transition-all"
 												title={t("removeModel")}
@@ -3407,6 +3415,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 							</div>
 
 							<button
+								type="button"
 								onClick={() => setShowModelSelect(true)}
 								className="w-full mt-2 py-2 border border-dashed border-black/10 dark:border-white/10 rounded-lg text-xs text-text-muted hover:text-primary hover:border-primary/30 transition-colors flex items-center justify-center gap-1"
 							>
@@ -3426,6 +3435,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 					{builderStage === "strategy" && (
 						<>
 							<button
+								type="button"
 								onClick={() => setShowAdvanced(!showAdvanced)}
 								className="flex items-center gap-1 text-xs text-text-muted hover:text-text-main transition-colors self-start"
 							>

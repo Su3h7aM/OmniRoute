@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import {
 	getProviderCredentialsWithQuotaPreflight,
 	markAccountUnavailable,
@@ -50,7 +49,6 @@ import {
 import { markAccountExhaustedFrom429 } from "../../domain/quotaCache";
 import { RequestTelemetry, recordTelemetry } from "../../shared/utils/requestTelemetry";
 import { generateRequestId } from "../../shared/utils/requestId";
-import { logAuditEvent } from "../../lib/compliance/index";
 import { enforceApiKeyPolicy } from "../../shared/utils/apiKeyPolicy";
 import { cloneLogPayload } from "@/lib/logPayloads";
 import {
@@ -272,7 +270,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 	// T05 — Task-Aware Smart Routing
 	// Detect the semantic task type and optionally route to the optimal model
 	let resolvedModelStr = modelStr;
-	let taskRouteInfo: { taskType: string; wasRouted: boolean } | null = null;
+	let _taskRouteInfo: { taskType: string; wasRouted: boolean } | null = null;
 	if (getTaskRoutingConfig().enabled) {
 		telemetry.startPhase("task-route");
 		const tr = applyTaskAwareRouting(modelStr, body);
@@ -286,7 +284,7 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
 		} else if (tr.taskType !== "chat") {
 			log.debug("T05", `Task-Aware: detected="${tr.taskType}" (no override configured)`);
 		}
-		taskRouteInfo = { taskType: tr.taskType, wasRouted: tr.wasRouted };
+		_taskRouteInfo = { taskType: tr.taskType, wasRouted: tr.wasRouted };
 		telemetry.endPhase();
 	}
 

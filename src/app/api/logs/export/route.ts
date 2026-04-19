@@ -9,7 +9,10 @@ import { exportCallLogsSince } from "@/lib/usage/callLogs";
 export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url);
-		const hours = Math.min(Math.max(parseInt(searchParams.get("hours") || "24") || 24, 1), 168);
+		const hours = Math.min(
+			Math.max(parseInt(searchParams.get("hours") || "24", 10) || 24, 1),
+			168
+		);
 		const logType = searchParams.get("type") || "call-logs";
 
 		const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();

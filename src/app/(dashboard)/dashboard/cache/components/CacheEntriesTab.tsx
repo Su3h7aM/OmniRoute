@@ -152,6 +152,7 @@ export default function CacheEntriesTab() {
 										</td>
 										<td className="py-2">
 											<button
+												type="button"
 												onClick={() => handleDelete(entry.signature)}
 												disabled={deleting === entry.signature}
 												className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"

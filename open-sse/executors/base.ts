@@ -227,7 +227,7 @@ export class BaseExecutor {
 		}
 
 		if (credentials.accessToken) {
-			headers["Authorization"] = `Bearer ${credentials.accessToken}`;
+			headers.Authorization = `Bearer ${credentials.accessToken}`;
 		} else if (credentials.apiKey) {
 			// T07: rotate between primary + extra API keys when extraApiKeys is configured
 			const extraKeys =
@@ -236,10 +236,10 @@ export class BaseExecutor {
 				extraKeys.length > 0 && credentials.connectionId
 					? getRotatingApiKey(credentials.connectionId, credentials.apiKey, extraKeys)
 					: credentials.apiKey;
-			headers["Authorization"] = `Bearer ${effectiveKey}`;
+			headers.Authorization = `Bearer ${effectiveKey}`;
 		}
 
-		headers["Accept"] = stream ? "text/event-stream" : "application/json";
+		headers.Accept = stream ? "text/event-stream" : "application/json";
 
 		return headers;
 	}

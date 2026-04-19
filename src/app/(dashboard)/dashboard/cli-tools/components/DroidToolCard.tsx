@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
@@ -65,15 +65,7 @@ export default function DroidToolCard({
 		}
 	}, [apiKeys, selectedApiKey]);
 
-	useEffect(() => {
-		if (isExpanded && !droidStatus) {
-			checkDroidStatus();
-			fetchModelAliases();
-			fetchBackups();
-		}
-	}, [isExpanded, droidStatus]);
-
-	const fetchModelAliases = async () => {
+	const fetchModelAliases = useCallback(async () => {
 		try {
 			const res = await fetch("/api/models/alias");
 			const data = await res.json();
@@ -81,7 +73,7 @@ export default function DroidToolCard({
 		} catch (error) {
 			console.log("Error fetching model aliases:", error);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		if (droidStatus?.installed && !hasInitializedModel.current) {
@@ -98,7 +90,7 @@ export default function DroidToolCard({
 		}
 	}, [droidStatus, apiKeys]);
 
-	const checkDroidStatus = async () => {
+	const checkDroidStatus = useCallback(async () => {
 		setCheckingDroid(true);
 		try {
 			const res = await fetch("/api/cli-tools/droid-settings");
@@ -109,7 +101,7 @@ export default function DroidToolCard({
 		} finally {
 			setCheckingDroid(false);
 		}
-	};
+	}, []);
 
 	const getEffectiveBaseUrl = () => {
 		const url = customBaseUrl || baseUrl;
@@ -180,7 +172,7 @@ export default function DroidToolCard({
 	};
 
 	// ── Backups ──
-	const fetchBackups = async () => {
+	const fetchBackups = useCallback(async () => {
 		try {
 			const res = await fetch("/api/cli-tools/backups?tool=droid");
 			const data = await res.json();
@@ -188,7 +180,7 @@ export default function DroidToolCard({
 		} catch (error) {
 			console.log("Error fetching backups:", error);
 		}
-	};
+	}, []);
 
 	const handleRestoreBackup = async (backupId) => {
 		setRestoringBackup(backupId);
@@ -214,13 +206,20 @@ export default function DroidToolCard({
 		}
 	};
 
+	useEffect(() => {
+		if (isExpanded && !droidStatus) {
+			checkDroidStatus();
+			fetchModelAliases();
+			fetchBackups();
+		}
+	}, [isExpanded, droidStatus, fetchModelAliases, fetchBackups, checkDroidStatus]);
+
 	const getManualConfigs = () => {
-		const keyToUse =
-			selectedApiKey && selectedApiKey.trim()
-				? selectedApiKey
-				: !cloudEnabled
-					? "sk_omniroute"
-					: "<API_KEY_FROM_DASHBOARD>";
+		const keyToUse = selectedApiKey?.trim()
+			? selectedApiKey
+			: !cloudEnabled
+				? "sk_omniroute"
+				: "<API_KEY_FROM_DASHBOARD>";
 
 		const settingsContent = {
 			customModels: [
@@ -254,8 +253,9 @@ export default function DroidToolCard({
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -291,7 +291,7 @@ export default function DroidToolCard({
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-4 pt-4 border-t border-border flex flex-col gap-4">
@@ -370,6 +370,7 @@ export default function DroidToolCard({
 									/>
 									{customBaseUrl && customBaseUrl !== baseUrl && (
 										<button
+											type="button"
 											onClick={() => setCustomBaseUrl("")}
 											className="p-1 text-text-muted hover:text-primary rounded transition-colors"
 											title={t("resetToDefault")}
@@ -426,6 +427,7 @@ export default function DroidToolCard({
 										className="flex-1 px-2 py-1.5 bg-surface rounded border border-border text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
 									/>
 									<button
+										type="button"
 										onClick={() => setModalOpen(true)}
 										disabled={!hasActiveProviders}
 										className={`px-2 py-1.5 rounded border text-xs transition-colors shrink-0 whitespace-nowrap ${hasActiveProviders ? "bg-surface border-border text-text-main hover:border-primary cursor-pointer" : "opacity-50 cursor-not-allowed border-border"}`}
@@ -434,6 +436,7 @@ export default function DroidToolCard({
 									</button>
 									{selectedModel && (
 										<button
+											type="button"
 											onClick={() => setSelectedModel("")}
 											className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
 											title={t("clear")}
@@ -541,6 +544,7 @@ export default function DroidToolCard({
 														{new Date(b.createdAt).toLocaleString()}
 													</span>
 													<button
+														type="button"
 														onClick={() => handleRestoreBackup(b.id)}
 														disabled={restoringBackup === b.id}
 														className="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"

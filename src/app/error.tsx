@@ -45,6 +45,7 @@ export default function Error({ error, reset }: ErrorProps) {
 			)}
 			<div className="flex gap-3">
 				<button
+					type="button"
 					onClick={reset}
 					aria-label="Retry loading the page"
 					className="px-6 py-2.5 rounded-lg text-white text-sm font-semibold cursor-pointer transition-all duration-200 motion-reduce:transition-none bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] focus:outline-2 focus:outline-offset-2 focus:outline-[var(--color-accent)]"

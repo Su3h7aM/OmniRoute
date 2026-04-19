@@ -81,7 +81,7 @@ function writeEntry(level: string, args: unknown[]) {
 			component: extractComponent(message),
 			message,
 		};
-		appendFileSync(logFilePath, JSON.stringify(entry) + "\n");
+		appendFileSync(logFilePath, `${JSON.stringify(entry)}\n`);
 	} catch {
 		// Silently fail — never break the app over log writing
 	}

@@ -99,7 +99,7 @@ export default function Sidebar({
 		setIsShuttingDown(true);
 		try {
 			await fetch("/api/shutdown", { method: "POST" });
-		} catch (e) {
+		} catch (_e) {
 			// Expected to fail as server shuts down; ignore error
 		}
 		setIsShuttingDown(false);
@@ -111,7 +111,7 @@ export default function Sidebar({
 		setIsRestarting(true);
 		try {
 			await fetch("/api/restart", { method: "POST" });
-		} catch (e) {
+		} catch (_e) {
 			// Expected to fail as server restarts
 		}
 		setIsRestarting(false);
@@ -218,6 +218,7 @@ export default function Sidebar({
 						<div className="w-3 h-3 rounded-full bg-[#27C93F]" />
 						{!collapsed && <div className="flex-1" />}
 						<button
+							type="button"
 							onClick={onToggleCollapse}
 							title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
 							aria-expanded={!collapsed}
@@ -301,6 +302,7 @@ export default function Sidebar({
 					)}
 				>
 					<button
+						type="button"
 						onClick={() => setShowRestartModal(true)}
 						title={t("restart")}
 						className={cn(
@@ -313,6 +315,7 @@ export default function Sidebar({
 						{!collapsed && t("restart")}
 					</button>
 					<button
+						type="button"
 						onClick={() => setShowShutdownModal(true)}
 						title={t("shutdown")}
 						className={cn(

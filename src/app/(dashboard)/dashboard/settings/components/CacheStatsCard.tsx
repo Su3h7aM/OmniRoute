@@ -87,6 +87,7 @@ export default function CacheStatsCard() {
 							{t("autoRefresh", { seconds: REFRESH_INTERVAL_SECONDS })}
 						</span>
 						<button
+							type="button"
 							onClick={handleReset}
 							disabled={resetting}
 							className="px-3 py-1.5 text-xs rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"

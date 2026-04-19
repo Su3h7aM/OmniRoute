@@ -177,7 +177,7 @@ export function startModelSyncScheduler(
 	// Read MODEL_SYNC_INTERVAL_HOURS env override
 	const envHours = parseInt(process.env.MODEL_SYNC_INTERVAL_HOURS ?? "", 10);
 	const effectiveIntervalMs =
-		!isNaN(envHours) && envHours > 0 ? envHours * 60 * 60 * 1000 : intervalMs;
+		!Number.isNaN(envHours) && envHours > 0 ? envHours * 60 * 60 * 1000 : intervalMs;
 
 	console.log(`[ModelSync] Scheduler started — interval: ${effectiveIntervalMs / 3_600_000}h`);
 

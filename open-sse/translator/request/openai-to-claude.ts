@@ -288,7 +288,7 @@ export function openaiToClaudeRequest(model, body, stream) {
 			.filter((tool): tool is ClaudeTool => Boolean(tool));
 
 		// Filter out tools with empty names (would cause Claude 400 error)
-		result.tools = result.tools.filter((tool) => tool.name && tool.name?.trim());
+		result.tools = result.tools.filter((tool) => tool.name?.trim());
 
 		// Add cache_control to last tool that doesn't have defer_loading
 		// Tools with defer_loading=true cannot have cache_control (API rejects it)
@@ -394,7 +394,7 @@ export function openaiToClaudeRequest(model, body, stream) {
 }
 
 // Get content blocks from single message
-function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPrefix = false) {
+function getContentBlocksFromMessage(msg, _toolNameMap = new Map(), disableToolPrefix = false) {
 	const blocks = [];
 
 	if (msg.role === "tool") {
@@ -471,7 +471,7 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
 				} else if (part.type === "tool_use") {
 					// Tool name already has prefix from tool declarations, keep as-is
 					// CRITICAL: Skip tool_use blocks with empty name (causes Claude 400 error)
-					if (part.name && part.name.trim()) {
+					if (part.name?.trim()) {
 						blocks.push({
 							type: "tool_use",
 							id: sanitizeToolId(part.id),
@@ -494,7 +494,7 @@ function getContentBlocksFromMessage(msg, toolNameMap = new Map(), disableToolPr
 				if (tc.type === "function") {
 					// CRITICAL: Skip tool_calls with empty function name (causes Claude 400 error)
 					const fnName = tc.function?.name;
-					if (!fnName || !fnName.trim()) continue;
+					if (!fnName?.trim()) continue;
 
 					// Apply prefix to tool name (skip if disabled)
 					const toolName = disableToolPrefix ? fnName : CLAUDE_OAUTH_TOOL_PREFIX + fnName;
@@ -566,7 +566,7 @@ function openaiToClaudeRequestForAntigravity(model, body, stream) {
 	// Remove Claude Code system prompt, keep only user's system messages
 	if (result.system && Array.isArray(result.system)) {
 		result.system = result.system.filter(
-			(block) => !block.text || !block.text.includes("You are Claude Code")
+			(block) => !block.text?.includes("You are Claude Code")
 		);
 		if (result.system.length === 0) {
 			delete result.system;
@@ -576,7 +576,7 @@ function openaiToClaudeRequestForAntigravity(model, body, stream) {
 	// Strip prefix from tool names for Antigravity (doesn't use Claude OAuth)
 	if (result.tools && Array.isArray(result.tools)) {
 		result.tools = result.tools.map((tool) => {
-			if (tool.name && tool.name.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) {
+			if (tool.name?.startsWith(CLAUDE_OAUTH_TOOL_PREFIX)) {
 				return {
 					...tool,
 					name: tool.name.slice(CLAUDE_OAUTH_TOOL_PREFIX.length),

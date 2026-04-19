@@ -81,15 +81,14 @@ export default function DefaultToolCard({
 			.catch((error) =>
 				setRuntimeStatus({ error: error?.message || t("runtimeCheckFailed") })
 			);
-	}, [isExpanded, runtimeStatus, toolId]);
+	}, [isExpanded, runtimeStatus, toolId, t]);
 
 	const replaceVars = (text) => {
-		const keyToUse =
-			selectedApiKey && selectedApiKey.trim()
-				? selectedApiKey
-				: !cloudEnabled
-					? "sk_omniroute"
-					: t("yourApiKeyPlaceholder");
+		const keyToUse = selectedApiKey?.trim()
+			? selectedApiKey
+			: !cloudEnabled
+				? "sk_omniroute"
+				: t("yourApiKeyPlaceholder");
 
 		const normalizedBaseUrl = baseUrl || "http://localhost:20128";
 		const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -120,12 +119,11 @@ export default function DefaultToolCard({
 		setSaving(true);
 		setMessage(null);
 		try {
-			const keyToUse =
-				selectedApiKey && selectedApiKey.trim()
-					? selectedApiKey
-					: !cloudEnabled
-						? "sk_omniroute"
-						: "";
+			const keyToUse = selectedApiKey?.trim()
+				? selectedApiKey
+				: !cloudEnabled
+					? "sk_omniroute"
+					: "";
 
 			const normalizedBaseUrl = baseUrl || "http://localhost:20128";
 			const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
@@ -174,6 +172,7 @@ export default function DefaultToolCard({
 							))}
 						</select>
 						<button
+							type="button"
 							onClick={() => handleCopy(selectedApiKey, "apiKey")}
 							className="shrink-0 px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary rounded-lg border border-border transition-colors"
 						>
@@ -202,6 +201,7 @@ export default function DefaultToolCard({
 					className="flex-1 px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"
 				/>
 				<button
+					type="button"
 					onClick={() => setShowModelModal(true)}
 					disabled={!hasActiveProviders}
 					className={`shrink-0 px-3 py-2 rounded-lg border text-sm transition-colors ${
@@ -215,6 +215,7 @@ export default function DefaultToolCard({
 				{modelValue && (
 					<>
 						<button
+							type="button"
 							onClick={() => handleCopy(modelValue, "model")}
 							className="shrink-0 px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary rounded-lg border border-border transition-colors"
 						>
@@ -223,6 +224,7 @@ export default function DefaultToolCard({
 							</span>
 						</button>
 						<button
+							type="button"
 							onClick={() => handleModelChange("")}
 							className="p-2 text-text-muted hover:text-red-500 rounded transition-colors"
 							title={t("clear")}
@@ -385,6 +387,7 @@ export default function DefaultToolCard({
 										</code>
 										{item.copyable && (
 											<button
+												type="button"
 												onClick={() =>
 													handleCopy(
 														item.value,
@@ -413,6 +416,7 @@ export default function DefaultToolCard({
 								{tool.codeBlock.language}
 							</span>
 							<button
+								type="button"
 								onClick={() => handleCopy(tool.codeBlock.code, "codeblock")}
 								className="flex items-center gap-1 px-2 py-1 text-xs bg-bg-secondary hover:bg-bg-tertiary rounded border border-border transition-colors"
 							>

@@ -15,7 +15,7 @@ import Card from "@/shared/components/Card";
 import Badge from "@/shared/components/Badge";
 import { CardSkeleton } from "@/shared/components/Loading";
 import { USAGE_SUPPORTED_PROVIDERS } from "@/shared/constants/providers";
-import { pickMaskedDisplayValue, pickDisplayValue } from "@/shared/utils/maskEmail";
+import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import EmailPrivacyToggle from "@/shared/components/EmailPrivacyToggle";
 
@@ -397,7 +397,7 @@ export default function ProviderLimits() {
 			setExpandedGroups(allGroups);
 			localStorage.setItem(LS_EXPANDED_GROUPS, JSON.stringify([...allGroups]));
 		}
-	}, [groupBy, groupedConnections]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [groupBy, groupedConnections, expandedGroups.size]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	if (initialLoading) {
 		return (
@@ -446,6 +446,7 @@ export default function ProviderLimits() {
 					{/* Group by toggle */}
 					<div className="flex rounded-lg border border-border overflow-hidden">
 						<button
+							type="button"
 							onClick={() => handleSetGroupBy("none")}
 							className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
 							style={{
@@ -460,6 +461,7 @@ export default function ProviderLimits() {
 							{t("viewFlat")}
 						</button>
 						<button
+							type="button"
 							onClick={() => handleSetGroupBy("environment")}
 							className="px-2.5 py-1.5 text-[12px] font-medium cursor-pointer border-none"
 							style={{
@@ -479,6 +481,7 @@ export default function ProviderLimits() {
 					</div>
 
 					<button
+						type="button"
 						onClick={refreshAll}
 						disabled={refreshingAll}
 						className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-bg-subtle border border-border text-text-main text-[13px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -500,6 +503,7 @@ export default function ProviderLimits() {
 					const active = tierFilter === tier.key;
 					return (
 						<button
+							type="button"
 							key={tier.key}
 							onClick={() => setTierFilter(tier.key)}
 							className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer"
@@ -745,6 +749,7 @@ export default function ProviderLimits() {
 								{/* Actions */}
 								<div className="flex justify-center gap-0.5">
 									<button
+										type="button"
 										onClick={() => refreshProvider(conn.id, conn.provider)}
 										disabled={isLoading}
 										title={t("refreshQuota")}
@@ -769,6 +774,7 @@ export default function ProviderLimits() {
 								className="border border-border rounded-lg overflow-hidden mb-2"
 							>
 								<button
+									type="button"
 									onClick={() => toggleGroup(groupName)}
 									className="w-full flex items-center gap-2 px-4 py-2.5 bg-bg-subtle hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors text-left border-none cursor-pointer"
 								>

@@ -1,7 +1,5 @@
 import childProcess from "node:child_process";
-import type { ChildProcess } from "node:child_process";
 import fs from "fs/promises";
-import fsSync from "fs";
 import path from "path";
 import os from "os";
 import { setToolStatus, getVersionManagerTool } from "@/lib/db/versionManager";
@@ -16,7 +14,7 @@ function defaultConfigDir(): string {
 async function writeConfig(
 	configDir: string,
 	port: number,
-	overrides?: Record<string, unknown>
+	_overrides?: Record<string, unknown>
 ): Promise<string> {
 	await fs.mkdir(configDir, { recursive: true });
 	const configPath = path.join(configDir, "config.yaml");
@@ -154,7 +152,7 @@ export async function getProcessInfo(pid: number): Promise<{
 			const execFileAsync = promisify(execFile);
 			const { stdout } = await execFileAsync("ps", ["-o", "rss=", "-p", String(pid)]);
 			const rssKb = parseInt(stdout.trim(), 10);
-			if (!isNaN(rssKb)) {
+			if (!Number.isNaN(rssKb)) {
 				return { pid, alive: true, memoryUsage: rssKb * 1024 };
 			}
 		}

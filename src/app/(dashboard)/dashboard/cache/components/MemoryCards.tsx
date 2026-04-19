@@ -103,6 +103,7 @@ export default function MemoryCards({
 				<p className="text-sm text-text-muted">{error}</p>
 				{onRetry && (
 					<button
+						type="button"
 						onClick={onRetry}
 						className="mt-1 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity"
 					>

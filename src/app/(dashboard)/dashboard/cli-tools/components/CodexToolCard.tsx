@@ -68,7 +68,7 @@ export default function CodexToolCard({
 			fetchProfiles();
 			fetchBackups();
 		}
-	}, [isExpanded, codexStatus]);
+	}, [isExpanded, codexStatus, fetchProfiles, fetchBackups, fetchModelAliases, checkCodexStatus]);
 
 	const fetchModelAliases = async () => {
 		try {
@@ -129,12 +129,12 @@ export default function CodexToolCard({
 
 	const getEffectiveBaseUrl = () => {
 		const url = customBaseUrl || baseUrl;
-		return url.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "") + "/api/v1";
+		return `${url.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "")}/api/v1`;
 	};
 
 	const getDisplayUrl = () => {
 		const url = customBaseUrl || baseUrl;
-		return url.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "") + "/api/v1";
+		return `${url.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "")}/api/v1`;
 	};
 
 	const checkCodexStatus = async () => {
@@ -155,12 +155,11 @@ export default function CodexToolCard({
 		setMessage(null);
 		try {
 			// Use sk_omniroute for localhost if no key, otherwise use selected key
-			const keyToUse =
-				selectedApiKey && selectedApiKey.trim()
-					? selectedApiKey
-					: !cloudEnabled
-						? "sk_omniroute"
-						: selectedApiKey;
+			const keyToUse = selectedApiKey?.trim()
+				? selectedApiKey
+				: !cloudEnabled
+					? "sk_omniroute"
+					: selectedApiKey;
 
 			// Send both apiKey (as fallback) and keyId to look up the unmasked string natively
 			const res = await fetch("/api/cli-tools/codex-settings", {
@@ -544,6 +543,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 									/>
 									{customBaseUrl && customBaseUrl !== `${baseUrl}/v1` && (
 										<button
+											type="button"
 											onClick={() => setCustomBaseUrl("")}
 											className="p-1 text-text-muted hover:text-primary rounded transition-colors"
 											title={t("resetToDefault")}
@@ -593,6 +593,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 										arrow_forward
 									</span>
 									<button
+										type="button"
 										onClick={() => {
 											setModalTarget(null);
 											setModalOpen(true);
@@ -611,6 +612,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 									/>
 									{selectedModel && (
 										<button
+											type="button"
 											onClick={() => setSelectedModel("")}
 											className="p-1 text-text-muted hover:text-red-500 rounded transition-colors"
 											title={t("clear")}
@@ -681,6 +683,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 											arrow_forward
 										</span>
 										<button
+											type="button"
 											onClick={() => {
 												setModalTarget(defaultModel);
 												setModalOpen(true);
@@ -704,6 +707,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 										/>
 										{modelMappings[defaultModel] && (
 											<button
+												type="button"
 												onClick={() => {
 													const next = { ...modelMappings };
 													delete next[defaultModel];
@@ -830,6 +834,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 														{p.authLabel}
 													</span>
 													<button
+														type="button"
 														onClick={() => handleActivateProfile(p.id)}
 														disabled={activatingProfile === p.id}
 														className="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
@@ -839,6 +844,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 															: t("activate")}
 													</button>
 													<button
+														type="button"
 														onClick={() => handleDeleteProfile(p.id)}
 														className="p-0.5 text-text-muted hover:text-red-500 transition-colors"
 														title={t("deleteProfile")}
@@ -911,6 +917,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 														{new Date(b.createdAt).toLocaleString()}
 													</span>
 													<button
+														type="button"
 														onClick={() => handleRestoreBackup(b.id)}
 														disabled={restoringBackup === b.id}
 														className="px-2 py-0.5 bg-primary/10 text-primary rounded text-[10px] font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"

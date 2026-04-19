@@ -122,6 +122,7 @@ export default function UsageAnalytics() {
 				<div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg p-1 border border-black/5 dark:border-white/5">
 					{ranges.map((r) => (
 						<button
+							type="button"
 							key={r.value}
 							onClick={() => setRange(r.value)}
 							className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${

@@ -331,7 +331,7 @@ test("Anthropic-compatible and Claude Code compatible validators cover direct su
 		},
 	});
 
-	globalThis.fetch = async (url, init = {}) => {
+	globalThis.fetch = async (_url, init = {}) => {
 		if (init.method === "GET") {
 			return new Response(JSON.stringify({ error: "bridge unavailable" }), { status: 500 });
 		}
@@ -359,7 +359,7 @@ test("Claude Code compatible validator rejects missing base URL and bridge auth 
 		providerSpecificData: {},
 	});
 
-	globalThis.fetch = async (url, init = {}) => {
+	globalThis.fetch = async (_url, init = {}) => {
 		if (init.method === "GET") {
 			throw new Error("models offline");
 		}

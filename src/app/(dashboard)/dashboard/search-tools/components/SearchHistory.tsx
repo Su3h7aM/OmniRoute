@@ -49,8 +49,9 @@ export default function SearchHistory({ onReplay }: SearchHistoryProps) {
 				{t("searchHistory")}
 			</span>
 			<div className="mt-2 space-y-1.5">
-				{entries.map((entry, i) => (
+				{entries.map((entry, _i) => (
 					<button
+						type="button"
 						key={`${entry.timestamp}:${entry.provider}:${entry.query}`}
 						onClick={() => onReplay(entry)}
 						className="w-full text-left p-2 bg-surface border border-border rounded-lg hover:border-primary/30 transition-colors"

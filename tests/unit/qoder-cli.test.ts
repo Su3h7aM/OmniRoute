@@ -251,9 +251,9 @@ test("validateQoderCliPat builds COSY headers and handles success, HTTP failures
 
 	// Test 1: Success path (ping OK + validation OK)
 	{
-		let callIndex = 0;
-		globalThis.fetch = async (url, options = {}) => {
-			callIndex++;
+		let _callIndex = 0;
+		globalThis.fetch = async (url, _options = {}) => {
+			_callIndex++;
 			const urlStr = String(url);
 			// Ping request
 			if (urlStr.includes("/ping")) {

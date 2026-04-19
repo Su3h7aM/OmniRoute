@@ -13,9 +13,9 @@ const { skillRegistry } = await import("../../src/lib/skills/registry.ts");
 const { skillExecutor } = await import("../../src/lib/skills/executor.ts");
 
 function resetSkillsRuntime() {
-	skillRegistry["registeredSkills"].clear();
-	skillRegistry["versionCache"].clear();
-	skillExecutor["handlers"].clear();
+	skillRegistry.registeredSkills.clear();
+	skillRegistry.versionCache.clear();
+	skillExecutor.handlers.clear();
 	skillExecutor.setTimeout(50);
 	skillExecutor.setMaxRetries(3);
 }
@@ -151,7 +151,7 @@ test("skillExecutor turns handler errors and timeouts into error executions", as
 		{ apiKeyId: "key-a", sessionId: "session-3" }
 	);
 
-	assert.equal(skillExecutor["maxRetries"], 7);
+	assert.equal(skillExecutor.maxRetries, 7);
 	assert.equal(timedOut.status, "error");
 	assert.equal(timedOut.output, null);
 	assert.match(timedOut.errorMessage, /timed out/i);

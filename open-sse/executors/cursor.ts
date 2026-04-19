@@ -23,11 +23,7 @@ declare const EdgeRuntime: string | undefined;
 import { BaseExecutor, mergeUpstreamExtraHeaders } from "./base.ts";
 import { getCursorUserAgent } from "../config/providerHeaderProfiles.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
-import {
-	generateCursorBody,
-	parseConnectRPCFrame,
-	extractTextFromResponse,
-} from "../utils/cursorProtobuf.ts";
+import { generateCursorBody, extractTextFromResponse } from "../utils/cursorProtobuf.ts";
 import { estimateUsage } from "../utils/usageTracking.ts";
 import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
 import { FORMATS } from "../translator/formats.ts";
@@ -142,7 +138,7 @@ function createErrorResponse(jsonError) {
 	);
 }
 
-function parseCursorJsonErrorFrame(text: string) {
+function _parseCursorJsonErrorFrame(text: string) {
 	try {
 		return JSON.parse(text);
 	} catch {
@@ -150,7 +146,7 @@ function parseCursorJsonErrorFrame(text: string) {
 	}
 }
 
-function isToolBoundaryAbort(jsonError: unknown, toolCallCount: number) {
+function _isToolBoundaryAbort(jsonError: unknown, toolCallCount: number) {
 	if (!jsonError || toolCallCount <= 0) return false;
 	const e = jsonError as Record<string, unknown>;
 	const err = e?.error as Record<string, unknown> | undefined;
@@ -166,7 +162,7 @@ function isToolBoundaryAbort(jsonError: unknown, toolCallCount: number) {
 	return isAbortedCode && message.includes("tool call ended before result was received");
 }
 
-function mergeToolCallDelta(existing, incoming) {
+function _mergeToolCallDelta(existing, incoming) {
 	const mergedName = incoming?.function?.name || existing?.function?.name || "";
 	const existingArgs = existing?.function?.arguments || "";
 	const deltaArgs = incoming?.function?.arguments || "";
@@ -277,7 +273,7 @@ export class CursorExecutor extends BaseExecutor {
 		};
 	}
 
-	transformRequest(model, body, stream, credentials) {
+	transformRequest(model, body, _stream, _credentials) {
 		// Messages are already translated by chatCore (claude→openai→cursor)
 		// Do NOT call buildCursorRequest again — double-translation drops tool_results
 		const messages = body.messages || [];
@@ -712,7 +708,7 @@ export class CursorExecutor extends BaseExecutor {
 				if (toolCallsMap.has(tc.id)) {
 					// Accumulate arguments for existing tool call
 					const existing = toolCallsMap.get(tc.id);
-					const oldArgsLen = existing.function.arguments.length;
+					const _oldArgsLen = existing.function.arguments.length;
 					existing.function.arguments += tc.function.arguments;
 					existing.isLast = tc.isLast;
 

@@ -509,7 +509,7 @@ function parseDelayString(value) {
 	if (hrMatch) return parseInt(hrMatch[1], 10) * 3600 * 1000;
 	// Bare number → seconds
 	const num = parseInt(str, 10);
-	return isNaN(num) ? null : num * 1000;
+	return Number.isNaN(num) ? null : num * 1000;
 }
 
 /**
@@ -673,7 +673,7 @@ export function checkFallbackError(
 	status,
 	errorText,
 	backoffLevel = 0,
-	model = null,
+	_model = null,
 	provider = null,
 	headers = null,
 	profileOverride: ProviderProfile | null = null
@@ -681,7 +681,7 @@ export function checkFallbackError(
 	const errorStr = (errorText || "").toString();
 	const profile = profileOverride ?? (provider ? getProviderProfile(provider) : null);
 
-	function parseResetFromHeaders(headers, errorStr = "") {
+	function parseResetFromHeaders(headers, _errorStr = "") {
 		if (!headers) return null;
 
 		// Retry-After header
@@ -692,11 +692,11 @@ export function checkFallbackError(
 
 		if (retryAfter) {
 			const seconds = parseInt(retryAfter, 10);
-			if (!isNaN(seconds) && String(seconds) === String(retryAfter).trim()) {
+			if (!Number.isNaN(seconds) && String(seconds) === String(retryAfter).trim()) {
 				return Date.now() + seconds * 1000;
 			}
 			const date = new Date(retryAfter);
-			if (!isNaN(date.getTime())) return date.getTime();
+			if (!Number.isNaN(date.getTime())) return date.getTime();
 		}
 
 		// X-RateLimit-Reset
@@ -707,7 +707,7 @@ export function checkFallbackError(
 
 		if (rlReset) {
 			const ts = parseInt(rlReset, 10);
-			if (!isNaN(ts)) {
+			if (!Number.isNaN(ts)) {
 				return ts > 10000000000 ? ts : ts * 1000;
 			}
 		}
@@ -1019,7 +1019,7 @@ export function applyErrorState(account, status, errorText, provider = null) {
  * @param {object} account
  * @returns {number} score 0 = unhealthy, 100 = perfectly healthy
  */
-export function getAccountHealth(account, model?: unknown) {
+export function getAccountHealth(account, _model?: unknown) {
 	if (!account) return 0;
 	let score = 100;
 	score -= (account.backoffLevel || 0) * 10;

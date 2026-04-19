@@ -28,7 +28,7 @@ export default function PricingTab() {
 	// Load catalog + pricing
 	useEffect(() => {
 		loadData();
-	}, []);
+	}, [loadData]);
 
 	const loadData = async () => {
 		setLoading(true);
@@ -97,7 +97,7 @@ export default function PricingTab() {
 
 	const handlePricingChange = useCallback((provider, model, field, value) => {
 		const numValue = parseFloat(value);
-		if (isNaN(numValue) || numValue < 0) return;
+		if (Number.isNaN(numValue) || numValue < 0) return;
 
 		setPricingData((prev) => {
 			const next = { ...prev };
@@ -246,6 +246,7 @@ export default function PricingTab() {
 				</div>
 				{selectedProvider && (
 					<button
+						type="button"
 						onClick={() => setSelectedProvider(null)}
 						className="px-3 py-2 text-xs bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
 					>
@@ -259,6 +260,7 @@ export default function PricingTab() {
 			<div className="flex flex-wrap gap-1.5">
 				{allProviders.map((p) => (
 					<button
+						type="button"
 						key={p.alias}
 						onClick={() => selectProviderFilter(p.alias)}
 						className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
@@ -350,6 +352,7 @@ function ProviderSection({
 		>
 			{/* Header (click to expand) */}
 			<button
+				type="button"
 				onClick={onToggle}
 				className="w-full flex items-center justify-between px-4 py-3 hover:bg-bg-hover/50 transition-colors text-left"
 			>
@@ -408,6 +411,7 @@ function ProviderSection({
 						</span>
 						<div className="flex items-center gap-2">
 							<button
+								type="button"
 								onClick={(e) => {
 									e.stopPropagation();
 									onReset();
@@ -417,6 +421,7 @@ function ProviderSection({
 								{t("resetDefaults")}
 							</button>
 							<button
+								type="button"
 								onClick={(e) => {
 									e.stopPropagation();
 									onSave();

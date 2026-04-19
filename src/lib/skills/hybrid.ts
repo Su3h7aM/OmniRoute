@@ -14,8 +14,6 @@ const defaultHybridConfig: HybridConfig = {
 
 export class HybridExecutor {
 	private config: HybridConfig;
-	private directExecutor: any;
-	private sandboxRunner: any;
 
 	constructor(config: Partial<HybridConfig> = {}) {
 		this.config = { ...defaultHybridConfig, ...config };
@@ -26,7 +24,7 @@ export class HybridExecutor {
 	}
 
 	async execute(skillName: string, input: any, context: any): Promise<any> {
-		const startTime = Date.now();
+		const _startTime = Date.now();
 		const estimatedDuration = input.estimatedDuration || 0;
 
 		if (this.shouldUseSandbox(estimatedDuration)) {
@@ -49,11 +47,11 @@ export class HybridExecutor {
 		return estimatedDuration > this.config.maxDirectDuration;
 	}
 
-	private async executeDirect(skillName: string, input: any, context: any): Promise<any> {
+	private async executeDirect(_skillName: string, _input: any, _context: any): Promise<any> {
 		return { mode: "direct", result: {} };
 	}
 
-	private async executeInSandbox(skillName: string, input: any, context: any): Promise<any> {
+	private async executeInSandbox(_skillName: string, _input: any, _context: any): Promise<any> {
 		return { mode: "sandbox", result: {} };
 	}
 

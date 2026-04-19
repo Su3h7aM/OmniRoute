@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { getCorsOrigin } from "../utils/cors.ts";
 /**
  * Audio Speech Handler (TTS)

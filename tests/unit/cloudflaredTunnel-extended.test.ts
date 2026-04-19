@@ -1,7 +1,6 @@
 import { afterEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { EventEmitter } from "node:events";
@@ -184,7 +183,7 @@ test("getCloudflaredTunnelStatus reports a starting tunnel while the spawned pid
 	await fs.mkdir(stateDir, { recursive: true });
 	await fs.writeFile(
 		path.join(stateDir, "quick-tunnel-state.json"),
-		JSON.stringify(
+		`${JSON.stringify(
 			{
 				binaryPath,
 				installSource: "env",
@@ -198,7 +197,7 @@ test("getCloudflaredTunnelStatus reports a starting tunnel while the spawned pid
 			},
 			null,
 			2
-		) + "\n",
+		)}\n`,
 		"utf8"
 	);
 	await fs.writeFile(path.join(stateDir, ".quick-tunnel.pid"), "43210", "utf8");

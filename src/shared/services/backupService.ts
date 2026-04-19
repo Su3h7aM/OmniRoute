@@ -63,7 +63,7 @@ export async function createBackup(toolId: string, filePath: string) {
 	await fs.copyFile(filePath, backupPath);
 
 	// Save metadata alongside the backup
-	const metaPath = backupPath + ".meta.json";
+	const metaPath = `${backupPath}.meta.json`;
 	await fs.writeFile(
 		metaPath,
 		JSON.stringify({
@@ -148,10 +148,10 @@ export async function listBackups(toolId: string) {
  * Restore a backup by its id (filename).
  */
 export async function restoreBackup(toolId: string, backupId: string) {
-	const dir = getToolBackupDir(toolId);
+	const _dir = getToolBackupDir(toolId);
 	// Anchor backupId within the tool dir — prevent path traversal via backupId
 	const backupPath = safePath(toolId, backupId);
-	const metaPath = backupPath + ".meta.json";
+	const metaPath = `${backupPath}.meta.json`;
 
 	// Read metadata to find original path
 	let meta;
@@ -190,7 +190,7 @@ export async function restoreBackup(toolId: string, backupId: string) {
 export async function deleteBackup(toolId: string, backupId: string) {
 	// Anchor backupId within the tool dir — prevent path traversal via backupId
 	const backupPath = safePath(toolId, backupId);
-	const metaPath = backupPath + ".meta.json";
+	const metaPath = `${backupPath}.meta.json`;
 
 	try {
 		await fs.unlink(backupPath);

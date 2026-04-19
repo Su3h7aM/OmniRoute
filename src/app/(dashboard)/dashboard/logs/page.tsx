@@ -76,6 +76,7 @@ export default function LogsPage() {
 
 				<div className="relative" ref={dropdownRef}>
 					<button
+						type="button"
 						id="export-logs-btn"
 						onClick={() => setShowExport(!showExport)}
 						disabled={exporting}
@@ -113,6 +114,7 @@ export default function LogsPage() {
 							</div>
 							{TIME_RANGES.map((range) => (
 								<button
+									type="button"
 									key={range.hours}
 									id={`export-${range.hours}h-btn`}
 									onClick={() => handleExport(range.hours)}

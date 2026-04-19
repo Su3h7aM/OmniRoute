@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 export default function ModelAliasesTab() {
 	const [builtIn, setBuiltIn] = useState<Record<string, string>>({});
 	const [custom, setCustom] = useState<Record<string, string>>({});
-	const [loading, setLoading] = useState(true);
+	const [_loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [status, setStatus] = useState("");
 	const [newFrom, setNewFrom] = useState("");
@@ -120,6 +120,7 @@ export default function ModelAliasesTab() {
 						className="flex-1 px-3 py-2 rounded-lg text-sm bg-surface border border-border/50 focus:border-amber-500/50 focus:outline-none"
 					/>
 					<button
+						type="button"
 						onClick={addAlias}
 						disabled={saving || !newFrom.trim() || !newTo.trim()}
 						className="px-4 py-2 rounded-lg text-sm font-medium bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 disabled:opacity-50 transition-all"
@@ -148,6 +149,7 @@ export default function ModelAliasesTab() {
 									{to}
 								</code>
 								<button
+									type="button"
 									onClick={() => removeAlias(from)}
 									disabled={saving}
 									className="p-1 rounded hover:bg-red-500/10 text-text-muted hover:text-red-400 transition-all"

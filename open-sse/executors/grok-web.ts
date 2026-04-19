@@ -639,7 +639,7 @@ export class GrokWebExecutor extends BaseExecutor {
 		if (credentials.apiKey) {
 			let token = credentials.apiKey;
 			if (token.startsWith("sso=")) token = token.slice(4);
-			headers["Cookie"] = `sso=${token}`;
+			headers.Cookie = `sso=${token}`;
 		}
 
 		// Apply upstream extra headers
