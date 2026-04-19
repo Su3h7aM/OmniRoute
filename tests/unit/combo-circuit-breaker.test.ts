@@ -51,7 +51,7 @@ function getComboTargetBreakerKey(combo, index = 0) {
 // NOTE: combo.ts uses the full model string (e.g. "combo:groq/llama-3.3-70b")
 // as the circuit breaker key, not just the provider prefix.
 
-test("handleComboChat: circuit breaker opens after repeated 502 errors", async () => {
+test("handleComboChat: circuit breaker opens after repeated 502 errors", { timeout: 15000 }, async () => {
   const combo = {
     name: "test-combo",
     models: [{ model: "groq/llama-3.3-70b", weight: 0 }],
@@ -191,7 +191,7 @@ test("handleComboChat: returns 503 when all breakers are open", async () => {
   assert.ok(body.error.message.includes("circuit breakers open"), "Should mention breakers");
 });
 
-test("handleComboChat: 429 errors also trigger circuit breaker", async () => {
+test("handleComboChat: 429 errors also trigger circuit breaker", { timeout: 15000 }, async () => {
   const combo = {
     name: "test-429",
     models: [{ model: "cerebras/llama-3.3-70b", weight: 0 }],

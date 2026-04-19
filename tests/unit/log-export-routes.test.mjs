@@ -11,6 +11,7 @@ process.env.CALL_LOG_RETENTION_DAYS = "3650";
 
 const core = await import("../../src/lib/db/core.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const exportRoute = await import("../../src/app/api/logs/export/route.ts");
 const exportAllRoute = await import("../../src/app/api/db-backups/exportAll/route.ts");
 
@@ -22,6 +23,8 @@ async function resetStorage() {
 
 beforeEach(async () => {
   await resetStorage();
+  await settingsDb.updateSettings({ requireLogin: false, password: null });
+  delete process.env.INITIAL_PASSWORD;
 });
 
 afterAll(() => {

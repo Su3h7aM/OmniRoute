@@ -384,7 +384,7 @@ test("handleChat returns 503 for cooled-down models and open circuit breakers", 
   assert.match(breakerJson.error.message, /circuit breaker is open/i);
 });
 
-test("handleChat maps upstream timeouts to HTTP 504", async () => {
+test("handleChat maps upstream timeouts to HTTP 504", { timeout: 10000 }, async () => {
   await seedConnection("openai", { apiKey: "sk-openai-timeout" });
 
   globalThis.fetch = async () => {

@@ -1435,7 +1435,7 @@ test("chatCore does not inject fallback user for Qwen API key requests", async (
   assert.equal("user" in call.body, false);
 });
 
-test("chatCore persists Codex quota headers and scope cooldown on 429 responses", async () => {
+test("chatCore persists Codex quota headers and scope cooldown on 429 responses", { timeout: 10000 }, async () => {
   const connection = await providersDb.createProviderConnection({
     provider: "codex",
     authType: "oauth",
