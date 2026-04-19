@@ -155,7 +155,7 @@ export default function ProviderLimitCard({
 
 						return (
 							<QuotaProgressBar
-								key={`${quota.name}-${index}`}
+								key={`${quota.name}-${quota.resetAt || quota.total || "quota"}`}
 								label={quota.name}
 								used={quota.used}
 								total={quota.total}

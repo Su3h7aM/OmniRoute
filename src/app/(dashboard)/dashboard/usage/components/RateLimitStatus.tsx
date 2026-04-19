@@ -68,7 +68,7 @@ export default function RateLimitStatus() {
 					<div className="flex flex-col gap-2">
 						{data.lockouts.map((lock, i) => (
 							<div
-								key={i}
+								key={`${lock.model}-${lock.accountId || "none"}-${lock.reason || i}`}
 								className="flex items-center justify-between px-3 py-2.5 rounded-lg
                            bg-orange-500/5 border border-orange-500/15"
 							>

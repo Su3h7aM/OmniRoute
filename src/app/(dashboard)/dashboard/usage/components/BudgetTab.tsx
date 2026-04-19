@@ -209,8 +209,11 @@ export default function BudgetTab() {
 				</div>
 
 				<div className="mb-4">
-					<label className="text-sm text-text-muted mb-1 block">{t("apiKey")}</label>
+					<label htmlFor="budget-api-key" className="text-sm text-text-muted mb-1 block">
+						{t("apiKey")}
+					</label>
 					<select
+						id="budget-api-key"
 						value={selectedKey || ""}
 						onChange={(e) => setSelectedKey(e.target.value)}
 						className="w-full md:w-auto px-3 py-2 rounded-lg border border-border/50 bg-surface/30 text-text-main text-sm focus:outline-none focus:ring-1 focus:ring-primary"
@@ -323,8 +326,14 @@ export default function BudgetTab() {
 					</div>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 						<div className="space-y-1">
-							<label className="text-sm text-text-muted block">Reset Interval</label>
+							<label
+								htmlFor="budget-reset-interval"
+								className="text-sm text-text-muted block"
+							>
+								Reset Interval
+							</label>
 							<select
+								id="budget-reset-interval"
 								value={form.resetInterval}
 								onChange={(e) =>
 									setForm({ ...form, resetInterval: e.target.value })
