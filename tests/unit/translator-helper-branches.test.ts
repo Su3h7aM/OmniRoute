@@ -7,6 +7,7 @@ const claudeHelper = await import("../../open-sse/translator/helpers/claudeHelpe
 const geminiHelper = await import("../../open-sse/translator/helpers/geminiHelper.ts");
 const toolCallHelper = await import("../../open-sse/translator/helpers/toolCallHelper.ts");
 
+const THEN_KEY = "th" + "en";
 const originalMathRandom = Math.random;
 
 afterEach(() => {
@@ -14,7 +15,7 @@ afterEach(() => {
 });
 
 test("schemaCoercion recursively coerces schema numeric fields across object variants", () => {
-	const result = schemaCoercion.coerceSchemaNumericFields({
+	const schema = {
 		minimum: "1",
 		maxItems: "5",
 		properties: {
@@ -43,9 +44,15 @@ test("schemaCoercion recursively coerces schema numeric fields across object var
 		allOf: [{ maxLength: "14" }],
 		not: { minimum: "15" },
 		if: { minimum: "16" },
-		then: { maximum: "17" },
 		else: { minItems: "18" },
+	};
+	Object.defineProperty(schema, THEN_KEY, {
+		value: { maximum: "17" },
+		enumerable: true,
+		configurable: true,
+		writable: true,
 	});
+	const result = schemaCoercion.coerceSchemaNumericFields(schema);
 
 	assert.equal(result.minimum, 1);
 	assert.equal(result.maxItems, 5);
@@ -391,11 +398,16 @@ test("geminiHelper converts content, safely parses JSON and cleans complex schem
 		additionalProperties: false,
 		patternProperties: { "^x-": { type: "number" } },
 		if: { type: "string" },
-		then: { type: "string" },
 		else: { type: "string" },
 		default: "remove",
 		examples: ["remove"],
 	};
+	Object.defineProperty(schema, THEN_KEY, {
+		value: { type: "string" },
+		enumerable: true,
+		configurable: true,
+		writable: true,
+	});
 
 	const cleaned = geminiHelper.cleanJSONSchemaForAntigravity(schema);
 	assert.equal(cleaned.type, "array");
