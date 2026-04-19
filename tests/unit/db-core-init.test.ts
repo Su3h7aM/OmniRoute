@@ -1,4 +1,4 @@
-import test from "node:test";
+import { afterAll, afterEach, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -368,17 +368,17 @@ function listProbeFailedBackups(sqliteFile) {
     .sort();
 }
 
-test.beforeEach(() => {
+beforeEach(() => {
   restoreEnv();
   cleanupGlobalDb();
 });
 
-test.afterEach(() => {
+afterEach(() => {
   cleanupGlobalDb();
   restoreEnv();
 });
 
-test.after(() => {
+afterAll(() => {
   cleanupGlobalDb();
   restoreEnv();
 });

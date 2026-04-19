@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, after } from "node:test";
+import { afterAll, afterEach, beforeEach, describe, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs";
@@ -53,7 +53,7 @@ afterEach(() => {
   } catch {}
 });
 
-after(() => {
+afterAll(() => {
   if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
 });
 
@@ -150,7 +150,7 @@ function toTool(row) {
 
 describe("db/versionManager (logic)", () => {
   describe("upsertVersionManagerTool", () => {
-    it("should insert a new tool and read it back", () => {
+    test("should insert a new tool and read it back", () => {
       const tool = toTool(
         upsertTool(testDb, {
           tool: "cliproxyapi",
@@ -170,7 +170,7 @@ describe("db/versionManager (logic)", () => {
       assert.ok(tool.id > 0);
     });
 
-    it("should update on conflict (upsert)", () => {
+    test("should update on conflict (upsert)", () => {
       upsertTool(testDb, { tool: "test-tool", status: "installed" });
       const tool = toTool(
         upsertTool(testDb, { tool: "test-tool", installedVersion: "7.0.0", status: "running" })
@@ -179,7 +179,7 @@ describe("db/versionManager (logic)", () => {
       assert.equal(tool.status, "running");
     });
 
-    it("should store boolean fields as 0/1", () => {
+    test("should store boolean fields as 0/1", () => {
       const tool = toTool(
         upsertTool(testDb, { tool: "bool-test", autoUpdate: false, autoStart: true })
       );
@@ -187,17 +187,17 @@ describe("db/versionManager (logic)", () => {
       assert.equal(tool.autoStart, true);
     });
 
-    it("should store config overrides as JSON", () => {
+    test("should store config overrides as JSON", () => {
       const tool = toTool(upsertTool(testDb, { tool: "cfg", configOverrides: { port: 9999 } }));
       assert.deepEqual(tool.configOverrides, { port: 9999 });
     });
 
-    it("should handle null config overrides", () => {
+    test("should handle null config overrides", () => {
       const tool = toTool(upsertTool(testDb, { tool: "null-cfg" }));
       assert.equal(tool.configOverrides, null);
     });
 
-    it("should handle pid and error message", () => {
+    test("should handle pid and error message", () => {
       const tool = toTool(
         upsertTool(testDb, { tool: "pid-test", pid: 12345, errorMessage: "err" })
       );
@@ -207,14 +207,14 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("getVersionManagerTool", () => {
-    it("should return null for non-existent tool", () => {
+    test("should return null for non-existent tool", () => {
       assert.equal(
         toTool(testDb.prepare("SELECT * FROM version_manager WHERE tool = ?").get("ghost")),
         null
       );
     });
 
-    it("should return tool by name", () => {
+    test("should return tool by name", () => {
       upsertTool(testDb, { tool: "findme", installedVersion: "1.0.0" });
       const tool = toTool(
         testDb.prepare("SELECT * FROM version_manager WHERE tool = ?").get("findme")
@@ -224,19 +224,19 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("getVersionManagerStatus", () => {
-    it("should return all tools", () => {
+    test("should return all tools", () => {
       upsertTool(testDb, { tool: "a" });
       upsertTool(testDb, { tool: "b" });
       assert.equal(testDb.prepare("SELECT * FROM version_manager").all().length, 2);
     });
 
-    it("should return empty when no tools", () => {
+    test("should return empty when no tools", () => {
       assert.equal(testDb.prepare("SELECT * FROM version_manager").all().length, 0);
     });
   });
 
   describe("updateVersionManagerTool (partial)", () => {
-    it("should update pinnedVersion and autoUpdate", () => {
+    test("should update pinnedVersion and autoUpdate", () => {
       upsertTool(testDb, { tool: "upd", status: "installed" });
       testDb
         .prepare(
@@ -251,7 +251,7 @@ describe("db/versionManager (logic)", () => {
       assert.equal(tool.status, "installed");
     });
 
-    it("should set fields to null", () => {
+    test("should set fields to null", () => {
       upsertTool(testDb, { tool: "nulls", installedVersion: "1.0.0", pid: 42 });
       testDb
         .prepare("UPDATE version_manager SET installed_version = NULL, pid = NULL WHERE tool = ?")
@@ -265,7 +265,7 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("deleteVersionManagerTool", () => {
-    it("should delete existing tool", () => {
+    test("should delete existing tool", () => {
       upsertTool(testDb, { tool: "del" });
       assert.equal(
         testDb.prepare("DELETE FROM version_manager WHERE tool = ?").run("del").changes,
@@ -274,7 +274,7 @@ describe("db/versionManager (logic)", () => {
       assert.equal(testDb.prepare("SELECT * FROM version_manager WHERE tool = ?").get("del"), null);
     });
 
-    it("should return 0 changes for non-existent", () => {
+    test("should return 0 changes for non-existent", () => {
       assert.equal(
         testDb.prepare("DELETE FROM version_manager WHERE tool = ?").run("ghost").changes,
         0
@@ -283,7 +283,7 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("updateToolHealth", () => {
-    it("should update health_status and last_health_check", () => {
+    test("should update health_status and last_health_check", () => {
       upsertTool(testDb, { tool: "h" });
       const r = testDb
         .prepare(
@@ -296,7 +296,7 @@ describe("db/versionManager (logic)", () => {
       assert.ok(tool.lastHealthCheck);
     });
 
-    it("should return 0 changes for non-existent", () => {
+    test("should return 0 changes for non-existent", () => {
       assert.equal(
         testDb
           .prepare("UPDATE version_manager SET health_status = ? WHERE tool = ?")
@@ -307,7 +307,7 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("updateToolVersion", () => {
-    it("should update current_version", () => {
+    test("should update current_version", () => {
       upsertTool(testDb, { tool: "v1" });
       testDb
         .prepare("UPDATE version_manager SET current_version = ? WHERE tool = ?")
@@ -318,7 +318,7 @@ describe("db/versionManager (logic)", () => {
       );
     });
 
-    it("should update installed_version", () => {
+    test("should update installed_version", () => {
       upsertTool(testDb, { tool: "v2" });
       testDb
         .prepare("UPDATE version_manager SET installed_version = ? WHERE tool = ?")
@@ -331,7 +331,7 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("setToolStatus", () => {
-    it("should update status with pid", () => {
+    test("should update status with pid", () => {
       upsertTool(testDb, { tool: "s1" });
       testDb
         .prepare("UPDATE version_manager SET status = ?, pid = ?, error_message = ? WHERE tool = ?")
@@ -342,7 +342,7 @@ describe("db/versionManager (logic)", () => {
       assert.equal(row.error_message, "ok");
     });
 
-    it("should update status without pid", () => {
+    test("should update status without pid", () => {
       upsertTool(testDb, { tool: "s2" });
       testDb
         .prepare("UPDATE version_manager SET status = ?, error_message = ? WHERE tool = ?")
@@ -351,7 +351,7 @@ describe("db/versionManager (logic)", () => {
       assert.equal(row.status, "error");
     });
 
-    it("should return 0 for non-existent", () => {
+    test("should return 0 for non-existent", () => {
       assert.equal(
         testDb
           .prepare("UPDATE version_manager SET status = ? WHERE tool = ?")
@@ -362,11 +362,11 @@ describe("db/versionManager (logic)", () => {
   });
 
   describe("parseConfigOverrides", () => {
-    it("should parse valid JSON", () => {
+    test("should parse valid JSON", () => {
       assert.deepEqual(parseConfigOverrides('{"key":"val"}'), { key: "val" });
     });
 
-    it("should return null for invalid JSON", () => {
+    test("should return null for invalid JSON", () => {
       assert.equal(parseConfigOverrides("not-json"), null);
       assert.equal(parseConfigOverrides(""), null);
       assert.equal(parseConfigOverrides(null), null);
@@ -380,12 +380,12 @@ describe("db/versionManager (module coverage)", () => {
     await resetModuleStorage();
   });
 
-  after(async () => {
+  afterAll(async () => {
     coreDb.resetDbInstance();
     fs.rmSync(moduleDataDir, { recursive: true, force: true });
   });
 
-  it("round-trips inserts, updates and status listings through the production module", async () => {
+  test("round-trips inserts, updates and status listings through the production module", async () => {
     const inserted = await versionManagerDb.upsertVersionManagerTool({
       tool: "cliproxyapi",
       installedVersion: "6.9.7",
@@ -416,7 +416,7 @@ describe("db/versionManager (module coverage)", () => {
     assert.equal(status[0].tool, "cliproxyapi");
   });
 
-  it("parses invalid config overrides defensively and returns null for missing updates", async () => {
+  test("parses invalid config overrides defensively and returns null for missing updates", async () => {
     const db = coreDb.getDbInstance();
     db.prepare(
       `
@@ -435,7 +435,7 @@ describe("db/versionManager (module coverage)", () => {
     );
   });
 
-  it("updates health/version/status fields and deletes tools", async () => {
+  test("updates health/version/status fields and deletes tools", async () => {
     await versionManagerDb.upsertVersionManagerTool({
       tool: "managed-tool",
       status: "installed",

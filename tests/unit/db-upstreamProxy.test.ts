@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach, after } from "node:test";
+import { afterAll, afterEach, beforeEach, describe, test } from "bun:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs";
@@ -42,7 +42,7 @@ afterEach(() => {
   } catch {}
 });
 
-after(() => {
+afterAll(() => {
   if (fs.existsSync(fileTmpDir)) fs.rmSync(fileTmpDir, { recursive: true, force: true });
 });
 
@@ -148,7 +148,7 @@ function getFallbackChain(db, providerId) {
 
 describe("db/upstreamProxy (logic)", () => {
   describe("upsertUpstreamProxyConfig", () => {
-    it("should insert and read back", () => {
+    test("should insert and read back", () => {
       const config = upsert(testDb, { providerId: "claude", mode: "native" });
       assert.equal(config.providerId, "claude");
       assert.equal(config.mode, "native");
@@ -159,28 +159,28 @@ describe("db/upstreamProxy (logic)", () => {
       assert.ok(config.id > 0);
     });
 
-    it("should replace on conflict", () => {
+    test("should replace on conflict", () => {
       upsert(testDb, { providerId: "t", mode: "native" });
       const replaced = upsert(testDb, { providerId: "t", mode: "fallback" });
       assert.equal(replaced.mode, "fallback");
     });
 
-    it("should store model mapping as JSON", () => {
+    test("should store model mapping as JSON", () => {
       const mapping = { "ag/gemini-3-pro": "gemini-3-pro-high" };
       const config = upsert(testDb, { providerId: "mapped", cliproxyapiModelMapping: mapping });
       assert.deepEqual(config.cliproxyapiModelMapping, mapping);
     });
 
-    it("should store null model mapping", () => {
+    test("should store null model mapping", () => {
       const config = upsert(testDb, { providerId: "nomap", cliproxyapiModelMapping: null });
       assert.equal(config.cliproxyapiModelMapping, null);
     });
 
-    it("should handle enabled=false", () => {
+    test("should handle enabled=false", () => {
       assert.equal(upsert(testDb, { providerId: "dis", enabled: false }).enabled, false);
     });
 
-    it("should set custom priorities", () => {
+    test("should set custom priorities", () => {
       const config = upsert(testDb, {
         providerId: "pri",
         nativePriority: 5,
@@ -192,18 +192,18 @@ describe("db/upstreamProxy (logic)", () => {
   });
 
   describe("getUpstreamProxyConfig", () => {
-    it("should return null for non-existent provider", () => {
+    test("should return null for non-existent provider", () => {
       assert.equal(getConfig(testDb, "ghost"), null);
     });
 
-    it("should return config for provider", () => {
+    test("should return config for provider", () => {
       upsert(testDb, { providerId: "claude", mode: "fallback" });
       assert.equal(getConfig(testDb, "claude").mode, "fallback");
     });
   });
 
   describe("getUpstreamProxyConfigs", () => {
-    it("should return all ordered by provider_id", () => {
+    test("should return all ordered by provider_id", () => {
       upsert(testDb, { providerId: "zebra" });
       upsert(testDb, { providerId: "alpha" });
       const configs = getAllConfigs(testDb);
@@ -212,13 +212,13 @@ describe("db/upstreamProxy (logic)", () => {
       assert.equal(configs[1].providerId, "zebra");
     });
 
-    it("should return empty array", () => {
+    test("should return empty array", () => {
       assert.equal(getAllConfigs(testDb).length, 0);
     });
   });
 
   describe("updateUpstreamProxyConfig", () => {
-    it("should update individual fields", () => {
+    test("should update individual fields", () => {
       upsert(testDb, { providerId: "u", mode: "native" });
       testDb
         .prepare(
@@ -228,7 +228,7 @@ describe("db/upstreamProxy (logic)", () => {
       assert.equal(getConfig(testDb, "u").mode, "cliproxyapi");
     });
 
-    it("should update model mapping", () => {
+    test("should update model mapping", () => {
       upsert(testDb, { providerId: "u2" });
       testDb
         .prepare(
@@ -238,7 +238,7 @@ describe("db/upstreamProxy (logic)", () => {
       assert.deepEqual(getConfig(testDb, "u2").cliproxyapiModelMapping, { k: "v" });
     });
 
-    it("should update multiple fields", () => {
+    test("should update multiple fields", () => {
       upsert(testDb, { providerId: "m" });
       testDb
         .prepare(
@@ -251,7 +251,7 @@ describe("db/upstreamProxy (logic)", () => {
       assert.equal(config.enabled, false);
     });
 
-    it("should set model mapping to null", () => {
+    test("should set model mapping to null", () => {
       upsert(testDb, { providerId: "n", cliproxyapiModelMapping: { a: 1 } });
       testDb
         .prepare(
@@ -263,7 +263,7 @@ describe("db/upstreamProxy (logic)", () => {
   });
 
   describe("deleteUpstreamProxyConfig", () => {
-    it("should delete existing config", () => {
+    test("should delete existing config", () => {
       upsert(testDb, { providerId: "del" });
       assert.equal(
         testDb.prepare("DELETE FROM upstream_proxy_config WHERE provider_id = ?").run("del")
@@ -273,7 +273,7 @@ describe("db/upstreamProxy (logic)", () => {
       assert.equal(getConfig(testDb, "del"), null);
     });
 
-    it("should return 0 for non-existent", () => {
+    test("should return 0 for non-existent", () => {
       assert.equal(
         testDb.prepare("DELETE FROM upstream_proxy_config WHERE provider_id = ?").run("ghost")
           .changes,
@@ -283,7 +283,7 @@ describe("db/upstreamProxy (logic)", () => {
   });
 
   describe("getProvidersByMode", () => {
-    it("should filter by mode and enabled", () => {
+    test("should filter by mode and enabled", () => {
       upsert(testDb, { providerId: "p1", mode: "fallback", enabled: true });
       upsert(testDb, { providerId: "p2", mode: "fallback", enabled: true });
       upsert(testDb, { providerId: "p3", mode: "native", enabled: true });
@@ -293,24 +293,24 @@ describe("db/upstreamProxy (logic)", () => {
       assert.ok(results.every((r) => r.enabled));
     });
 
-    it("should return empty for no matches", () => {
+    test("should return empty for no matches", () => {
       assert.equal(getProvidersByMode(testDb, "cliproxyapi").length, 0);
     });
   });
 
   describe("getFallbackChainForProvider", () => {
-    it("should return empty for non-existent provider", () => {
+    test("should return empty for non-existent provider", () => {
       assert.deepEqual(getFallbackChain(testDb, "ghost"), []);
     });
 
-    it("should return native-only for native mode", () => {
+    test("should return native-only for native mode", () => {
       upsert(testDb, { providerId: "native-only", mode: "native" });
       const chain = getFallbackChain(testDb, "native-only");
       assert.equal(chain.length, 1);
       assert.equal(chain[0].executor, "native");
     });
 
-    it("should return native+cliproxyapi for fallback mode", () => {
+    test("should return native+cliproxyapi for fallback mode", () => {
       upsert(testDb, {
         providerId: "fb",
         mode: "fallback",
@@ -323,13 +323,13 @@ describe("db/upstreamProxy (logic)", () => {
       assert.equal(chain[1].executor, "cliproxyapi");
     });
 
-    it("should return both for cliproxyapi mode", () => {
+    test("should return both for cliproxyapi mode", () => {
       upsert(testDb, { providerId: "cpa", mode: "cliproxyapi" });
       const chain = getFallbackChain(testDb, "cpa");
       assert.equal(chain.length, 2);
     });
 
-    it("should sort by priority", () => {
+    test("should sort by priority", () => {
       upsert(testDb, {
         providerId: "rev",
         mode: "fallback",
@@ -343,7 +343,7 @@ describe("db/upstreamProxy (logic)", () => {
       assert.equal(chain[1].priority, 10);
     });
 
-    it("should return empty chain when disabled", () => {
+    test("should return empty chain when disabled", () => {
       upsert(testDb, { providerId: "dis-fb", mode: "fallback", enabled: false });
       assert.deepEqual(getFallbackChain(testDb, "dis-fb"), []);
     });
@@ -355,12 +355,12 @@ describe("db/upstreamProxy (module coverage)", () => {
     await resetModuleStorage();
   });
 
-  after(async () => {
+  afterAll(async () => {
     coreDb.resetDbInstance();
     fs.rmSync(moduleDataDir, { recursive: true, force: true });
   });
 
-  it("validates proxy URLs and blocks unsupported or private destinations", async () => {
+  test("validates proxy URLs and blocks unsupported or private destinations", async () => {
     assert.deepEqual(upstreamProxyDb.validateProxyUrl("https://proxy.example.com"), {
       valid: true,
       url: "https://proxy.example.com",
@@ -373,7 +373,7 @@ describe("db/upstreamProxy (module coverage)", () => {
     assert.match(upstreamProxyDb.validateProxyUrl("not-a-url").error, /Invalid URL/);
   });
 
-  it("round-trips configs through upsert, update, mode filters and fallback ordering", async () => {
+  test("round-trips configs through upsert, update, mode filters and fallback ordering", async () => {
     await upstreamProxyDb.upsertUpstreamProxyConfig({
       providerId: "claude",
       mode: "fallback",
@@ -409,7 +409,7 @@ describe("db/upstreamProxy (module coverage)", () => {
     ]);
   });
 
-  it("handles invalid stored JSON, missing rows and deletion", async () => {
+  test("handles invalid stored JSON, missing rows and deletion", async () => {
     const db = coreDb.getDbInstance();
     db.prepare(
       `
