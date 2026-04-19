@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/shared/components/Card";
 import PricingModal from "@/shared/components/PricingModal";
@@ -13,11 +13,7 @@ export default function PricingSettingsPage() {
 	const [loading, setLoading] = useState(true);
 	const t = useTranslations("settings");
 
-	useEffect(() => {
-		loadPricing();
-	}, [loadPricing]);
-
-	const loadPricing = async () => {
+	const loadPricing = useCallback(async () => {
 		setLoading(true);
 		try {
 			const response = await fetch("/api/pricing");
@@ -30,7 +26,11 @@ export default function PricingSettingsPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		loadPricing();
+	}, [loadPricing]);
 
 	const handlePricingUpdated = () => {
 		loadPricing();

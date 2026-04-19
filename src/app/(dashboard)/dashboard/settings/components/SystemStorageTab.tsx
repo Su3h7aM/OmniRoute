@@ -66,7 +66,7 @@ export default function SystemStorageTab() {
 		}
 	};
 
-	const loadStorageHealth = async () => {
+	const loadStorageHealth = useCallback(async () => {
 		try {
 			const res = await fetch("/api/storage/health");
 			if (!res.ok) return;
@@ -79,7 +79,7 @@ export default function SystemStorageTab() {
 		} catch (err) {
 			console.error("Failed to fetch storage health:", err);
 		}
-	};
+	}, []);
 
 	const handleCleanupBackups = async () => {
 		setCleanupBackupsLoading(true);

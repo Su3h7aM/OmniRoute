@@ -212,8 +212,9 @@ export default function ClineToolCard({
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -258,7 +259,7 @@ export default function ClineToolCard({
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-6 pt-6 border-t border-border">
@@ -332,11 +333,15 @@ export default function ClineToolCard({
 
 									{/* Model selection */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm text-text-muted">
+										<label
+											htmlFor="cline-model"
+											className="text-sm text-text-muted"
+										>
 											{t("model")}
 										</label>
 										<div className="flex items-center gap-2">
 											<input
+												id="cline-model"
 												type="text"
 												value={selectedModel}
 												onChange={(e) => setSelectedModel(e.target.value)}
@@ -365,11 +370,15 @@ export default function ClineToolCard({
 
 									{/* API Key selection */}
 									<div className="flex flex-col gap-2">
-										<label className="text-sm text-text-muted">
+										<label
+											htmlFor="cline-api-key"
+											className="text-sm text-text-muted"
+										>
 											{t("apiKey")}
 										</label>
 										{apiKeys && apiKeys.length > 0 ? (
 											<select
+												id="cline-api-key"
 												value={selectedApiKey}
 												onChange={(e) => setSelectedApiKey(e.target.value)}
 												className="px-3 py-2 bg-bg-secondary rounded-lg text-sm border border-border focus:outline-none focus:ring-1 focus:ring-primary/50"

@@ -328,9 +328,12 @@ export default function MemorySkillsTab() {
 				</div>
 
 				<div className="p-4 rounded-lg bg-surface/30 border border-border/30">
-					<label className="text-sm font-medium block mb-2">API Key</label>
+					<label htmlFor="skillsmp-api-key" className="text-sm font-medium block mb-2">
+						API Key
+					</label>
 					<div className="flex gap-2">
 						<input
+							id="skillsmp-api-key"
 							type="password"
 							value={skillsmpApiKey}
 							onChange={(e) => setSkillsmpApiKey(e.target.value)}

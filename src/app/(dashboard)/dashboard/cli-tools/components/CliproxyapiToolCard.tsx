@@ -119,8 +119,9 @@ export default function CliproxyapiToolCard({ isExpanded, onToggle }) {
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -144,7 +145,7 @@ export default function CliproxyapiToolCard({ isExpanded, onToggle }) {
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-6 pt-6 border-t border-border space-y-4">

@@ -346,7 +346,7 @@ function ImageResults({ data }: { data: any }) {
 				if (!src) return null;
 				return (
 					<div
-						key={i}
+						key={img.url || img.b64_json || `image-${i + 1}`}
 						className="relative group rounded-lg overflow-hidden border border-black/10 dark:border-white/10"
 					>
 						{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -680,10 +680,14 @@ export default function MediaPageClient() {
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					{/* Provider dropdown */}
 					<div>
-						<label className="block text-sm font-medium text-text-main mb-2">
+						<label
+							htmlFor="media-provider"
+							className="block text-sm font-medium text-text-main mb-2"
+						>
 							Provider
 						</label>
 						<select
+							id="media-provider"
 							value={selectedProvider}
 							onChange={(e) => handleProviderChange(e.target.value)}
 							className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -698,10 +702,14 @@ export default function MediaPageClient() {
 
 					{/* Model dropdown */}
 					<div>
-						<label className="block text-sm font-medium text-text-main mb-2">
+						<label
+							htmlFor="media-model"
+							className="block text-sm font-medium text-text-main mb-2"
+						>
 							{t("model")}
 						</label>
 						<select
+							id="media-model"
 							value={selectedModel}
 							onChange={(e) => setSelectedModel(e.target.value)}
 							className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -736,10 +744,14 @@ export default function MediaPageClient() {
 				{activeTab === "speech" && (
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-							<label className="block text-sm font-medium text-text-main mb-2">
+							<label
+								htmlFor="media-speech-voice"
+								className="block text-sm font-medium text-text-main mb-2"
+							>
 								Voice
 							</label>
 							<select
+								id="media-speech-voice"
 								value={speechVoice}
 								onChange={(e) => setSpeechVoice(e.target.value)}
 								className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -752,10 +764,14 @@ export default function MediaPageClient() {
 							</select>
 						</div>
 						<div>
-							<label className="block text-sm font-medium text-text-main mb-2">
+							<label
+								htmlFor="media-speech-format"
+								className="block text-sm font-medium text-text-main mb-2"
+							>
 								Format
 							</label>
 							<select
+								id="media-speech-format"
 								value={speechFormat}
 								onChange={(e) => setSpeechFormat(e.target.value)}
 								className="w-full px-3 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -773,10 +789,14 @@ export default function MediaPageClient() {
 				{/* Transcription: file upload */}
 				{activeTab === "transcription" ? (
 					<div>
-						<label className="block text-sm font-medium text-text-main mb-2">
+						<label
+							htmlFor="media-audio-file"
+							className="block text-sm font-medium text-text-main mb-2"
+						>
 							Audio / Video File
 						</label>
 						<input
+							id="media-audio-file"
 							type="file"
 							accept="audio/*,video/*"
 							onChange={(e) => {
@@ -814,10 +834,14 @@ export default function MediaPageClient() {
 						{activeTab === "image" && (
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-medium text-text-main mb-2">
+									<label
+										htmlFor="media-source-image"
+										className="block text-sm font-medium text-text-main mb-2"
+									>
 										Source Image
 									</label>
 									<input
+										id="media-source-image"
 										type="file"
 										accept="image/*"
 										onChange={(e) =>
@@ -836,10 +860,14 @@ export default function MediaPageClient() {
 									</p>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-text-main mb-2">
+									<label
+										htmlFor="media-mask-image"
+										className="block text-sm font-medium text-text-main mb-2"
+									>
 										Mask Image
 									</label>
 									<input
+										id="media-mask-image"
 										type="file"
 										accept="image/*"
 										onChange={(e) =>
@@ -862,7 +890,10 @@ export default function MediaPageClient() {
 
 						{/* Prompt / Text */}
 						<div>
-							<label className="block text-sm font-medium text-text-main mb-2">
+							<label
+								htmlFor="media-prompt"
+								className="block text-sm font-medium text-text-main mb-2"
+							>
 								{activeTab === "speech"
 									? "Text"
 									: activeTab === "image" && selectedProvider === "topaz"
@@ -870,6 +901,7 @@ export default function MediaPageClient() {
 										: t("prompt")}
 							</label>
 							<textarea
+								id="media-prompt"
 								rows={3}
 								value={prompt}
 								onChange={(e) => setPrompt(e.target.value)}
@@ -979,7 +1011,9 @@ export default function MediaPageClient() {
 								src={result.audioUrl}
 								className="w-full rounded-lg"
 								autoPlay
-							/>
+							>
+								<track kind="captions" label="Captions unavailable" srcLang="en" />
+							</audio>
 							<a
 								href={result.audioUrl}
 								download={`speech.${result.data?.format || "mp3"}`}

@@ -151,9 +151,7 @@ export default function CliproxyapiSettingsTab() {
 
 				<div className="space-y-4">
 					<div className="flex items-center justify-between">
-						<label className="text-sm text-text-main">
-							Enable CLIProxyAPI Fallback
-						</label>
+						<span className="text-sm text-text-main">Enable CLIProxyAPI Fallback</span>
 						<Toggle
 							checked={cpaEnabled}
 							onChange={(checked) =>
@@ -165,10 +163,14 @@ export default function CliproxyapiSettingsTab() {
 					{cpaEnabled && (
 						<>
 							<div>
-								<label className="text-xs text-text-muted mb-1.5 block">
+								<label
+									htmlFor="cliproxyapi-url"
+									className="text-xs text-text-muted mb-1.5 block"
+								>
 									CLIProxyAPI URL
 								</label>
 								<Input
+									id="cliproxyapi-url"
 									value={cpaUrl}
 									onChange={(e) =>
 										updateSetting("cliproxyapi_url", e.target.value)
@@ -179,10 +181,14 @@ export default function CliproxyapiSettingsTab() {
 							</div>
 
 							<div>
-								<label className="text-xs text-text-muted mb-1.5 block">
+								<label
+									htmlFor="cliproxyapi-fallback-codes"
+									className="text-xs text-text-muted mb-1.5 block"
+								>
 									Fallback Status Codes (comma-separated)
 								</label>
 								<Input
+									id="cliproxyapi-fallback-codes"
 									value={cpaCodes}
 									onChange={(e) =>
 										updateSetting("cliproxyapi_fallback_codes", e.target.value)
