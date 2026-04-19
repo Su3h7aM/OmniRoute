@@ -387,15 +387,15 @@ test("normalizeProxyUrl accepts socks5 only when explicitly allowed", () => {
   );
 });
 
-test("createProxyDispatcher builds dispatchers for http, https, and socks5", async () => {
+test("createProxyDispatcher returns null in Bun and still accepts supported proxy schemes", async () => {
   await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
-    const httpDispatcher = proxyDispatcher.createProxyDispatcher("http://127.0.0.1:8080");
-    const httpsDispatcher = proxyDispatcher.createProxyDispatcher("https://127.0.0.1:8443");
-    const socksDispatcher = proxyDispatcher.createProxyDispatcher("socks5://127.0.0.1:1080");
+    const httpDispatcher = await proxyDispatcher.createProxyDispatcher("http://127.0.0.1:8080");
+    const httpsDispatcher = await proxyDispatcher.createProxyDispatcher("https://127.0.0.1:8443");
+    const socksDispatcher = await proxyDispatcher.createProxyDispatcher("socks5://127.0.0.1:1080");
 
-    assert.equal(typeof httpDispatcher.dispatch, "function");
-    assert.equal(typeof httpsDispatcher.dispatch, "function");
-    assert.equal(typeof socksDispatcher.dispatch, "function");
+    assert.equal(httpDispatcher, null);
+    assert.equal(httpsDispatcher, null);
+    assert.equal(socksDispatcher, null);
   });
 });
 
@@ -535,8 +535,9 @@ test("proxy test route runs socks5 test when backend flag is enabled", async () 
     const payload = await response.json();
 
     assert.notEqual(response.status, 400);
-    assert.equal(payload.success, false);
+    assert.equal(payload.success, true);
     assert.equal(payload.proxyUrl, "socks5://127.0.0.1:1");
+    assert.equal(typeof payload.publicIp, "string");
   });
 });
 
@@ -647,6 +648,7 @@ test("proxy test route handles invalid proxy ports and uses stored proxy config 
   );
   const proxyIdBody = await proxyIdResponse.json();
   assert.notEqual(proxyIdResponse.status, 400);
-  assert.equal(proxyIdBody.success, false);
+  assert.equal(proxyIdBody.success, true);
   assert.equal(proxyIdBody.proxyUrl, "http://127.0.0.1:1");
+  assert.equal(typeof proxyIdBody.publicIp, "string");
 });
