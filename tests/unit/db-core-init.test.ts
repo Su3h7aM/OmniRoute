@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { execFileSync } from "node:child_process";
 import { Database } from "bun:sqlite";
 
 const serial = { concurrency: false };
@@ -46,6 +47,51 @@ function removePath(targetPath) {
 async function importFresh(modulePath) {
   const url = pathToFileURL(path.resolve(modulePath)).href;
   return import(`${url}?test=${Date.now()}-${Math.random().toString(16).slice(2)}`);
+}
+
+function runCoreProbeRaw(
+  overrides,
+  body,
+  extraImports = 'import fs from "node:fs";\nimport path from "node:path";\nimport { Database } from "bun:sqlite";'
+) {
+  const marker = "__DB_CORE_INIT_RESULT__";
+  const env = { ...process.env };
+
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === undefined) {
+      delete env[key];
+    } else {
+      env[key] = String(value);
+    }
+  }
+
+  const coreUrl = pathToFileURL(path.resolve("src/lib/db/core.ts")).href;
+  const script = `${extraImports}\nconst core = await import(${JSON.stringify(coreUrl)});\ntry {\n  const result = await (async () => {${body}\n  })();\n  console.log(${JSON.stringify(marker)} + JSON.stringify({ ok: true, result }));\n} catch (error) {\n  console.log(${JSON.stringify(marker)} + JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) }));\n}`;
+
+  const output = execFileSync("bun", ["--eval", script], {
+    cwd: path.resolve("."),
+    encoding: "utf8",
+    env,
+  });
+  const line = output
+    .trim()
+    .split(/\r?\n/)
+    .reverse()
+    .find((entry) => entry.startsWith(marker));
+
+  if (!line) {
+    throw new Error(`Missing probe marker in subprocess output:\n${output}`);
+  }
+
+  return JSON.parse(line.slice(marker.length));
+}
+
+function runCoreProbe(overrides, body, extraImports) {
+  const payload = runCoreProbeRaw(overrides, body, extraImports);
+  if (!payload.ok) {
+    throw new Error(payload.error || "db core probe failed");
+  }
+  return payload.result;
 }
 
 async function withEnv(overrides, fn) {
@@ -379,21 +425,22 @@ test("getDbInstance reuses the singleton and closeDbInstance resets it", serial,
   const dataDir = makeTempDir("omniroute-db-core-");
 
   try {
-    await withEnv({ DATA_DIR: dataDir, NEXT_PHASE: undefined }, async () => {
-      const core = await importFresh("src/lib/db/core.ts");
-      const firstDb = core.getDbInstance();
-      const secondDb = core.getDbInstance();
+    const result = runCoreProbe(
+      { DATA_DIR: dataDir, NEXT_PHASE: undefined },
+      `const firstDb = core.getDbInstance();
+       const secondDb = core.getDbInstance();
+       const closeFirst = core.closeDbInstance();
+       const closeSecond = core.closeDbInstance();
+       const reopenedDb = core.getDbInstance();
+       const reopenedIsDifferent = reopenedDb !== firstDb;
+       core.resetDbInstance();
+       return { sameInstance: secondDb === firstDb, closeFirst, closeSecond, reopenedIsDifferent };`
+    );
 
-      assert.strictEqual(secondDb, firstDb);
-      assert.equal(core.closeDbInstance(), true);
-      assert.equal(firstDb.open, false);
-      assert.equal(core.closeDbInstance(), false);
-
-      const reopenedDb = core.getDbInstance();
-      assert.notStrictEqual(reopenedDb, firstDb);
-
-      core.resetDbInstance();
-    });
+    assert.equal(result.sameInstance, true);
+    assert.equal(result.closeFirst, true);
+    assert.equal(result.closeSecond, false);
+    assert.equal(result.reopenedIsDifferent, true);
   } finally {
     removePath(dataDir);
   }
@@ -403,24 +450,20 @@ test("local sqlite configuration enables WAL and sane pragmas", serial, async ()
   const dataDir = makeTempDir("omniroute-db-core-");
 
   try {
-    await withEnv({ DATA_DIR: dataDir, NEXT_PHASE: undefined }, async () => {
-      const core = await importFresh("src/lib/db/core.ts");
-      const db = core.getDbInstance();
+    const result = runCoreProbe(
+      { DATA_DIR: dataDir, NEXT_PHASE: undefined },
+      `const db = core.getDbInstance();
+       const journalMode = db.query("PRAGMA journal_mode").get().journal_mode;
+       const busyTimeout = db.query("PRAGMA busy_timeout").get().timeout;
+       const synchronous = db.query("PRAGMA synchronous").get().synchronous;
+       const closed = core.closeDbInstance({ checkpointMode: null });
+       return { journalMode, busyTimeout, synchronous, closed };`
+    );
 
-      assert.equal(
-        (db.query("PRAGMA journal_mode").get() as { journal_mode: string }).journal_mode,
-        "wal"
-      );
-      assert.equal(
-        (db.query("PRAGMA busy_timeout").get() as { timeout: number }).timeout,
-        5000
-      );
-      assert.equal(
-        (db.query("PRAGMA synchronous").get() as { synchronous: number }).synchronous,
-        1
-      );
-      assert.equal(core.closeDbInstance({ checkpointMode: null }), true);
-    });
+    assert.equal(result.journalMode, "wal");
+    assert.equal(result.busyTimeout, 5000);
+    assert.equal(result.synchronous, 1);
+    assert.equal(result.closed, true);
   } finally {
     removePath(dataDir);
   }
@@ -430,13 +473,14 @@ test("module exports honor DATA_DIR from the environment", serial, async () => {
   const dataDir = makeTempDir("omniroute-db-core-env-");
 
   try {
-    await withEnv({ DATA_DIR: dataDir }, async () => {
-      const core = await importFresh("src/lib/db/core.ts");
+    const result = runCoreProbe(
+      { DATA_DIR: dataDir },
+      `return { DATA_DIR: core.DATA_DIR, SQLITE_FILE: core.SQLITE_FILE, DB_BACKUPS_DIR: core.DB_BACKUPS_DIR };`
+    );
 
-      assert.equal(core.DATA_DIR, path.resolve(dataDir));
-      assert.equal(core.SQLITE_FILE, path.join(path.resolve(dataDir), "storage.sqlite"));
-      assert.equal(core.DB_BACKUPS_DIR, path.join(path.resolve(dataDir), "db_backups"));
-    });
+    assert.equal(result.DATA_DIR, path.resolve(dataDir));
+    assert.equal(result.SQLITE_FILE, path.join(path.resolve(dataDir), "storage.sqlite"));
+    assert.equal(result.DB_BACKUPS_DIR, path.join(path.resolve(dataDir), "db_backups"));
   } finally {
     removePath(dataDir);
   }
@@ -449,7 +493,7 @@ test(
     const fakeHome = makeTempDir("omniroute-home-");
 
     try {
-      await withEnv(
+      const result = runCoreProbe(
         {
           DATA_DIR: undefined,
           XDG_CONFIG_HOME: undefined,
@@ -457,17 +501,15 @@ test(
           USERPROFILE: fakeHome,
           APPDATA: undefined,
         },
-        async () => {
-          const core = await importFresh("src/lib/db/core.ts");
-          const expectedDir =
-            process.platform === "win32"
-              ? path.join(fakeHome, "AppData", "Roaming", "omniroute")
-              : path.join(fakeHome, ".omniroute");
-
-          assert.equal(core.DATA_DIR, expectedDir);
-          assert.equal(core.SQLITE_FILE, path.join(expectedDir, "storage.sqlite"));
-        }
+        `return { DATA_DIR: core.DATA_DIR, SQLITE_FILE: core.SQLITE_FILE };`
       );
+      const expectedDir =
+        process.platform === "win32"
+          ? path.join(fakeHome, "AppData", "Roaming", "omniroute")
+          : path.join(fakeHome, ".omniroute");
+
+      assert.equal(result.DATA_DIR, expectedDir);
+      assert.equal(result.SQLITE_FILE, path.join(expectedDir, "storage.sqlite"));
     } finally {
       removePath(fakeHome);
     }
@@ -478,29 +520,21 @@ test("build phase uses an in-memory database without creating sqlite files", ser
   const dataDir = makeTempDir("omniroute-db-build-");
 
   try {
-    await withEnv(
+    const result = runCoreProbe(
       {
         DATA_DIR: dataDir,
         NEXT_PHASE: "phase-production-build",
       },
-      async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
-
-        assert.ok(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("provider_connections")
-        );
-        assert.equal(fs.existsSync(path.join(dataDir, "storage.sqlite")), false);
-        assert.equal(
-          (db.query("PRAGMA journal_mode").get() as { journal_mode: string }).journal_mode,
-          "memory"
-        );
-
-        core.resetDbInstance();
-      }
+      `const db = core.getDbInstance();
+       const hasProviderConnections = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get("provider_connections");
+       const journalMode = db.query("PRAGMA journal_mode").get().journal_mode;
+       core.resetDbInstance();
+       return { hasProviderConnections, journalMode };`
     );
+
+    assert.equal(result.hasProviderConnections, true);
+    assert.equal(fs.existsSync(path.join(dataDir, "storage.sqlite")), false);
+    assert.equal(result.journalMode, "memory");
   } finally {
     removePath(dataDir);
   }
@@ -535,25 +569,18 @@ test(
     createLegacySchemaDb(sqliteFile);
 
     try {
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
+      const result = runCoreProbe(
+        { DATA_DIR: dataDir },
+        `const db = core.getDbInstance();
+         const hasMigrations = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get("_omniroute_migrations");
+         const hasLegacySchema = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get("schema_migrations");
+         core.resetDbInstance();
+         return { hasMigrations, hasLegacySchema };`
+      );
 
-        assert.equal(fs.existsSync(`${sqliteFile}.old-schema`), true);
-        assert.ok(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("_omniroute_migrations")
-        );
-        assert.equal(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("schema_migrations"),
-          undefined
-        );
-
-        core.resetDbInstance();
-      });
+      assert.equal(fs.existsSync(`${sqliteFile}.old-schema`), true);
+      assert.equal(result.hasMigrations, true);
+      assert.equal(result.hasLegacySchema, null);
     } finally {
       removePath(dataDir);
     }
@@ -569,35 +596,21 @@ test(
     createLegacySchemaDb(sqliteFile, { withData: true });
 
     try {
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
+      const result = runCoreProbe(
+        { DATA_DIR: dataDir },
+        `const db = core.getDbInstance();
+         const connection = db.prepare("SELECT id, provider FROM provider_connections WHERE id = ?").get("legacy-openai");
+         const schemaMigrations = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?").get("schema_migrations");
+         const hasRateLimitProtection = !!db.prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?").get("rate_limit_protection");
+         const hasLastUsedAt = !!db.prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?").get("last_used_at");
+         core.resetDbInstance();
+         return { connection, schemaMigrations, hasRateLimitProtection, hasLastUsedAt };`
+      );
 
-        assert.deepEqual(
-          db
-            .prepare("SELECT id, provider FROM provider_connections WHERE id = ?")
-            .get("legacy-openai"),
-          { id: "legacy-openai", provider: "openai" }
-        );
-        assert.equal(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
-            .get("schema_migrations"),
-          undefined
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
-            .get("rate_limit_protection")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('provider_connections') WHERE name = ?")
-            .get("last_used_at")
-        );
-
-        core.resetDbInstance();
-      });
+      assert.deepEqual(result.connection, { id: "legacy-openai", provider: "openai" });
+      assert.equal(result.schemaMigrations, null);
+      assert.equal(result.hasRateLimitProtection, true);
+      assert.equal(result.hasLastUsedAt, true);
     } finally {
       removePath(dataDir);
     }
@@ -613,48 +626,27 @@ test(
     createLegacyCallLogsDb(sqliteFile);
 
     try {
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
+      const result = runCoreProbe(
+        { DATA_DIR: dataDir },
+        `const db = core.getDbInstance();
+         const hasRequestedModel = !!db.prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?").get("requested_model");
+         const hasRequestType = !!db.prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?").get("request_type");
+         const hasComboStepId = !!db.prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?").get("combo_step_id");
+         const hasComboExecutionKey = !!db.prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?").get("combo_execution_key");
+         const hasRequestedModelIndex = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?").get("idx_call_logs_requested_model");
+         const hasRequestTypeIndex = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?").get("idx_call_logs_request_type");
+         const hasComboTargetIndex = !!db.prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?").get("idx_cl_combo_target");
+         core.resetDbInstance();
+         return { hasRequestedModel, hasRequestType, hasComboStepId, hasComboExecutionKey, hasRequestedModelIndex, hasRequestTypeIndex, hasComboTargetIndex };`
+      );
 
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
-            .get("requested_model")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
-            .get("request_type")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
-            .get("combo_step_id")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM pragma_table_info('call_logs') WHERE name = ?")
-            .get("combo_execution_key")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
-            .get("idx_call_logs_requested_model")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
-            .get("idx_call_logs_request_type")
-        );
-        assert.ok(
-          db
-            .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
-            .get("idx_cl_combo_target")
-        );
-
-        core.resetDbInstance();
-      });
+      assert.equal(result.hasRequestedModel, true);
+      assert.equal(result.hasRequestType, true);
+      assert.equal(result.hasComboStepId, true);
+      assert.equal(result.hasComboExecutionKey, true);
+      assert.equal(result.hasRequestedModelIndex, true);
+      assert.equal(result.hasRequestTypeIndex, true);
+      assert.equal(result.hasComboTargetIndex, true);
     } finally {
       removePath(dataDir);
     }
@@ -704,32 +696,27 @@ test(
     seedDb.close();
 
     try {
-      await withEnv({ DATA_DIR: dataDir, DISABLE_SQLITE_AUTO_BACKUP: "true" }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
+      const result = runCoreProbe(
+        { DATA_DIR: dataDir, DISABLE_SQLITE_AUTO_BACKUP: "true" },
+        `const db = core.getDbInstance();
+         const has022 = !!db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("022");
+         const has023 = !!db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023");
+         const has026 = !!db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026");
+         const stale022 = db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?").get("022", "call_logs_cache_source");
+         const memoryIdRow = db.prepare("SELECT memory_id FROM memories").get();
+         const ftsRow = db.prepare("SELECT rowid, content FROM memory_fts").get();
+         core.resetDbInstance();
+         return { has022, has023, has026, stale022, memoryIdRow, ftsRow };`
+      );
 
-        assert.ok(
-          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("022")
-        );
-        assert.ok(
-          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("023")
-        );
-        assert.ok(
-          db.prepare("SELECT version FROM _omniroute_migrations WHERE version = ?").get("026")
-        );
-        assert.equal(
-          db
-            .prepare("SELECT version FROM _omniroute_migrations WHERE version = ? AND name = ?")
-            .get("022", "call_logs_cache_source"),
-          undefined
-        );
-        assert.deepEqual(db.prepare("SELECT memory_id FROM memories").get(), { memory_id: 1 });
-        assert.deepEqual(db.prepare("SELECT rowid, content FROM memory_fts").get(), {
-          rowid: 1,
-          content: "memory content",
-        });
-
-        core.resetDbInstance();
+      assert.equal(result.has022, true);
+      assert.equal(result.has023, true);
+      assert.equal(result.has026, true);
+      assert.equal(result.stale022, null);
+      assert.deepEqual(result.memoryIdRow, { memory_id: 1 });
+      assert.deepEqual(result.ftsRow, {
+        rowid: 1,
+        content: "memory content",
       });
     } finally {
       removePath(dataDir);
@@ -745,50 +732,42 @@ test(
     const sqliteFile = path.join(dataDir, "storage.sqlite");
     createRecoverableDb(sqliteFile);
 
-    const originalPrepare = Database.prototype.prepare;
-
     try {
-      Database.prototype.prepare = function patchedPrepare(sql, ...args) {
-        if (String(sql).includes("schema_migrations")) {
-          throw new Error("forced probe failure");
-        }
-        return originalPrepare.call(this, sql, ...args);
-      };
+      const result = runCoreProbe(
+        { DATA_DIR: dataDir },
+        `const originalPrepare = Database.prototype.prepare;
+         try {
+           Database.prototype.prepare = function patchedPrepare(sql, ...args) {
+             if (String(sql).includes("schema_migrations")) {
+               throw new Error("forced probe failure");
+             }
+             return originalPrepare.call(this, sql, ...args);
+           };
+           const db = core.getDbInstance();
+           return {
+             connection: db.prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?").get("recover-openai"),
+             node: db.prepare("SELECT id, name FROM provider_nodes WHERE id = ?").get("recover-node"),
+             combo: db.prepare("SELECT id, name FROM combos WHERE id = ?").get("recover-combo"),
+             apiKey: db.prepare("SELECT id, name, no_log FROM api_keys WHERE id = ?").get("recover-key"),
+             fallback: db.prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?").get("globalFallbackModel")
+           };
+         } finally {
+           Database.prototype.prepare = originalPrepare;
+           core.resetDbInstance();
+         }`
+      );
 
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
-        const db = core.getDbInstance();
-
-        assert.deepEqual(
-          db
-            .prepare("SELECT id, provider, name FROM provider_connections WHERE id = ?")
-            .get("recover-openai"),
-          { id: "recover-openai", provider: "openai", name: "Recover Me" }
-        );
-        assert.deepEqual(
-          db.prepare("SELECT id, name FROM provider_nodes WHERE id = ?").get("recover-node"),
-          { id: "recover-node", name: "Recover Node" }
-        );
-        assert.deepEqual(
-          db.prepare("SELECT id, name FROM combos WHERE id = ?").get("recover-combo"),
-          { id: "recover-combo", name: "Recover Combo" }
-        );
-        assert.deepEqual(
-          db.prepare("SELECT id, name, no_log FROM api_keys WHERE id = ?").get("recover-key"),
-          { id: "recover-key", name: "Recover Key", no_log: 1 }
-        );
-        assert.deepEqual(
-          db
-            .prepare("SELECT value FROM key_value WHERE namespace = 'settings' AND key = ?")
-            .get("globalFallbackModel"),
-          { value: JSON.stringify("openai/gpt-4o-mini") }
-        );
-        assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
-
-        core.resetDbInstance();
+      assert.deepEqual(result.connection, {
+        id: "recover-openai",
+        provider: "openai",
+        name: "Recover Me",
       });
+      assert.deepEqual(result.node, { id: "recover-node", name: "Recover Node" });
+      assert.deepEqual(result.combo, { id: "recover-combo", name: "Recover Combo" });
+      assert.deepEqual(result.apiKey, { id: "recover-key", name: "Recover Key", no_log: 1 });
+      assert.deepEqual(result.fallback, { value: JSON.stringify("openai/gpt-4o-mini") });
+      assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
     } finally {
-      Database.prototype.prepare = originalPrepare;
       removePath(dataDir);
     }
   }
@@ -803,21 +782,24 @@ test(
     fs.writeFileSync(sqliteFile, "not-a-valid-sqlite-database");
 
     try {
-      await withEnv({ DATA_DIR: dataDir }, async () => {
-        const core = await importFresh("src/lib/db/core.ts");
+      const first = runCoreProbeRaw(
+        { DATA_DIR: dataDir },
+        `core.getDbInstance();
+         return "unreachable";`
+      );
+      assert.equal(first.ok, false);
+      assert.match(first.error, /Manual recovery required after probe failure/i);
+      assert.equal(fs.existsSync(sqliteFile), false);
+      assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
 
-        assert.throws(() => core.getDbInstance(), /Manual recovery required after probe failure/i);
-        assert.equal(fs.existsSync(sqliteFile), false);
-        assert.equal(listProbeFailedBackups(sqliteFile).length >= 1, true);
-
-        const restartedCore = await importFresh("src/lib/db/core.ts");
-        assert.throws(
-          () => restartedCore.getDbInstance(),
-          /Manual recovery required before startup/i
-        );
-        assert.equal(fs.existsSync(sqliteFile), false);
-        core.resetDbInstance();
-      });
+      const second = runCoreProbeRaw(
+        { DATA_DIR: dataDir },
+        `core.getDbInstance();
+         return "unreachable";`
+      );
+      assert.equal(second.ok, false);
+      assert.match(second.error, /Manual recovery required before startup/i);
+      assert.equal(fs.existsSync(sqliteFile), false);
     } finally {
       removePath(dataDir);
     }
