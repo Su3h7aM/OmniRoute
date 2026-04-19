@@ -113,6 +113,7 @@ test("restoreDbBackup restores SQLite contents and returns entity counts", async
 
   const backupId = "db_2002-01-01T00-00-00-000Z_manual.sqlite";
   fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
+  core.getDbInstance().run("PRAGMA wal_checkpoint(TRUNCATE)");
   fs.copyFileSync(core.SQLITE_FILE, path.join(core.DB_BACKUPS_DIR, backupId));
 
   core
