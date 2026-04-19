@@ -37,16 +37,22 @@ function MiniBarGraph({
 	colorClass?: string;
 }) {
 	const max = Math.max(...data, 1);
+	const recentData = data.slice(-9);
+	const valueCounts = new Map<number, number>();
 	return (
 		<div className="flex items-end gap-1 h-8 w-24">
-			{data.slice(-9).map((val, idx) => (
-				<div
-					key={`bar-${idx}-${val}`}
-					className={`flex-1 rounded-t-sm transition-all duration-500 ${colorClass}`}
-					style={{ height: `${Math.max((val / max) * 100, 5)}%` }}
-					title={String(val)}
-				/>
-			))}
+			{recentData.map((val) => {
+				const occurrence = (valueCounts.get(val) || 0) + 1;
+				valueCounts.set(val, occurrence);
+				return (
+					<div
+						key={`${val}-${occurrence}`}
+						className={`flex-1 rounded-t-sm transition-all duration-500 ${colorClass}`}
+						style={{ height: `${Math.max((val / max) * 100, 5)}%` }}
+						title={String(val)}
+					/>
+				);
+			})}
 		</div>
 	);
 }

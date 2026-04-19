@@ -38,7 +38,7 @@ export default function ManualConfigModal({ isOpen, onClose, title, configs = []
 		<Modal isOpen={isOpen} onClose={onClose} title={resolvedTitle} size="xl">
 			<div className="flex flex-col gap-4">
 				{configs.map((config, index) => (
-					<div key={index} className="flex flex-col gap-2">
+					<div key={config.filename || config.content} className="flex flex-col gap-2">
 						<div className="flex items-center justify-between">
 							<span className="text-sm font-medium text-text-main">
 								{config.filename}

@@ -69,22 +69,26 @@ export default function Tooltip({
 	const describedById = content ? tooltipId : undefined;
 	const trigger = isValidElement(children) ? (
 		(() => {
-			const child = children as ReactElement<AriaDescribedElement>;
+			const child = children as ReactElement<AriaDescribedElement & Record<string, unknown>>;
 			const existingDescribedBy = child.props["aria-describedby"];
 			const mergedDescribedBy = [existingDescribedBy, describedById]
 				.filter(Boolean)
 				.join(" ");
 			return cloneElement(child, {
 				"aria-describedby": mergedDescribedBy || undefined,
+				onMouseEnter: show,
+				onMouseLeave: hide,
+				onFocus: show,
+				onBlur: hide,
+				onKeyDown: (event: KeyboardEvent) => {
+					if (event.key === "Escape") hide();
+				},
 			});
 		})()
 	) : (
-		<span aria-describedby={describedById}>{children}</span>
-	);
-
-	return (
-		<span
-			className={`relative inline-flex ${className}`}
+		<button
+			type="button"
+			aria-describedby={describedById}
 			onMouseEnter={show}
 			onMouseLeave={hide}
 			onFocus={show}
@@ -93,6 +97,12 @@ export default function Tooltip({
 				if (event.key === "Escape") hide();
 			}}
 		>
+			{children}
+		</button>
+	);
+
+	return (
+		<span className={`relative inline-flex ${className}`}>
 			{trigger}
 			{visible && content && (
 				<span

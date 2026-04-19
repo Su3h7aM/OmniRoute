@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { getDefaultPricing } from "@/shared/constants/pricing";
 
@@ -10,13 +10,7 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 
-	useEffect(() => {
-		if (isOpen) {
-			loadPricing();
-		}
-	}, [isOpen, loadPricing]);
-
-	const loadPricing = async () => {
+	const loadPricing = useCallback(async () => {
 		setLoading(true);
 		try {
 			const response = await fetch("/api/pricing");
@@ -35,7 +29,13 @@ export default function PricingModal({ isOpen, onClose, onSave }) {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (isOpen) {
+			loadPricing();
+		}
+	}, [isOpen, loadPricing]);
 
 	const handlePricingChange = (provider, model, field, value) => {
 		const numValue = parseFloat(value);

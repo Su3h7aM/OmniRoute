@@ -141,16 +141,17 @@ export default function RequestLoggerDetail({ log, detail, loading, onClose, onC
 	return (
 		<div
 			className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh]"
-			onClick={onClose}
 			role="dialog"
 			aria-modal="true"
 			aria-label="Request log detail"
 		>
-			<div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-			<div
-				className="relative bg-bg-primary border border-border rounded-xl w-full max-w-[900px] max-h-[90vh] overflow-y-auto shadow-2xl"
-				onClick={(e) => e.stopPropagation()}
-			>
+			<button
+				type="button"
+				className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+				onClick={onClose}
+				aria-label="Close detail modal"
+			/>
+			<div className="relative bg-bg-primary border border-border rounded-xl w-full max-w-[900px] max-h-[90vh] overflow-y-auto shadow-2xl">
 				{/* Modal Header */}
 				<div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
 					<div className="flex items-center gap-3">

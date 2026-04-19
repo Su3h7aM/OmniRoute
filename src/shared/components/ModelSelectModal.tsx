@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { useTranslations } from "next-intl";
 import Modal from "./Modal";
@@ -35,7 +35,7 @@ export default function ModelSelectModal({
 	const [providerNodes, setProviderNodes] = useState<any[]>([]);
 	const [customModels, setCustomModels] = useState<Record<string, any>>({});
 
-	const fetchCombos = async () => {
+	const fetchCombos = useCallback(async () => {
 		try {
 			const res = await fetch("/api/combos");
 			if (!res.ok) throw new Error(`Failed to fetch combos: ${res.status}`);
@@ -45,13 +45,13 @@ export default function ModelSelectModal({
 			console.error("Error fetching combos:", error);
 			setCombos([]);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isOpen) fetchCombos();
 	}, [isOpen, fetchCombos]);
 
-	const fetchProviderNodes = async () => {
+	const fetchProviderNodes = useCallback(async () => {
 		try {
 			const res = await fetch("/api/provider-nodes");
 			if (!res.ok) throw new Error(`Failed to fetch provider nodes: ${res.status}`);
@@ -61,13 +61,13 @@ export default function ModelSelectModal({
 			console.error("Error fetching provider nodes:", error);
 			setProviderNodes([]);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isOpen) fetchProviderNodes();
 	}, [isOpen, fetchProviderNodes]);
 
-	const fetchCustomModels = async () => {
+	const fetchCustomModels = useCallback(async () => {
 		try {
 			const res = await fetch("/api/provider-models");
 			if (!res.ok) throw new Error(`Failed to fetch custom models: ${res.status}`);
@@ -77,7 +77,7 @@ export default function ModelSelectModal({
 			console.error("Error fetching custom models:", error);
 			setCustomModels({});
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		if (isOpen) fetchCustomModels();

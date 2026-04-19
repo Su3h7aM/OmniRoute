@@ -46,15 +46,15 @@ export default function TokenHealthBadge() {
 	const status = STATUS_MAP[health.status] || STATUS_MAP.unknown;
 
 	return (
-		<div
-			className="relative"
-			onMouseEnter={() => setShowTooltip(true)}
-			onMouseLeave={() => setShowTooltip(false)}
-		>
+		<div className="relative">
 			<button
 				type="button"
 				className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-surface/30 transition-colors"
 				title={status.tooltip}
+				onMouseEnter={() => setShowTooltip(true)}
+				onMouseLeave={() => setShowTooltip(false)}
+				onFocus={() => setShowTooltip(true)}
+				onBlur={() => setShowTooltip(false)}
 			>
 				<span
 					className="material-symbols-outlined text-[18px]"

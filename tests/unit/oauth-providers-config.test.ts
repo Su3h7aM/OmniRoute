@@ -492,23 +492,23 @@ test("Qoder enabled mode exchanges tokens and loads profile metadata through moc
 		},
 	});
 
-	try {
-		useFetchSequence([
-			jsonResponse({
-				access_token: "qoder-access",
-				refresh_token: "qoder-refresh",
-				expires_in: 1800,
-			}),
-			jsonResponse({
-				success: true,
-				data: {
-					apiKey: "qoder-api-key",
-					email: "qoder@example.com",
-					nickname: "Qoder User",
-				},
-			}),
-		]);
+	useFetchSequence([
+		jsonResponse({
+			access_token: "qoder-access",
+			refresh_token: "qoder-refresh",
+			expires_in: 1800,
+		}),
+		jsonResponse({
+			success: true,
+			data: {
+				apiKey: "qoder-api-key",
+				email: "qoder@example.com",
+				nickname: "Qoder User",
+			},
+		}),
+	]);
 
+	try {
 		const authUrl = PROVIDERS.qoder.buildAuthUrl(
 			qoderConfig,
 			"http://localhost/callback",

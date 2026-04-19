@@ -51,8 +51,11 @@ function DarkTooltip({
 	return (
 		<div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
 			{label && <div className="font-semibold text-text-main mb-1">{label}</div>}
-			{payload.map((entry, i) => (
-				<div key={i} className="flex items-center gap-1.5 text-text-muted">
+			{payload.map((entry) => (
+				<div
+					key={entry.dataKey || entry.name || entry.color}
+					className="flex items-center gap-1.5 text-text-muted"
+				>
 					<span
 						className="w-2 h-2 rounded-full shrink-0"
 						style={{ backgroundColor: entry.color }}
@@ -127,7 +130,7 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
 		<Card className="px-5 py-4">
 			<div className="flex flex-col gap-3">
 				{sections.map((section, si) => (
-					<div key={si}>
+					<div key={section.title}>
 						{si > 0 && (
 							<div className="border-t border-black/[0.06] dark:border-white/[0.06] mb-3" />
 						)}
@@ -141,9 +144,9 @@ export function CompactStatGrid({ sections }: { sections: CompactStatSection[] }
 									: "grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-2"
 							}
 						>
-							{section.items.map((stat, i) => (
+							{section.items.map((stat) => (
 								<div
-									key={i}
+									key={`${section.title}-${stat.label}`}
 									className="flex items-center justify-between gap-2 min-w-0 py-0.5"
 								>
 									<div
@@ -279,7 +282,7 @@ export function ActivityHeatmap({ activityMap }) {
 					<div className="flex gap-[3px] mb-1 ml-6" style={{ fontSize: "10px" }}>
 						{monthLabels.map((m, i) => (
 							<span
-								key={i}
+								key={`${m.label}-${m.weekIdx}`}
 								className="text-text-muted"
 								style={{
 									position: "relative",
@@ -304,10 +307,13 @@ export function ActivityHeatmap({ activityMap }) {
 						</div>
 
 						{weeks.map((week, wi) => (
-							<div key={wi} className="flex flex-col gap-[3px]">
+							<div
+								key={`week-${week[0]?.date || wi}`}
+								className="flex flex-col gap-[3px]"
+							>
 								{week.map((day, di) => (
 									<div
-										key={di}
+										key={day?.date || `empty-${wi}-${di}`}
 										title={
 											day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""
 										}
@@ -451,8 +457,11 @@ function CostTooltip({
 	return (
 		<div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
 			{label && <div className="font-semibold text-text-main mb-1">{label}</div>}
-			{payload.map((entry, i) => (
-				<div key={i} className="flex items-center gap-1.5 text-text-muted">
+			{payload.map((entry) => (
+				<div
+					key={entry.dataKey || entry.name || entry.color}
+					className="flex items-center gap-1.5 text-text-muted"
+				>
 					<span
 						className="w-2 h-2 rounded-full shrink-0"
 						style={{ backgroundColor: entry.color }}
@@ -511,16 +520,19 @@ export function AccountDonut({ byAccount }) {
 							paddingAngle={1}
 							animationDuration={600}
 						>
-							{pieData.map((entry, i) => (
-								<Cell key={i} fill={entry.fill} stroke="none" />
+							{pieData.map((entry) => (
+								<Cell key={entry.name} fill={entry.fill} stroke="none" />
 							))}
 						</Pie>
 						<Tooltip content={<DarkTooltip formatter={fmt} />} />
 					</PieChart>
 				</ResponsiveContainer>
 				<div className="flex flex-col gap-1 min-w-0 flex-1">
-					{pieData.map((seg, i) => (
-						<div key={i} className="flex items-center justify-between gap-2 text-xs">
+					{pieData.map((seg) => (
+						<div
+							key={seg.name}
+							className="flex items-center justify-between gap-2 text-xs"
+						>
 							<div className="flex items-center gap-1.5 min-w-0">
 								<span
 									className="w-2 h-2 rounded-full shrink-0"
@@ -584,17 +596,17 @@ export function ApiKeyDonut({ byApiKey }) {
 							paddingAngle={1}
 							animationDuration={600}
 						>
-							{pieData.map((entry, i) => (
-								<Cell key={i} fill={entry.fill} stroke="none" />
+							{pieData.map((entry) => (
+								<Cell key={entry.fullName} fill={entry.fill} stroke="none" />
 							))}
 						</Pie>
 						<Tooltip content={<DarkTooltip formatter={fmt} />} />
 					</PieChart>
 				</ResponsiveContainer>
 				<div className="flex flex-col gap-1 min-w-0 flex-1">
-					{pieData.map((seg, i) => (
+					{pieData.map((seg) => (
 						<div
-							key={`${seg.fullName}-${i}`}
+							key={seg.fullName}
 							className="flex items-center justify-between gap-2 text-xs"
 						>
 							<div className="flex items-center gap-1.5 min-w-0">
@@ -752,9 +764,9 @@ export function ApiKeyTable({ byApiKey }) {
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-border">
-						{sorted.map((row, i) => (
+						{sorted.map((row) => (
 							<tr
-								key={`${row.apiKeyId || row.apiKeyName || "key"}-${i}`}
+								key={row.apiKeyId || row.apiKeyName || "key"}
 								className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
 							>
 								<td className="px-4 py-2.5">
@@ -1162,8 +1174,8 @@ export function UsageDetail({ summary }) {
 				Usage Detail
 			</h3>
 			<div className="flex flex-col gap-2">
-				{items.map((item, i) => (
-					<div key={i} className="flex items-center justify-between">
+				{items.map((item) => (
+					<div key={item.label} className="flex items-center justify-between">
 						<span className={`text-sm ${item.color}`}>{item.label}</span>
 						<span className="font-mono font-medium text-sm">{fmtFull(item.value)}</span>
 					</div>
@@ -1234,16 +1246,19 @@ export function ProviderCostDonut({ byProvider }) {
 							paddingAngle={1}
 							animationDuration={600}
 						>
-							{pieData.map((entry, i) => (
-								<Cell key={i} fill={entry.fill} stroke="none" />
+							{pieData.map((entry) => (
+								<Cell key={entry.name} fill={entry.fill} stroke="none" />
 							))}
 						</Pie>
 						<Tooltip content={<DarkTooltip formatter={fmtCost} />} />
 					</PieChart>
 				</ResponsiveContainer>
 				<div className="flex flex-col gap-1 min-w-0 flex-1">
-					{pieData.map((seg, i) => (
-						<div key={i} className="flex items-center justify-between gap-2 text-xs">
+					{pieData.map((seg) => (
+						<div
+							key={seg.name}
+							className="flex items-center justify-between gap-2 text-xs"
+						>
 							<div className="flex items-center gap-1.5 min-w-0">
 								<span
 									className="w-2 h-2 rounded-full shrink-0"

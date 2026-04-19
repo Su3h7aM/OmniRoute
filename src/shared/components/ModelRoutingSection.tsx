@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { useTranslations } from "next-intl";
 
 export interface ModelMapping {
@@ -33,7 +33,12 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 	const [priority, setPriority] = useState(0);
 	const [description, setDescription] = useState("");
 
-	const loadMappings = async () => {
+	const patternInputId = useId();
+	const comboSelectId = useId();
+	const priorityInputId = useId();
+	const descriptionInputId = useId();
+
+	const loadMappings = useCallback(async () => {
 		try {
 			const res = await fetch("/api/model-combo-mappings");
 			if (res.ok) {
@@ -42,7 +47,7 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 			}
 		} catch {}
 		return [];
-	};
+	}, []);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -182,10 +187,14 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 				<div className="mt-3 p-3 rounded-lg border border-primary/20 bg-primary/[0.03] dark:bg-primary/[0.06]">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 						<div>
-							<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+							<label
+								htmlFor={patternInputId}
+								className="text-[10px] font-medium text-text-muted uppercase tracking-wider"
+							>
 								{t("pattern")}
 							</label>
 							<input
+								id={patternInputId}
 								value={pattern}
 								onChange={(e) => setPattern(e.target.value)}
 								placeholder="claude-sonnet*"
@@ -195,10 +204,14 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 							<p className="text-[9px] text-text-muted mt-0.5">{t("patternHint")}</p>
 						</div>
 						<div>
-							<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+							<label
+								htmlFor={comboSelectId}
+								className="text-[10px] font-medium text-text-muted uppercase tracking-wider"
+							>
 								{t("routeToCombo")}
 							</label>
 							<select
+								id={comboSelectId}
 								value={comboId}
 								onChange={(e) => setComboId(e.target.value)}
 								className="w-full mt-0.5 px-2.5 py-1.5 text-xs rounded-lg border border-black/10 dark:border-white/10
@@ -213,10 +226,14 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 							</select>
 						</div>
 						<div>
-							<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+							<label
+								htmlFor={priorityInputId}
+								className="text-[10px] font-medium text-text-muted uppercase tracking-wider"
+							>
 								{t("priority")}
 							</label>
 							<input
+								id={priorityInputId}
 								type="number"
 								value={priority}
 								onChange={(e) => setPriority(Number(e.target.value))}
@@ -226,10 +243,14 @@ export default function ModelRoutingSection({ combos: externalCombos }: { combos
 							<p className="text-[9px] text-text-muted mt-0.5">{t("priorityHint")}</p>
 						</div>
 						<div>
-							<label className="text-[10px] font-medium text-text-muted uppercase tracking-wider">
+							<label
+								htmlFor={descriptionInputId}
+								className="text-[10px] font-medium text-text-muted uppercase tracking-wider"
+							>
 								{t("description")}
 							</label>
 							<input
+								id={descriptionInputId}
 								value={description}
 								onChange={(e) => setDescription(e.target.value)}
 								placeholder="Route Opus models to frontier combo"
