@@ -425,9 +425,11 @@ export default function EvalsTab() {
 								key={suite.id}
 								className="border border-border/30 rounded-lg overflow-hidden"
 							>
-								<div
-									className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface/30 transition-colors"
+								<button
+									type="button"
+									className="flex w-full items-center justify-between px-4 py-3 cursor-pointer hover:bg-surface/30 transition-colors text-left"
 									onClick={() => setExpanded(isExpanded ? null : suite.id)}
+									aria-expanded={isExpanded}
 								>
 									<div className="flex items-center gap-3">
 										<span className="material-symbols-outlined text-[16px] text-text-muted">
@@ -509,7 +511,7 @@ export default function EvalsTab() {
 												: t("runEval")}
 										</Button>
 									</div>
-								</div>
+								</button>
 
 								{isExpanded && (
 									<div className="border-t border-border/20 p-4">
