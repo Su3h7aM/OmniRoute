@@ -2070,9 +2070,7 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders }) {
 			? builderStageChecks.basics
 			: builderStage === "steps"
 				? builderStageChecks.steps
-				: builderStage === "intelligent"
-					? true
-					: true;
+				: true;
 	const currentStageIndex = visibleStageMeta.findIndex(
 		(stageMeta) => stageMeta.id === builderStage
 	);
