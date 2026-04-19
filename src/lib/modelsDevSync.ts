@@ -863,3 +863,16 @@ export function getModelContextLimit(provider: string, modelId: string): number 
   const caps = getSyncedCapabilities(provider, modelId);
   return caps[provider]?.[modelId]?.limit_context ?? null;
 }
+
+export function resetModelsDevSyncStateForTests(): void {
+  stopPeriodicSync();
+  cachedData = null;
+  cacheTime = 0;
+  cachedCapabilities = null;
+  cachedCapabilitiesLoadedAll = false;
+  lastSyncTime = null;
+  lastSyncModelCount = 0;
+  lastSyncCapabilityCount = 0;
+  activeSyncIntervalMs = SYNC_INTERVAL_MS;
+  activeSyncPromise = null;
+}

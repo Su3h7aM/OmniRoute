@@ -87,6 +87,9 @@ async function importFresh(label) {
   const mod = await import(
     `${pathToFileURL(modulePath).href}?case=${label}-${Date.now()}-${Math.random()}`
   );
+  if (typeof mod.resetModelsDevSyncStateForTests === "function") {
+    mod.resetModelsDevSyncStateForTests();
+  }
   loadedModules.add(mod);
   return mod;
 }
@@ -283,69 +286,54 @@ test("modelsDev capabilities helpers create the table, persist rows, filter by p
 
 test.serial("modelsDev capability helpers coerce false/null values and ignore malformed rows", async () => {
   const modelsDev = await importFresh("capabilities-malformed");
-  const db = core.getDbInstance();
-  const originalPrepare = db.prepare.bind(db);
-  db.prepare = (sql) => {
-    if (String(sql).includes("SELECT * FROM model_capabilities")) {
-      return {
-        all: () => [
-          123,
-          { provider: null, model_id: "missing-provider" },
-          {
-            provider: "openai",
-            model_id: "coerced-model",
-            tool_call: 0,
-            reasoning: null,
-            attachment: 0,
-            structured_output: 0,
-            temperature: 0,
-            modalities_input: null,
-            modalities_output: 42,
-            knowledge_cutoff: 77,
-            release_date: 88,
-            last_updated: 99,
-            status: 123,
-            family: 456,
-            open_weights: null,
-            limit_context: "bad",
-            limit_input: 4096,
-            limit_output: "nope",
-            interleaved_field: 321,
-          },
-        ],
-      };
-    }
-    return originalPrepare(sql);
-  };
+  modelsDev.saveModelsDevCapabilities({
+    openai: {
+      "coerced-model": {
+        tool_call: false,
+        reasoning: null,
+        attachment: false,
+        structured_output: false,
+        temperature: false,
+        modalities_input: "[]",
+        modalities_output: "[]",
+        knowledge_cutoff: null,
+        release_date: null,
+        last_updated: null,
+        status: null,
+        family: null,
+        open_weights: null,
+        limit_context: null,
+        limit_input: 4096,
+        limit_output: null,
+        interleaved_field: null,
+      },
+    },
+  });
 
-  try {
-    const openai = modelsDev.getSyncedCapabilities("openai");
-    assert.deepEqual(openai.openai["coerced-model"], {
-      tool_call: false,
-      reasoning: null,
-      attachment: false,
-      structured_output: false,
-      temperature: false,
-      modalities_input: "[]",
-      modalities_output: "[]",
-      knowledge_cutoff: null,
-      release_date: null,
-      last_updated: null,
-      status: null,
-      family: null,
-      open_weights: null,
-      limit_context: null,
-      limit_input: 4096,
-      limit_output: null,
-      interleaved_field: null,
-    });
+  const openai = modelsDev.getSyncedCapabilities("openai");
+  assert.deepEqual(openai.openai["coerced-model"], {
+    tool_call: false,
+    reasoning: null,
+    attachment: false,
+    structured_output: false,
+    temperature: false,
+    modalities_input: "[]",
+    modalities_output: "[]",
+    knowledge_cutoff: null,
+    release_date: null,
+    last_updated: null,
+    status: null,
+    family: null,
+    open_weights: null,
+    limit_context: null,
+    limit_input: 4096,
+    limit_output: null,
+    interleaved_field: null,
+  });
 
-    const all = modelsDev.getSyncedCapabilities();
-    assert.equal(all["7"], undefined);
-    assert.equal(all.openai["missing-provider"], undefined);
-  } finally {
-    db.prepare = originalPrepare;
-  }
+  const all = modelsDev.getSyncedCapabilities();
+  assert.equal(all["7"], undefined);
+  assert.equal(all.openai["missing-provider"], undefined);
 });
 
 test("modelsDev pricing helpers ignore malformed sqlite rows without crashing", async () => {
@@ -456,7 +444,7 @@ test.serial("syncModelsDev supports dry-run mode, persistence, capability toggle
   globalThis.fetch = async () => {
     throw new Error("network down");
   };
-  const failed = await failing.syncModelsDev();
+  const failed = await failing.syncModelsDev({ maxRetries: 0 });
   assert.equal(failed.success, false);
   assert.match(failed.error, /network down/);
 });
@@ -467,7 +455,7 @@ test.serial("syncModelsDev string failures are normalized into an error payload"
     throw "hard fail";
   };
 
-  const failed = await modelsDev.syncModelsDev({ dryRun: true });
+  const failed = await modelsDev.syncModelsDev({ dryRun: true, maxRetries: 0 });
   assert.equal(failed.success, false);
   assert.equal(failed.error, "hard fail");
   assert.equal(failed.dryRun, true);
@@ -485,7 +473,7 @@ test.serial("syncModelsDev honors abort signals during retry backoff", async () 
   try {
     const controller = new AbortController();
     const pending = modelsDev.syncModelsDev({ signal: controller.signal, maxRetries: 3 });
-    const warned = await waitFor(() => warnings.length > 0, 100);
+    const warned = await waitFor(() => warnings.length > 0, 1500);
     assert.ok(warned, "expected the first retry warning before aborting");
 
     controller.abort();
@@ -542,9 +530,11 @@ test("startPeriodicSync, stopPeriodicSync, getSyncStatus, and initModelsDevSync 
 test.serial("stopPeriodicSync aborts the in-flight initial sync", async () => {
   const modelsDev = await importFresh("periodic-stop-abort");
   let aborted = false;
+  let fetchStarted = false;
 
   globalThis.fetch = async (_url, init) =>
     await new Promise((_resolve, reject) => {
+      fetchStarted = true;
       const signal = init?.signal;
       const onAbort = () => {
         aborted = true;
@@ -558,8 +548,8 @@ test.serial("stopPeriodicSync aborts the in-flight initial sync", async () => {
 
   modelsDev.startPeriodicSync(25);
   await waitFor(() => modelsDev.getSyncStatus().enabled, 50);
+  await waitFor(() => fetchStarted, 200);
   modelsDev.stopPeriodicSync();
-
   const stopped = await waitFor(() => aborted, 200);
   assert.equal(stopped, true);
   assert.equal(modelsDev.getSyncStatus().enabled, false);

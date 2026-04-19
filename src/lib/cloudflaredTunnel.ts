@@ -1,5 +1,4 @@
-import { spawn, execFile } from "child_process";
-import { promisify } from "util";
+import childProcess from "node:child_process";
 import fs from "fs/promises";
 import fsSync from "fs";
 import path from "path";
@@ -7,7 +6,17 @@ import proxyFetch from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { resolveDataDir } from "@/lib/dataPaths";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 
-const execFileAsync = promisify(execFile);
+function execFileAsync(command: string, args: string[], options?: Record<string, unknown>) {
+  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+    childProcess.execFile(command, args, options as any, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve({ stdout: String(stdout ?? ""), stderr: String(stderr ?? "") });
+    });
+  });
+}
 
 const CLOUDFLARED_RELEASE_BASE =
   "https://github.com/cloudflare/cloudflared/releases/latest/download";
@@ -125,7 +134,7 @@ const CLOUDFLARED_SAFE_ENV_KEYS = [
   "no_proxy",
 ] as const;
 
-let tunnelProcess: ReturnType<typeof spawn> | null = null;
+let tunnelProcess: ReturnType<typeof childProcess.spawn> | null = null;
 let tunnelPid: number | null = null;
 let installPromise: Promise<string> | null = null;
 let startPromise: Promise<CloudflaredTunnelStatus> | null = null;
@@ -709,7 +718,7 @@ export async function startCloudflaredTunnel(): Promise<CloudflaredTunnelStatus>
       startedAt: new Date().toISOString(),
     });
 
-    const child = spawn(binary.binaryPath as string, getCloudflaredStartArgs(targetUrl), {
+    const child = childProcess.spawn(binary.binaryPath as string, getCloudflaredStartArgs(targetUrl), {
       stdio: ["ignore", "pipe", "pipe"],
       env: buildCloudflaredChildEnv(),
     });
