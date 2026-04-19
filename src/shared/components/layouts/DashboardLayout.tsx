@@ -21,7 +21,6 @@ export default function DashboardLayout({ children }) {
 		}
 	});
 
-
 	const handleToggleCollapse = () => {
 		const next = !collapsed;
 		setCollapsed(next);

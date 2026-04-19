@@ -21,7 +21,6 @@
 			"!vscode-extension",
 			"!_references",
 			"!_mono_repo",
-			"!electron",
 			"!docs/i18n",
 			"!open-sse/mcp-server/dist",
 			"!playwright-report",

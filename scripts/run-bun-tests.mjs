@@ -7,8 +7,6 @@ const argv = process.argv.slice(2);
 const cwd = process.cwd();
 
 const deprecatedPatterns = [
-  /(^|\/)tests\/unit\/electron-.*\.test\.(ts|tsx|js|mjs)$/,
-  /(^|\/)tests\/unit\/electron.*\.test\.(ts|tsx|js|mjs)$/,
   /(^|\/)tests\/unit\/cli-runtime-.*\.test\.(ts|tsx|js|mjs)$/,
   /(^|\/)tests\/unit\/cliproxyapi-executor\.test\.(ts|tsx|js|mjs)$/,
   /(^|\/)tests\/unit\/cli-memory\.test\.(ts|tsx|js|mjs)$/,
