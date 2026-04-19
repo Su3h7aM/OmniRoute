@@ -165,10 +165,14 @@ export default function BuilderIntelligentStep({
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<Card.Section>
-					<label className="text-xs font-semibold text-text-main block mb-2">
+					<label
+						htmlFor="intelligent-mode-pack"
+						className="text-xs font-semibold text-text-main block mb-2"
+					>
 						{getI18nOrFallback(t, "modePackLabel", "Mode Pack")}
 					</label>
 					<select
+						id="intelligent-mode-pack"
 						value={normalizedConfig.modePack}
 						onChange={(event) => updateConfig({ modePack: event.target.value })}
 						className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
@@ -186,10 +190,14 @@ export default function BuilderIntelligentStep({
 				</Card.Section>
 
 				<Card.Section>
-					<label className="text-xs font-semibold text-text-main block mb-2">
+					<label
+						htmlFor="intelligent-router-strategy"
+						className="text-xs font-semibold text-text-main block mb-2"
+					>
 						{getI18nOrFallback(t, "routerStrategyLabel", "Router Strategy")}
 					</label>
 					<select
+						id="intelligent-router-strategy"
 						value={normalizedConfig.routerStrategy}
 						onChange={(event) => updateConfig({ routerStrategy: event.target.value })}
 						className="w-full text-xs py-2 px-2 rounded border border-black/10 dark:border-white/10 bg-transparent focus:border-primary focus:outline-none"
@@ -207,10 +215,14 @@ export default function BuilderIntelligentStep({
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 				<Card.Section>
-					<label className="text-xs font-semibold text-text-main block">
+					<label
+						htmlFor="intelligent-exploration-rate"
+						className="text-xs font-semibold text-text-main block"
+					>
 						{getI18nOrFallback(t, "explorationRateLabel", "Exploration Rate")}
 					</label>
 					<input
+						id="intelligent-exploration-rate"
 						type="range"
 						min="0"
 						max="1"
@@ -234,10 +246,14 @@ export default function BuilderIntelligentStep({
 				</Card.Section>
 
 				<Card.Section>
-					<label className="text-xs font-semibold text-text-main block mb-2">
+					<label
+						htmlFor="intelligent-budget-cap"
+						className="text-xs font-semibold text-text-main block mb-2"
+					>
 						{getI18nOrFallback(t, "budgetCapLabel", "Budget Cap (USD / request)")}
 					</label>
 					<input
+						id="intelligent-budget-cap"
 						type="number"
 						min="0"
 						step="0.0001"
@@ -266,7 +282,10 @@ export default function BuilderIntelligentStep({
 							className="rounded-lg border border-black/6 dark:border-white/6 p-3"
 						>
 							<div className="flex items-center justify-between gap-2">
-								<label className="text-[11px] font-medium text-text-main">
+								<label
+									htmlFor={`weight-${weightKey}`}
+									className="text-[11px] font-medium text-text-main"
+								>
 									{getI18nOrFallback(
 										t,
 										`weight${weightKey[0].toUpperCase()}${weightKey.slice(1)}`,
@@ -280,6 +299,7 @@ export default function BuilderIntelligentStep({
 								</span>
 							</div>
 							<input
+								id={`weight-${weightKey}`}
 								type="range"
 								min="0"
 								max="1"

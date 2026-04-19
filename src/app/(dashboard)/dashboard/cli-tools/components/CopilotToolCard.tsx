@@ -152,8 +152,9 @@ export default function CopilotToolCard({
 	return (
 		<Card padding="sm" className="overflow-hidden">
 			{/* Header */}
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -186,7 +187,7 @@ export default function CopilotToolCard({
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{/* Expanded content */}
 			{isExpanded && (
@@ -342,10 +343,14 @@ export default function CopilotToolCard({
 							</summary>
 							<div className="mt-3 grid grid-cols-2 gap-3 pl-6">
 								<div>
-									<label className="text-xs text-text-muted block mb-1">
+									<label
+										htmlFor="copilot-max-input-tokens"
+										className="text-xs text-text-muted block mb-1"
+									>
 										Max Input Tokens
 									</label>
 									<input
+										id="copilot-max-input-tokens"
 										type="number"
 										value={maxInputTokens}
 										onChange={(e) =>
@@ -355,10 +360,14 @@ export default function CopilotToolCard({
 									/>
 								</div>
 								<div>
-									<label className="text-xs text-text-muted block mb-1">
+									<label
+										htmlFor="copilot-max-output-tokens"
+										className="text-xs text-text-muted block mb-1"
+									>
 										Max Output Tokens
 									</label>
 									<input
+										id="copilot-max-output-tokens"
 										type="number"
 										value={maxOutputTokens}
 										onChange={(e) =>

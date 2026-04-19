@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, Button, ModelSelectModal, ManualConfigModal } from "@/shared/components";
 import Image from "next/image";
 import CliStatusBadge from "./CliStatusBadge";
@@ -61,16 +61,7 @@ export default function CodexToolCard({
 		}
 	}, [apiKeys, selectedApiKey]);
 
-	useEffect(() => {
-		if (isExpanded && !codexStatus) {
-			checkCodexStatus();
-			fetchModelAliases();
-			fetchProfiles();
-			fetchBackups();
-		}
-	}, [isExpanded, codexStatus, fetchProfiles, fetchBackups, fetchModelAliases, checkCodexStatus]);
-
-	const fetchModelAliases = async () => {
+	const fetchModelAliases = useCallback(async () => {
 		try {
 			const res = await fetch("/api/models/alias");
 			const data = await res.json();
@@ -78,7 +69,7 @@ export default function CodexToolCard({
 		} catch (error) {
 			console.log("Error fetching model aliases:", error);
 		}
-	};
+	}, []);
 
 	// Parse config content
 	useEffect(() => {
@@ -137,7 +128,7 @@ export default function CodexToolCard({
 		return `${url.replace(/\/v1\/?$/, "").replace(/\/api\/?$/, "")}/api/v1`;
 	};
 
-	const checkCodexStatus = async () => {
+	const checkCodexStatus = useCallback(async () => {
 		setCheckingCodex(true);
 		try {
 			const res = await fetch("/api/cli-tools/codex-settings");
@@ -148,7 +139,7 @@ export default function CodexToolCard({
 		} finally {
 			setCheckingCodex(false);
 		}
-	};
+	}, []);
 
 	const handleApplySettings = async () => {
 		setApplying(true);
@@ -222,7 +213,7 @@ export default function CodexToolCard({
 	};
 
 	// ── Profiles ──
-	const fetchProfiles = async () => {
+	const fetchProfiles = useCallback(async () => {
 		try {
 			const res = await fetch("/api/cli-tools/codex-profiles");
 			const data = await res.json();
@@ -230,7 +221,7 @@ export default function CodexToolCard({
 		} catch (error) {
 			console.log("Error fetching profiles:", error);
 		}
-	};
+	}, []);
 
 	const handleSaveProfile = async () => {
 		if (!newProfileName.trim()) return;
@@ -295,7 +286,7 @@ export default function CodexToolCard({
 	};
 
 	// ── Backups ──
-	const fetchBackups = async () => {
+	const fetchBackups = useCallback(async () => {
 		try {
 			const res = await fetch("/api/cli-tools/backups?tool=codex");
 			const data = await res.json();
@@ -303,7 +294,7 @@ export default function CodexToolCard({
 		} catch (error) {
 			console.log("Error fetching backups:", error);
 		}
-	};
+	}, []);
 
 	const handleRestoreBackup = async (backupId) => {
 		setRestoringBackup(backupId);
@@ -328,6 +319,15 @@ export default function CodexToolCard({
 			setRestoringBackup(null);
 		}
 	};
+
+	useEffect(() => {
+		if (isExpanded && !codexStatus) {
+			checkCodexStatus();
+			fetchModelAliases();
+			fetchProfiles();
+			fetchBackups();
+		}
+	}, [isExpanded, codexStatus, fetchProfiles, fetchBackups, fetchModelAliases, checkCodexStatus]);
 
 	const getManualConfigs = () => {
 		const keyToUse = !cloudEnabled ? "sk_omniroute" : "<YOUR_OMNIROUTE_API_KEY>";
@@ -382,8 +382,9 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -419,7 +420,7 @@ openai_base_url = "${getEffectiveBaseUrl()}"
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-4 pt-4 border-t border-border flex flex-col gap-4">

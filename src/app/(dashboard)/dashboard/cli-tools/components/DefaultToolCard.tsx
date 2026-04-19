@@ -267,7 +267,7 @@ export default function DefaultToolCard({
 
 					return (
 						<div
-							key={index}
+							key={`${note.type}-${note.text}`}
 							className={`flex items-start gap-3 p-3 rounded-lg border ${bgClass}`}
 						>
 							<span className={`material-symbols-outlined text-lg ${iconClass}`}>
@@ -529,8 +529,9 @@ export default function DefaultToolCard({
 
 	return (
 		<Card padding="sm" className="overflow-hidden">
-			<div
-				className="flex items-center justify-between hover:cursor-pointer"
+			<button
+				type="button"
+				className="flex w-full items-center justify-between hover:cursor-pointer"
 				onClick={onToggle}
 			>
 				<div className="flex items-center gap-3">
@@ -596,7 +597,7 @@ export default function DefaultToolCard({
 				>
 					expand_more
 				</span>
-			</div>
+			</button>
 
 			{isExpanded && (
 				<div className="mt-6 pt-6 border-t border-border">{renderGuideSteps()}</div>
