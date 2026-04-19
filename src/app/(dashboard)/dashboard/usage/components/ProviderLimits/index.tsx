@@ -645,7 +645,7 @@ export default function ProviderLimits() {
 
 											return (
 												<div
-													key={i}
+													key={`${q.name || "quota"}::${q.resetAt || ""}::${q.used || 0}::${q.total || 0}`}
 													className={`flex items-center gap-1.5 shrink-0 ${
 														i > 0
 															? "border-l border-border/80 pl-3 ml-1"

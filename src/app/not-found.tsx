@@ -4,9 +4,8 @@ import Link from "next/link";
 
 export default function NotFound() {
 	return (
-		<div
+		<main
 			className="flex flex-col items-center justify-center min-h-screen p-6 bg-bg text-text-main text-center"
-			role="main"
 			aria-labelledby="not-found-title"
 		>
 			<div
@@ -37,6 +36,6 @@ export default function NotFound() {
 					System Status
 				</Link>
 			</div>
-		</div>
+		</main>
 	);
 }

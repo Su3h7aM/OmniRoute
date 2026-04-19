@@ -89,14 +89,12 @@ export default function Navigation() {
 						<a
 							className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
 							href="#features"
-							onClick={() => setMobileMenuOpen(false)}
 						>
 							{t("featuresLink")}
 						</a>
 						<a
 							className="text-gray-300 hover:text-white text-sm font-medium transition-colors"
 							href="#how-it-works"
-							onClick={() => setMobileMenuOpen(false)}
 						>
 							{t("howItWorks")}
 						</a>

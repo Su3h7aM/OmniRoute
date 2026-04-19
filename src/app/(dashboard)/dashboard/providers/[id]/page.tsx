@@ -667,10 +667,10 @@ function ModelCompatPopover({
 	const headerRowsRef = useRef<HeaderDraftRow[]>([]);
 	headerRowsRef.current = headerRows;
 
-	const genHeaderRowId = () => {
+	const genHeaderRowId = useCallback(() => {
 		headerRowIdRef.current += 1;
 		return `uh-${headerRowIdRef.current}`;
-	};
+	}, []);
 
 	const normalizeToolCallId = effectiveModelNormalize(protocol);
 	const preserveDeveloperRole = effectiveModelPreserveDeveloper(protocol);
@@ -822,10 +822,14 @@ function ModelCompatPopover({
 							</p>
 						</div>
 						<div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white p-3 [scrollbar-gutter:stable] [scrollbar-width:thin] dark:bg-zinc-950">
-							<label className="block text-[11px] font-medium text-text-muted mb-1.5">
+							<label
+								htmlFor="compat-protocol-select"
+								className="block text-[11px] font-medium text-text-muted mb-1.5"
+							>
 								{t("compatProtocolLabel")}
 							</label>
 							<select
+								id="compat-protocol-select"
 								value={protocol}
 								onChange={(e) => setProtocol(e.target.value)}
 								disabled={disabled}
@@ -865,9 +869,9 @@ function ModelCompatPopover({
 							</div>
 
 							<div className="mt-4 rounded-lg border-2 border-zinc-200 bg-zinc-100 p-3 dark:border-zinc-600 dark:bg-zinc-900">
-								<label className="block text-[11px] font-semibold text-text-main mb-1">
+								<p className="block text-[11px] font-semibold text-text-main mb-1">
 									{t("compatUpstreamHeadersLabel")}
-								</label>
+								</p>
 								<p className="text-[11px] text-text-muted mb-3 leading-relaxed">
 									{t("compatUpstreamHeadersHint")}
 								</p>
@@ -898,15 +902,7 @@ function ModelCompatPopover({
 												inputClassName="h-9 bg-white py-1.5 px-2 text-xs font-mono dark:bg-zinc-900"
 												autoComplete="off"
 											/>
-											<div
-												className="min-w-0"
-												onMouseEnter={() => setValuePeekRowId(row.id)}
-												onMouseLeave={() =>
-													setValuePeekRowId((cur) =>
-														cur === row.id ? null : cur
-													)
-												}
-											>
+											<div className="min-w-0">
 												<Input
 													type={
 														valuePeekRowId === row.id ||
@@ -915,6 +911,12 @@ function ModelCompatPopover({
 															: "password"
 													}
 													value={row.value}
+													onMouseEnter={() => setValuePeekRowId(row.id)}
+													onMouseLeave={() =>
+														setValuePeekRowId((cur) =>
+															cur === row.id ? null : cur
+														)
+													}
 													onChange={(e) =>
 														updateHeaderRow(row.id, {
 															value: e.target.value,
@@ -3299,14 +3301,18 @@ export default function ProviderDetailPage() {
 			)}
 			{/* Batch Test Results Modal */}
 			{batchTestResults && (
-				<div
-					className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]"
-					onClick={() => setBatchTestResults(null)}
-				>
-					<div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+				<div className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]">
+					<button
+						type="button"
+						className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+						onClick={() => setBatchTestResults(null)}
+						aria-label="Close"
+					/>
 					<div
+						role="dialog"
+						aria-modal="true"
+						aria-label={t("testResults")}
 						className="relative bg-bg-primary border border-border rounded-xl w-full max-w-[600px] max-h-[80vh] overflow-y-auto shadow-2xl"
-						onClick={(e) => e.stopPropagation()}
 					>
 						<div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border bg-bg-primary/95 backdrop-blur-sm rounded-t-xl">
 							<h3 className="font-semibold">{t("testResults")}</h3>
@@ -3514,9 +3520,9 @@ export default function ProviderDetailPage() {
 					{importProgress.logs.length > 0 && (
 						<div className="max-h-48 overflow-y-auto rounded-lg bg-black/5 dark:bg-white/5 p-3 border border-black/5 dark:border-white/5">
 							<div className="flex flex-col gap-1">
-								{importProgress.logs.map((log, i) => (
+								{importProgress.logs.map((log) => (
 									<p
-										key={i}
+										key={log}
 										className={`text-xs font-mono ${
 											log.startsWith("✓")
 												? "text-green-500 font-semibold"
@@ -4423,10 +4429,14 @@ function CustomModelsSection({
 										<div className="mt-3 min-w-0 max-w-full rounded-lg border border-border bg-muted p-3 dark:bg-zinc-900">
 											<div className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-2">
 												<div className="w-[11rem] shrink-0 min-w-0">
-													<label className="text-xs text-text-muted mb-1 block">
+													<label
+														htmlFor="provider-model-api-format"
+														className="text-xs text-text-muted mb-1 block"
+													>
 														API Format
 													</label>
 													<select
+														id="provider-model-api-format"
 														value={editingApiFormat}
 														onChange={(e) =>
 															setEditingApiFormat(e.target.value)
@@ -6140,10 +6150,14 @@ function AddApiKeyModal({
 				)}
 				{isGlm && (
 					<div>
-						<label className="text-sm font-medium text-text-main mb-1 block">
+						<label
+							htmlFor="provider-create-api-region"
+							className="text-sm font-medium text-text-main mb-1 block"
+						>
 							API Region
 						</label>
 						<select
+							id="provider-create-api-region"
 							value={formData.apiRegion}
 							onChange={(e) =>
 								setFormData({ ...formData, apiRegion: e.target.value })
@@ -6791,10 +6805,14 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 
 				{isGlm && (
 					<div>
-						<label className="text-sm font-medium text-text-main mb-1 block">
+						<label
+							htmlFor="provider-edit-api-region"
+							className="text-sm font-medium text-text-main mb-1 block"
+						>
 							API Region
 						</label>
 						<select
+							id="provider-edit-api-region"
 							value={formData.apiRegion}
 							onChange={(e) =>
 								setFormData({ ...formData, apiRegion: e.target.value })
@@ -6813,16 +6831,19 @@ function EditConnectionModal({ isOpen, connection, onSave, onClose }: EditConnec
 				{/* T07: Extra API Keys for round-robin rotation */}
 				{!isOAuth && (
 					<div className="flex flex-col gap-2">
-						<label className="text-sm font-medium text-text-main">
+						<p className="text-sm font-medium text-text-main">
 							Extra API Keys
 							<span className="ml-2 text-[11px] font-normal text-text-muted">
 								(round-robin rotation — optional)
 							</span>
-						</label>
+						</p>
 						{extraApiKeys.length > 0 && (
 							<div className="flex flex-col gap-1.5">
 								{extraApiKeys.map((key, idx) => (
-									<div key={idx} className="flex items-center gap-2">
+									<div
+										key={`${key.slice(0, 6)}::${key.slice(-4)}`}
+										className="flex items-center gap-2"
+									>
 										<span className="flex-1 font-mono text-xs bg-sidebar/50 px-3 py-2 rounded border border-border text-text-muted truncate">
 											{`Key #${idx + 2}: ${key.slice(0, 6)}...${key.slice(-4)}`}
 										</span>

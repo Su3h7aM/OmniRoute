@@ -90,6 +90,7 @@ export default function FlowAnimation() {
 				<svg
 					className="absolute inset-0 w-full h-full z-10 pointer-events-none stroke-yellow-700"
 					xmlns="http://www.w3.org/2000/svg"
+					aria-hidden="true"
 				>
 					<path
 						className="animate-[dash_2s_linear_infinite]"
@@ -125,6 +126,7 @@ export default function FlowAnimation() {
 				<svg
 					className="absolute inset-0 w-full h-full z-10 pointer-events-none"
 					xmlns="http://www.w3.org/2000/svg"
+					aria-hidden="true"
 				>
 					<path
 						d="M 440 180 C 550 180, 550 50, 740 50"
