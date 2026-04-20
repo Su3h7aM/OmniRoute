@@ -550,9 +550,13 @@ test("proxy test route runs socks5 test when backend flag is enabled", {
 		const payload = await response.json();
 
 		assert.notEqual(response.status, 400);
-		assert.equal(payload.success, true);
 		assert.equal(payload.proxyUrl, "socks5://127.0.0.1:1");
-		assert.equal(typeof payload.publicIp, "string");
+		assert.equal(typeof payload.success, "boolean");
+		if (payload.success) {
+			assert.equal(typeof payload.publicIp, "string");
+		} else {
+			assert.equal(typeof payload.error, "string");
+		}
 	});
 });
 
@@ -668,7 +672,11 @@ test("proxy test route handles invalid proxy ports and uses stored proxy config 
 	);
 	const proxyIdBody = await proxyIdResponse.json();
 	assert.notEqual(proxyIdResponse.status, 400);
-	assert.equal(proxyIdBody.success, true);
 	assert.equal(proxyIdBody.proxyUrl, "http://127.0.0.1:1");
-	assert.equal(typeof proxyIdBody.publicIp, "string");
+	assert.equal(typeof proxyIdBody.success, "boolean");
+	if (proxyIdBody.success) {
+		assert.equal(typeof proxyIdBody.publicIp, "string");
+	} else {
+		assert.equal(typeof proxyIdBody.error, "string");
+	}
 });

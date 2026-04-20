@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 		const startTime = Date.now();
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), 10000);
-		const dispatcher = createProxyDispatcher(proxyUrl);
+		const dispatcher = await createProxyDispatcher(proxyUrl);
 
 		try {
 			const result = await undiciRequest("https://api64.ipify.org?format=json", {

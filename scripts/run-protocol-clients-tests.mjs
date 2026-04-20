@@ -34,7 +34,7 @@ async function ensureServer(testEnv) {
     return { serverProcess: null, startedHere: false };
   }
 
-  const serverProcess = spawn(process.execPath, ["scripts/run-next-playwright.mjs", "dev"], {
+  const serverProcess = spawn(process.execPath, ["scripts/run-next.mjs", "dev"], {
     stdio: "inherit",
     env: testEnv,
   });

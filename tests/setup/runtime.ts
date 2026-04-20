@@ -2,6 +2,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+if (!process.env.NODE_ENV || process.env.NODE_ENV === "production") {
+	process.env.NODE_ENV = "test";
+}
+
 const TEST_RUNTIME_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-test-runtime-"));
 const TEST_DATA_DIR = path.join(TEST_RUNTIME_ROOT, "data");
 const TEST_HOME_DIR = path.join(TEST_RUNTIME_ROOT, "home");

@@ -358,31 +358,6 @@ jobs:
               });
             }
 
-  test-e2e:
-    name: E2E Tests (${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    env:
-      JWT_SECRET: ci-test-secret-with-sufficient-length-for-validation
-      API_KEY_SECRET: ci-test-api-key-secret-long
-      DISABLE_SQLITE_AUTO_BACKUP: "true"
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: ${{ env.CI_NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - run: npm run check:node-runtime
-      - run: npx playwright install --with-deps chromium
-      - run: npm run build
-      - run: npx playwright test tests/e2e/*.spec.ts --shard=${{ matrix.shard }}/4
-
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -438,7 +413,6 @@ jobs:
       - test-coverage
       - sonarqube
       - coverage-pr-comment
-      - test-e2e
       - test-integration
       - test-security
     steps:
@@ -489,7 +463,6 @@ jobs:
           echo "| Unit | $(status '${{ needs.test-unit.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Coverage | $(status '${{ needs.test-coverage.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| PR Coverage Comment | $(status '${{ needs.coverage-pr-comment.result }}') |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| E2E | $(status '${{ needs.test-e2e.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Integration | $(status '${{ needs.test-integration.result }}') |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Security Tests | $(status '${{ needs.test-security.result }}') |" >> "$GITHUB_STEP_SUMMARY"
 

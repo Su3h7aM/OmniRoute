@@ -19,7 +19,7 @@ const originalRetryConfig = {
 	delayMs: BaseExecutor.RETRY_CONFIG.delayMs,
 };
 
-function buildRequestWithSignal(body, signal) {
+function buildRequestWithSignal(body, signal: AbortSignal) {
 	return new Request("http://localhost/v1/chat/completions", {
 		method: "POST",
 		signal,

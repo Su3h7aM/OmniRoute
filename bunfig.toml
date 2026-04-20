@@ -5,7 +5,7 @@ linker = "hoisted"
 
 [test]
 root = "."
-preload = ["./tests/setup/runtime.ts", "./tests/setup/jsdom.ts"]
+preload = ["./tests/setup/runtime.ts", "./tests/setup/happy-dom.ts"]
 pathIgnorePatterns = [
 	"tests/unit/cli-runtime-*.test.*",
 	"tests/unit/cliproxyapi-executor.test.*",
