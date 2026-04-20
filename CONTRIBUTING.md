@@ -116,41 +116,47 @@ Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, 
 
 ```bash
 # All tests (unit + integration + ecosystem + e2e)
-npm run test:all
+bun run test:all
 
-# Single test file (Node.js native test runner — most tests use this)
-bun test ./tests/unit/your-file.test.ts
+# Preferred scoped Bun suites
+bun run test:unit
+bun run test:integration
+bun run test:mcp-services
+
+# Single test file
+bun test --env-file=.env.test ./tests/unit/your-file.test.ts --parallel 1
 # or use repo wrapper (skips deprecated desktop/CLI suites)
 node scripts/run-bun-tests.mjs ./tests/unit/your-file.test.ts
 
 # E2E tests (requires Playwright)
-npm run test:e2e
+bun run test:e2e
 
 # Protocol clients E2E (MCP transports, A2A)
-npm run test:protocols:e2e
+bun run test:protocols:e2e
 
 # Ecosystem compatibility tests
-npm run test:ecosystem
+bun run test:ecosystem
 
 # Coverage (60% min statements/lines/functions/branches)
-npm run test:coverage
-npm run coverage:report
+bun run test:coverage
+bun run coverage:report
 
 # Type-checking
-npm run typecheck:core
-npm run typecheck:noimplicit:core
+bun run typecheck:core
+bun run typecheck:noimplicit:core
 
 # Lint + format check
-npm run lint
-npm run check
+bun run lint
+bun run format
+bun run check
 ```
 
 Coverage notes:
 
-- `npm run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
+- `bun run test:coverage` measures source coverage for the main unit test suite, excludes `tests/**`, and includes `open-sse/**`
 - Pull requests must keep the overall coverage gate at **60% or higher** for statements, lines, functions, and branches
 - If a PR changes production code in `src/`, `open-sse/`, or `bin/`, it must add or update automated tests in the same PR
-- `npm run coverage:report` prints the detailed file-by-file report from the latest coverage run
+- `bun run coverage:report` prints the detailed file-by-file report from the latest coverage run
 - `npm run test:coverage:legacy` preserves the older metric for historical comparison
 - See `docs/COVERAGE_PLAN.md` for the phased coverage improvement roadmap
 
@@ -158,8 +164,10 @@ Coverage notes:
 
 Before opening or merging a PR:
 
-- Run `npm run test:unit`
-- Run `npm run test:coverage`
+- Run `bun run test:unit`
+- Run `bun run test:coverage`
+- Run `bun run format`
+- Run `bun run lint`
 - Ensure the coverage gate stays at **60%+** for all metrics
 - Include the changed or added test files in the PR description when production code changed
 - Check the SonarQube result on the PR when the project secrets are configured in CI
@@ -179,8 +187,8 @@ Current test status: **122 unit test files** covering:
 
 ## Code Style
 
-- **Biome** — Run `npm run lint` before committing
-- **Biome formatter** — Auto-formatted via `lint-staged` on commit (tabs, width 4, semicolons, double quotes, 100 char width, es5 trailing commas)
+- **Biome** — Run `bun run lint` before committing
+- **Biome formatter** — Run `bun run format` before committing (tabs, width 4, semicolons, double quotes, 100 char width, es5 trailing commas)
 - **TypeScript** — All `src/` code uses `.ts`/`.tsx`; `open-sse/` uses `.ts`/`.js`; document with TSDoc (`@param`, `@returns`, `@throws`)
 - **tsgo** — Project type-check scripts use `tsgo` (`@typescript/native-preview`) instead of `tsc`
 - **No `eval()`** — Biome migration preserves security restrictions around `eval`-style dynamic execution

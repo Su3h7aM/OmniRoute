@@ -883,7 +883,7 @@ curl -X POST http://localhost:20128/a2a \
 ### 5) Validate everything end-to-end (recommended)
 
 ```bash
-npm run test:protocols:e2e
+bun run test:protocols:e2e
 ```
 
 This suite validates real MCP and A2A client flows against a running app.
@@ -969,7 +969,7 @@ do_build() {
 }
 
 do_check() {
-	npm run test:unit
+	bun run test:unit
 }
 
 do_install() {
@@ -1494,7 +1494,7 @@ The Translator area includes:
 - **Test Bench**: multiple cases in one run
 - **Live Monitor**: real-time traffic view
 
-Plus protocol validation with real clients via `npm run test:protocols:e2e`.
+Plus protocol validation with real clients via `bun run test:protocols:e2e`.
 
 > 📖 **[MCP Server README](open-sse/mcp-server/README.md)** — Tool reference, IDE configs, and client examples
 >
@@ -1588,7 +1588,7 @@ Operational UI:
 Validate both protocols with real clients:
 
 ```bash
-npm run test:protocols:e2e
+bun run test:protocols:e2e
 ```
 
 This verifies:
