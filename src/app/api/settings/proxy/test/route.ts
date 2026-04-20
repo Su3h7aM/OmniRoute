@@ -1,4 +1,3 @@
-import { request as undiciRequest } from "undici";
 import {
 	createProxyDispatcher,
 	isSocks5ProxyEnabled,
@@ -11,6 +10,20 @@ import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/e
 import { getProxyById } from "@/lib/localDb";
 
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
+const PROXY_TEST_URL = "https://api64.ipify.org?format=json";
+const PROXY_TEST_TIMEOUT_MS = 10000;
+const isBunRuntime = typeof Bun !== "undefined";
+
+type BunProxyOption =
+	| string
+	| {
+			url: string;
+			headers?: Record<string, string>;
+	  };
+
+type BunFetchInit = RequestInit & {
+	proxy?: BunProxyOption;
+};
 
 function getErrorMessage(error: unknown, fallbackMessage: string): string {
 	if (error instanceof Error && error.message) {
@@ -28,6 +41,78 @@ function getSupportedProxyTypes() {
 
 function supportedTypesMessage() {
 	return isSocks5ProxyEnabled() ? "http, https, or socks5" : "http or https";
+}
+
+function getProxyAuthorizationHeader(proxyUrl: string): string | null {
+	const parsed = new URL(proxyUrl);
+	if (!parsed.username) return null;
+
+	const username = decodeURIComponent(parsed.username);
+	const password = decodeURIComponent(parsed.password || "");
+	return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
+}
+
+function createBunProxyOption(proxyUrl: string): BunProxyOption {
+	const proxyAuthorization = getProxyAuthorizationHeader(proxyUrl);
+	if (!proxyAuthorization) return proxyUrl;
+
+	const parsed = new URL(proxyUrl);
+	parsed.username = "";
+	parsed.password = "";
+
+	return {
+		url: parsed.toString(),
+		headers: {
+			"Proxy-Authorization": proxyAuthorization,
+		},
+	};
+}
+
+async function fetchPublicIpWithBun(proxyUrl: string | null): Promise<string> {
+	const init: BunFetchInit = {
+		method: "GET",
+		signal: AbortSignal.timeout(PROXY_TEST_TIMEOUT_MS),
+	};
+
+	if (proxyUrl) {
+		init.proxy = createBunProxyOption(proxyUrl);
+	}
+
+	const response = await fetch(PROXY_TEST_URL, init);
+	return response.text();
+}
+
+async function fetchPublicIpWithLegacyDispatcher(proxyUrl: string): Promise<string> {
+	const { request: undiciRequest } = await import("undici");
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), PROXY_TEST_TIMEOUT_MS);
+	const dispatcher = await createProxyDispatcher(proxyUrl);
+
+	try {
+		const result = await undiciRequest(PROXY_TEST_URL, {
+			method: "GET",
+			dispatcher,
+			signal: controller.signal,
+			headersTimeout: PROXY_TEST_TIMEOUT_MS,
+			bodyTimeout: PROXY_TEST_TIMEOUT_MS,
+		});
+
+		return result.body.text();
+	} finally {
+		clearTimeout(timeout);
+	}
+}
+
+function parsePublicIpResponse(responseText: string): { ip?: string } {
+	try {
+		const parsedJson = JSON.parse(responseText);
+		if (parsedJson && typeof parsedJson === "object") {
+			return parsedJson as { ip?: string };
+		}
+		return { ip: String(parsedJson) };
+	} catch {
+		return { ip: responseText.trim() };
+	}
 }
 
 /**
@@ -132,31 +217,13 @@ export async function POST(request: Request) {
 		const publicProxyUrl = proxyUrlForLogs(proxyUrl);
 
 		const startTime = Date.now();
-		const controller = new AbortController();
-		const timeout = setTimeout(() => controller.abort(), 10000);
-		const dispatcher = await createProxyDispatcher(proxyUrl);
 
 		try {
-			const result = await undiciRequest("https://api64.ipify.org?format=json", {
-				method: "GET",
-				dispatcher,
-				signal: controller.signal,
-				headersTimeout: 10000,
-				bodyTimeout: 10000,
-			});
-
-			const responseText = await result.body.text();
-			let parsed: { ip?: string };
-			try {
-				const parsedJson = JSON.parse(responseText);
-				if (parsedJson && typeof parsedJson === "object") {
-					parsed = parsedJson as { ip?: string };
-				} else {
-					parsed = { ip: String(parsedJson) };
-				}
-			} catch {
-				parsed = { ip: responseText.trim() };
-			}
+			const responseText =
+				isBunRuntime && proxyType !== "socks5"
+					? await fetchPublicIpWithBun(proxyUrl)
+					: await fetchPublicIpWithLegacyDispatcher(proxyUrl);
+			const parsed = parsePublicIpResponse(responseText);
 
 			return Response.json({
 				success: true,
@@ -174,8 +241,6 @@ export async function POST(request: Request) {
 				latencyMs: Date.now() - startTime,
 				proxyUrl: publicProxyUrl,
 			});
-		} finally {
-			clearTimeout(timeout);
 		}
 	} catch (error) {
 		return createErrorResponseFromUnknown(error, "Unexpected server error");
