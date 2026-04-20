@@ -7,7 +7,6 @@ import {
 	getProxyAssignments,
 	getProxyById,
 } from "../../../../lib/localDb";
-import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 import { updateProxyConfigSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import {
@@ -204,7 +203,6 @@ export async function PUT(request: Request) {
 		const body = validation.data;
 		const normalizedBody = normalizeProxyPayload(body);
 		const updated = await setProxyConfig(normalizedBody);
-		clearDispatcherCache();
 		return Response.json(updated);
 	} catch (error) {
 		const routeError = toApiRouteError(error);
@@ -234,7 +232,6 @@ export async function DELETE(request: Request) {
 		}
 
 		const updated = await deleteProxyForLevel(level, id);
-		clearDispatcherCache();
 		return Response.json(updated);
 	} catch (error) {
 		return createErrorResponseFromUnknown(error, "Failed to delete proxy");

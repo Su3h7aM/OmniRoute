@@ -2,7 +2,6 @@ import { assignProxyToScope, getProxyAssignments, resolveProxyForConnection } fr
 import { proxyAssignmentSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 
 export async function GET(request: Request) {
 	try {
@@ -55,7 +54,6 @@ export async function PUT(request: Request) {
 
 		const { scope, scopeId, proxyId } = validation.data;
 		const assigned = await assignProxyToScope(scope, scopeId || null, proxyId || null);
-		clearDispatcherCache();
 		return Response.json({ success: true, assignment: assigned });
 	} catch (error) {
 		return createErrorResponseFromUnknown(error, "Failed to update assignment");

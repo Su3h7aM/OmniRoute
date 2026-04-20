@@ -2,7 +2,6 @@ import { bulkAssignProxyToScope } from "@/lib/localDb";
 import { bulkProxyAssignmentSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
-import { clearDispatcherCache } from "@omniroute/open-sse/utils/proxyDispatcher";
 
 export async function PUT(request: Request) {
 	let rawBody: unknown;
@@ -34,7 +33,6 @@ export async function PUT(request: Request) {
 			scopeIds || [],
 			proxyId || null
 		);
-		clearDispatcherCache();
 
 		return Response.json({
 			success: true,

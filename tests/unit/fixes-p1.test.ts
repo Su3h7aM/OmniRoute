@@ -18,7 +18,6 @@ const localDb = await import("../../src/lib/localDb.ts");
 const tokenRefresh = await import("../../open-sse/services/tokenRefresh.ts");
 const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
 const proxyConfig = await import("../../open-sse/utils/proxyConfig.ts");
-const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.ts");
 const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.ts");
 const shutdownRoute = await import("../../src/app/api/shutdown/route.ts");
@@ -397,22 +396,6 @@ test("normalizeProxyUrl accepts socks5 only when explicitly allowed", () => {
 			}),
 		/SOCKS5 proxy is disabled/i
 	);
-});
-
-test("proxyDispatcher compatibility shim returns null for all schemes", async () => {
-	await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
-		const httpDispatcher = await proxyDispatcher.createProxyDispatcher("http://127.0.0.1:8080");
-		const httpsDispatcher =
-			await proxyDispatcher.createProxyDispatcher("https://127.0.0.1:8443");
-		const socksDispatcher =
-			await proxyDispatcher.createProxyDispatcher("socks5://127.0.0.1:1080");
-		const defaultDispatcher = await proxyDispatcher.getDefaultDispatcher();
-
-		assert.equal(httpDispatcher, null);
-		assert.equal(httpsDispatcher, null);
-		assert.equal(socksDispatcher, null);
-		assert.equal(defaultDispatcher, null);
-	});
 });
 
 test("proxy fetch fails closed when context proxy is invalid", async () => {
