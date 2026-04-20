@@ -7,7 +7,6 @@ import {
 	proxyConfigToUrl,
 	proxyUrlForLogs,
 } from "./proxyConfig.ts";
-import { createProxyDispatcher, getDefaultDispatcher } from "./proxyDispatcher.ts";
 import { fetchViaSocksProxy } from "./socksFetch.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
@@ -21,10 +20,6 @@ type TlsFingerprintStore = { used: boolean };
 const tlsFingerprintContext = new AsyncLocalStorage<TlsFingerprintStore>();
 
 type FetchWithDispatcherOptions = RequestInit & { dispatcher?: unknown };
-type FetchWithDispatcher = (
-	input: RequestInfo | URL,
-	init?: FetchWithDispatcherOptions
-) => Promise<Response>;
 
 type PatchState = {
 	originalFetch: typeof globalThis.fetch;
@@ -33,7 +28,6 @@ type PatchState = {
 };
 
 const isCloud = typeof caches !== "undefined" && typeof caches === "object";
-const isBunRuntime = typeof Bun !== "undefined";
 const PATCH_STATE_KEY = Symbol.for("omniroute.proxyFetch.state");
 
 function getPatchState(): PatchState {
@@ -53,7 +47,6 @@ function getPatchState(): PatchState {
 
 const patchState = getPatchState();
 const originalFetch = patchState.originalFetch;
-const originalFetchWithDispatcher = originalFetch as FetchWithDispatcher;
 const proxyContext = patchState.proxyContext;
 
 function noProxyMatch(targetUrl) {
@@ -204,18 +197,10 @@ export async function runWithProxyContext(proxyConfig, fn) {
 	});
 }
 
-async function callUndiciFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
-	const { fetch: undiciFetch } = await import("undici");
-	return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
-}
-
-function shouldUseBunNativeProxyFetch(proxyUrl: string | null): boolean {
-	return isBunRuntime && Boolean(proxyUrl) && !isSocksProxyUrl(proxyUrl);
-}
-
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
 	if (options?.dispatcher) {
-		return callUndiciFetch(input, options);
+		const { dispatcher: _dispatcher, ...nativeOptions } = options;
+		return originalFetch(input, nativeOptions);
 	}
 
 	const targetUrl = getTargetUrl(input);
@@ -233,12 +218,13 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 		// TLS fingerprint spoofing for direct connections (no proxy configured)
 		if (isTlsFingerprintEnabled() && tlsClient.available) {
 			try {
+				const { dispatcher: _dispatcher, ...nativeOptions } = options;
 				const store = tlsFingerprintContext.getStore();
 				if (store) store.used = true;
 				return await tlsClient.fetch(targetUrl, {
-					...options,
-					headers: options.headers,
-					signal: options.signal ?? undefined,
+					...nativeOptions,
+					headers: nativeOptions.headers,
+					signal: nativeOptions.signal ?? undefined,
 				});
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);
@@ -250,65 +236,16 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 			}
 		}
 
-		if (isBunRuntime) {
-			return originalFetchWithDispatcher(input, options);
-		}
-
-		// Direct connection (no proxy) — keep legacy undici dispatcher path on Node only.
-		try {
-			const defaultDispatcher = await getDefaultDispatcher();
-			if (!defaultDispatcher) {
-				return originalFetchWithDispatcher(input, options);
-			}
-			return await callUndiciFetch(input, {
-				...options,
-				dispatcher: defaultDispatcher,
-			});
-		} catch (dispatcherError) {
-			const msg =
-				dispatcherError instanceof Error
-					? dispatcherError.message
-					: String(dispatcherError);
-			// CAUTION: Do NOT fallback to native fetch if the error is a version mismatch (invalid onRequestStart)
-			// because the native fetch will definitely fail with the undici v8 dispatcher.
-			if (msg.includes("onRequestStart")) {
-				console.error(
-					`[ProxyFetch] Fatal version mismatch: Dispatcher (v8) vs Fetch (v6/native). Hardware upgrade or SOCKS5 config isolation required. Error: ${msg}`
-				);
-				throw dispatcherError;
-			}
-			// Only fallback for connection/dispatcher errors, not HTTP errors
-			if (
-				msg.includes("fetch failed") ||
-				msg.includes("ECONNREFUSED") ||
-				msg.includes("UND_ERR")
-			) {
-				console.warn(
-					`[ProxyFetch] Undici dispatcher failed, falling back to native fetch: ${msg}`
-				);
-				return originalFetchWithDispatcher(input, options);
-			}
-			throw dispatcherError;
-		}
+		const { dispatcher: _dispatcher, ...nativeOptions } = options;
+		return originalFetch(input, nativeOptions);
 	}
 
 	try {
-		if (shouldUseBunNativeProxyFetch(proxyUrl)) {
-			return await originalFetchWithDispatcher(input, createBunFetchInit(options, proxyUrl));
-		}
-
-		if (isBunRuntime && proxyUrl && isSocksProxyUrl(proxyUrl)) {
+		if (proxyUrl && isSocksProxyUrl(proxyUrl)) {
 			return await fetchViaSocksProxy(input, options, proxyUrl);
 		}
 
-		const dispatcher = await createProxyDispatcher(proxyUrl);
-		if (!dispatcher) {
-			return originalFetchWithDispatcher(input, options);
-		}
-		return await callUndiciFetch(input, {
-			...options,
-			dispatcher,
-		});
+		return await originalFetch(input, createBunFetchInit(options, proxyUrl));
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error(`[ProxyFetch] Proxy request failed (${source}, fail-closed): ${message}`);

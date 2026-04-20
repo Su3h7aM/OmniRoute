@@ -399,17 +399,19 @@ test("normalizeProxyUrl accepts socks5 only when explicitly allowed", () => {
 	);
 });
 
-test("createProxyDispatcher returns null in Bun and still accepts supported proxy schemes", async () => {
+test("proxyDispatcher compatibility shim returns null for all schemes", async () => {
 	await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
 		const httpDispatcher = await proxyDispatcher.createProxyDispatcher("http://127.0.0.1:8080");
 		const httpsDispatcher =
 			await proxyDispatcher.createProxyDispatcher("https://127.0.0.1:8443");
 		const socksDispatcher =
 			await proxyDispatcher.createProxyDispatcher("socks5://127.0.0.1:1080");
+		const defaultDispatcher = await proxyDispatcher.getDefaultDispatcher();
 
 		assert.equal(httpDispatcher, null);
 		assert.equal(httpsDispatcher, null);
 		assert.equal(socksDispatcher, null);
+		assert.equal(defaultDispatcher, null);
 	});
 });
 

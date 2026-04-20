@@ -5,7 +5,6 @@ import {
 	proxyConfigToUrl,
 	proxyUrlForLogs,
 } from "@omniroute/open-sse/utils/proxyConfig.ts";
-import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 import { fetchViaSocksProxy } from "@omniroute/open-sse/utils/socksFetch.ts";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
@@ -15,7 +14,6 @@ import { getProxyById } from "@/lib/localDb";
 const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 const PROXY_TEST_URL = "https://api64.ipify.org?format=json";
 const PROXY_TEST_TIMEOUT_MS = 10000;
-const isBunRuntime = typeof Bun !== "undefined";
 
 function getErrorMessage(error: unknown, fallbackMessage: string): string {
 	if (error instanceof Error && error.message) {
@@ -35,7 +33,7 @@ function supportedTypesMessage() {
 	return isSocks5ProxyEnabled() ? "http, https, or socks5" : "http or https";
 }
 
-async function fetchPublicIpWithBun(proxyUrl: string | null): Promise<string> {
+async function fetchPublicIpWithNativeFetch(proxyUrl: string | null): Promise<string> {
 	if (proxyUrl && isSocksProxyUrl(proxyUrl)) {
 		const response = await fetchViaSocksProxy(
 			PROXY_TEST_URL,
@@ -59,27 +57,6 @@ async function fetchPublicIpWithBun(proxyUrl: string | null): Promise<string> {
 		)
 	);
 	return response.text();
-}
-
-async function fetchPublicIpWithLegacyDispatcher(proxyUrl: string): Promise<string> {
-	const { request: undiciRequest } = await import("undici");
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), PROXY_TEST_TIMEOUT_MS);
-	const dispatcher = await createProxyDispatcher(proxyUrl);
-
-	try {
-		const result = await undiciRequest(PROXY_TEST_URL, {
-			method: "GET",
-			dispatcher,
-			signal: controller.signal,
-			headersTimeout: PROXY_TEST_TIMEOUT_MS,
-			bodyTimeout: PROXY_TEST_TIMEOUT_MS,
-		});
-
-		return result.body.text();
-	} finally {
-		clearTimeout(timeout);
-	}
 }
 
 function parsePublicIpResponse(responseText: string): { ip?: string } {
@@ -198,9 +175,7 @@ export async function POST(request: Request) {
 		const startTime = Date.now();
 
 		try {
-			const responseText = isBunRuntime
-				? await fetchPublicIpWithBun(proxyUrl)
-				: await fetchPublicIpWithLegacyDispatcher(proxyUrl);
+			const responseText = await fetchPublicIpWithNativeFetch(proxyUrl);
 			const parsed = parsePublicIpResponse(responseText);
 
 			return Response.json({
