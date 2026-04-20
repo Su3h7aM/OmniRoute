@@ -303,6 +303,79 @@ test("device and import-token providers expose the flow-specific fields expected
 	assert.ok(KIRO_CONFIG.authMethods.includes("builder-id"));
 });
 
+test("Codex token exchange retries temporary connection errors and succeeds", async () => {
+	const originalFetch = globalThis.fetch;
+	const responses = [
+		new Response(
+			JSON.stringify({
+				error: {
+					message: "The server had an error while processing your request. Sorry about that!",
+					type: "server_error",
+					param: null,
+					code: "token_exchange_connection_error",
+				},
+			}),
+			{ status: 500, headers: { "content-type": "application/json" } }
+		),
+		new Response(
+			JSON.stringify({
+				access_token: "access-token",
+				refresh_token: "refresh-token",
+				id_token: "header.payload.signature",
+				expires_in: 3600,
+			}),
+			{ status: 200, headers: { "content-type": "application/json" } }
+		),
+	];
+	let attempts = 0;
+
+	globalThis.fetch = async () => responses[attempts++];
+
+	try {
+		const result = await PROVIDERS.codex.exchangeToken(
+			CODEX_CONFIG,
+			"auth-code",
+			"http://localhost:1455/auth/callback",
+			"code-verifier"
+		);
+		assert.equal(attempts, 2);
+		assert.equal(result.access_token, "access-token");
+	} finally {
+		globalThis.fetch = originalFetch;
+	}
+});
+
+test("Codex token exchange surfaces actionable guidance for user errors", async () => {
+	const originalFetch = globalThis.fetch;
+	globalThis.fetch = async () =>
+		new Response(
+			JSON.stringify({
+				error: {
+					message: "Invalid request. Please try again later.",
+					type: "invalid_request_error",
+					param: null,
+					code: "token_exchange_user_error",
+				},
+			}),
+			{ status: 400, headers: { "content-type": "application/json" } }
+		);
+
+	try {
+		await assert.rejects(
+			() =>
+				PROVIDERS.codex.exchangeToken(
+					CODEX_CONFIG,
+					"auth-code",
+					"http://localhost:1455/auth/callback",
+					"code-verifier"
+				),
+			/message:|rejected by OpenAI|expired|already used|code verifier/i
+		);
+	} finally {
+		globalThis.fetch = originalFetch;
+	}
+});
+
 test("provider-specific config shapes remain valid for special cases", () => {
 	assert.ok(Array.isArray(CLAUDE_CONFIG.scopes) && CLAUDE_CONFIG.scopes.length > 0);
 	assert.ok(Array.isArray(GEMINI_CONFIG.scopes) && GEMINI_CONFIG.scopes.length > 0);

@@ -77,6 +77,77 @@ function parseIdToken(idToken: string): { email: string | null; authInfo: CodexA
 	}
 }
 
+type TokenExchangeErrorPayload = {
+	error?: {
+		message?: string;
+		type?: string;
+		param?: string | null;
+		code?: string | null;
+	};
+};
+
+function parseTokenExchangeErrorPayload(raw: string): TokenExchangeErrorPayload | null {
+	try {
+		return JSON.parse(raw) as TokenExchangeErrorPayload;
+	} catch {
+		return null;
+	}
+}
+
+function buildTokenExchangeError(raw: string): Error {
+	const payload = parseTokenExchangeErrorPayload(raw);
+	const errorCode = payload?.error?.code || null;
+	const errorMessage = payload?.error?.message || raw;
+
+	if (errorCode === "token_exchange_user_error") {
+		return new Error(
+			"Codex authorization code was rejected by OpenAI. Restart the Codex login flow and complete it again immediately. The code may be expired, already used, or tied to a different redirect/code verifier. If you are connecting through a LAN IP or remote host, ignore any localhost:1455 connection-refused page and paste the final callback URL into OmniRoute right away."
+		);
+	}
+
+	if (errorCode === "token_exchange_connection_error") {
+		return new Error(
+			"OpenAI token exchange failed due to a temporary upstream/network error. Please retry in a moment. If you are behind a proxy or corporate TLS inspection, verify that auth.openai.com is reachable."
+		);
+	}
+
+	return new Error(`Token exchange failed: ${errorMessage}`);
+}
+
+async function exchangeCodexTokenWithRetry(
+	config: typeof CODEX_CONFIG,
+	body: URLSearchParams
+): Promise<Response> {
+	const maxAttempts = 3;
+	let lastErrorText = "";
+
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		const response = await fetch(config.tokenUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				Accept: "application/json",
+			},
+			body,
+		});
+
+		if (response.ok) {
+			return response;
+		}
+
+		lastErrorText = await response.text();
+		const errorCode = parseTokenExchangeErrorPayload(lastErrorText)?.error?.code || null;
+		const shouldRetry = errorCode === "token_exchange_connection_error" && attempt < maxAttempts;
+		if (!shouldRetry) {
+			throw buildTokenExchangeError(lastErrorText);
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+	}
+
+	throw buildTokenExchangeError(lastErrorText);
+}
+
 export const codex = {
 	config: CODEX_CONFIG,
 	flowType: "authorization_code_pkce",
@@ -101,25 +172,16 @@ export const codex = {
 	},
 
 	exchangeToken: async (config, code, redirectUri, codeVerifier) => {
-		const response = await fetch(config.tokenUrl, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
-				Accept: "application/json",
-			},
-			body: new URLSearchParams({
+		const response = await exchangeCodexTokenWithRetry(
+			config,
+			new URLSearchParams({
 				grant_type: "authorization_code",
 				client_id: config.clientId,
-				code: code,
+				code,
 				redirect_uri: redirectUri,
 				code_verifier: codeVerifier,
-			}),
-		});
-
-		if (!response.ok) {
-			const error = await response.text();
-			throw new Error(`Token exchange failed: ${error}`);
-		}
+			})
+		);
 
 		return await response.json();
 	},

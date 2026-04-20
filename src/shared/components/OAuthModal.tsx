@@ -244,11 +244,12 @@ export default function OAuthModal({
 				forceManual = true;
 			}
 
-			// Codex: on localhost use callback server on port 1455,
-			// on remote use standard auth code flow (callback server is unreachable)
+			// Codex: only use the localhost callback server when OmniRoute itself is opened
+			// on true localhost. LAN IPs / remote hosts still make the browser navigate to the
+			// user's own localhost:1455, which is unreachable unless they manually port-forward.
 			if (provider === "codex") {
-				if (isLocalhost) {
-					// Localhost: use callback server on port 1455 + polling
+				if (isTrueLocalhost) {
+					// True localhost only: use callback server on port 1455 + polling
 					try {
 						const serverRes = await fetch(`/api/oauth/codex/start-callback-server`);
 						const serverData = await serverRes.json();

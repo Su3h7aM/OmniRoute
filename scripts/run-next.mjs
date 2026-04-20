@@ -33,7 +33,7 @@ for (const [key, value] of Object.entries(mergedEnv)) {
 }
 
 const { dashboardPort } = runtimePorts;
-const hostname = process.env.HOST || "0.0.0.0";
+const hostname = process.env.HOST || "localhost";
 const useTurbopack = dev;
 
 const nextApp = next({
