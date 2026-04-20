@@ -36,28 +36,28 @@ describe("binaryManager", () => {
 	describe("getAssetName", () => {
 		it("should return .tar.gz for linux", () => {
 			assert.equal(
-				mod.getAssetName("linux", "amd64"),
+				mod.getAssetName("{version}", "linux", "amd64"),
 				"CLIProxyAPI_{version}_linux_amd64.tar.gz"
 			);
 		});
 
 		it("should return .tar.gz for darwin", () => {
 			assert.equal(
-				mod.getAssetName("darwin", "arm64"),
+				mod.getAssetName("{version}", "darwin", "arm64"),
 				"CLIProxyAPI_{version}_darwin_arm64.tar.gz"
 			);
 		});
 
 		it("should return .zip for windows", () => {
 			assert.equal(
-				mod.getAssetName("windows", "amd64"),
+				mod.getAssetName("{version}", "windows", "amd64"),
 				"CLIProxyAPI_{version}_windows_amd64.zip"
 			);
 		});
 
 		it("should return .tar.gz for freebsd", () => {
 			assert.equal(
-				mod.getAssetName("freebsd", "amd64"),
+				mod.getAssetName("{version}", "freebsd", "amd64"),
 				"CLIProxyAPI_{version}_freebsd_amd64.tar.gz"
 			);
 		});

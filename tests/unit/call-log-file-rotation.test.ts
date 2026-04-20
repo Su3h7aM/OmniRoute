@@ -17,7 +17,7 @@ const core = await import("../../src/lib/db/core.ts");
 const { rotateCallLogs, cleanupOverflowCallLogFiles } = await import(
 	"../../src/lib/usage/callLogs.ts"
 );
-const { CALL_LOGS_DIR } = await import("../../src/lib/usage/callLogArtifacts.ts");
+const { getCallLogsDir } = await import("../../src/lib/usage/callLogArtifacts.ts");
 
 async function resetTestDataDir() {
 	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -107,9 +107,10 @@ afterAll(async () => {
 });
 
 test("call log file rotation honors both retention days and file count", () => {
-	assert.ok(CALL_LOGS_DIR, "CALL_LOGS_DIR should resolve for test data dir");
-	fs.rmSync(CALL_LOGS_DIR, { recursive: true, force: true });
-	fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+	const callLogsDir = getCallLogsDir();
+	assert.ok(callLogsDir, "CALL_LOGS_DIR should resolve for test data dir");
+	fs.rmSync(callLogsDir, { recursive: true, force: true });
+	fs.mkdirSync(callLogsDir, { recursive: true });
 
 	const now = Date.now();
 	const oneDay = 24 * 60 * 60 * 1000;
@@ -124,7 +125,7 @@ test("call log file rotation honors both retention days and file count", () => {
 	const keepCRelPath = buildRelativePathFromTimestamp(keepCTimestamp, "keep-c_200");
 
 	for (const relativePath of [oldRelPath, keepARelPath, keepBRelPath, keepCRelPath]) {
-		const absolutePath = path.join(CALL_LOGS_DIR, relativePath);
+		const absolutePath = path.join(callLogsDir, relativePath);
 		fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
 		fs.writeFileSync(absolutePath, JSON.stringify({ relativePath }), "utf8");
 	}
@@ -150,22 +151,22 @@ test("call log file rotation honors both retention days and file count", () => {
 		artifact_relpath: keepCRelPath,
 	});
 	fs.utimesSync(
-		path.join(CALL_LOGS_DIR, oldRelPath),
+		path.join(callLogsDir, oldRelPath),
 		new Date(now - 10 * oneDay),
 		new Date(now - 10 * oneDay)
 	);
 	fs.utimesSync(
-		path.join(CALL_LOGS_DIR, keepARelPath),
+		path.join(callLogsDir, keepARelPath),
 		new Date(now - 3 * oneDay),
 		new Date(now - 3 * oneDay)
 	);
 	fs.utimesSync(
-		path.join(CALL_LOGS_DIR, keepBRelPath),
+		path.join(callLogsDir, keepBRelPath),
 		new Date(now - 2 * oneDay),
 		new Date(now - 2 * oneDay)
 	);
 	fs.utimesSync(
-		path.join(CALL_LOGS_DIR, keepCRelPath),
+		path.join(callLogsDir, keepCRelPath),
 		new Date(now - oneDay),
 		new Date(now - oneDay)
 	);
@@ -177,22 +178,23 @@ test("call log file rotation honors both retention days and file count", () => {
 		db.prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get("old-log").cnt,
 		0
 	);
-	assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, oldRelPath)), false);
+	assert.equal(fs.existsSync(path.join(callLogsDir, oldRelPath)), false);
 
 	const keepARow = db
 		.prepare("SELECT detail_state, artifact_relpath FROM call_logs WHERE id = ?")
 		.get("keep-a");
 	assert.equal(keepARow.detail_state, "missing");
 	assert.equal(keepARow.artifact_relpath, null);
-	assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepARelPath)), false);
+	assert.equal(fs.existsSync(path.join(callLogsDir, keepARelPath)), false);
 
-	assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepBRelPath)), true);
-	assert.equal(fs.existsSync(path.join(CALL_LOGS_DIR, keepCRelPath)), true);
+	assert.equal(fs.existsSync(path.join(callLogsDir, keepBRelPath)), true);
+	assert.equal(fs.existsSync(path.join(callLogsDir, keepCRelPath)), true);
 });
 
 test("rotateCallLogs swallows filesystem errors during cleanup", () => {
-	assert.ok(CALL_LOGS_DIR, "CALL_LOGS_DIR should resolve for test data dir");
-	fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+	const callLogsDir = getCallLogsDir();
+	assert.ok(callLogsDir, "CALL_LOGS_DIR should resolve for test data dir");
+	fs.mkdirSync(callLogsDir, { recursive: true });
 
 	const originalReaddirSync = fs.readdirSync;
 	const originalConsoleError = console.error;
@@ -217,15 +219,16 @@ test("rotateCallLogs swallows filesystem errors during cleanup", () => {
 });
 
 test("cleanupOverflowCallLogFiles logs and returns when directory scanning fails", () => {
-	assert.ok(CALL_LOGS_DIR, "CALL_LOGS_DIR should resolve for test data dir");
-	fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+	const callLogsDir = getCallLogsDir();
+	assert.ok(callLogsDir, "CALL_LOGS_DIR should resolve for test data dir");
+	fs.mkdirSync(callLogsDir, { recursive: true });
 
 	const originalReaddirSync = fs.readdirSync;
 	const originalConsoleError = console.error;
 	const consoleCalls = [];
 
 	fs.readdirSync = (targetPath, ...args) => {
-		if (targetPath === CALL_LOGS_DIR) {
+		if (targetPath === callLogsDir) {
 			throw new Error("simulated overflow scan failure");
 		}
 		return originalReaddirSync.call(fs, targetPath, ...args);
@@ -235,7 +238,7 @@ test("cleanupOverflowCallLogFiles logs and returns when directory scanning fails
 	};
 
 	try {
-		assert.doesNotThrow(() => cleanupOverflowCallLogFiles(CALL_LOGS_DIR, 2));
+		assert.doesNotThrow(() => cleanupOverflowCallLogFiles(callLogsDir, 2));
 	} finally {
 		fs.readdirSync = originalReaddirSync;
 		console.error = originalConsoleError;
@@ -247,11 +250,12 @@ test("cleanupOverflowCallLogFiles logs and returns when directory scanning fails
 });
 
 test("cleanupOverflowCallLogFiles ignores directory entries that fail nested inspection", () => {
-	assert.ok(CALL_LOGS_DIR, "CALL_LOGS_DIR should resolve for test data dir");
-	fs.rmSync(CALL_LOGS_DIR, { recursive: true, force: true });
-	fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+	const callLogsDir = getCallLogsDir();
+	assert.ok(callLogsDir, "CALL_LOGS_DIR should resolve for test data dir");
+	fs.rmSync(callLogsDir, { recursive: true, force: true });
+	fs.mkdirSync(callLogsDir, { recursive: true });
 
-	const nestedDir = path.join(CALL_LOGS_DIR, "2026-04-01");
+	const nestedDir = path.join(callLogsDir, "2026-04-01");
 	fs.mkdirSync(nestedDir, { recursive: true });
 	fs.writeFileSync(path.join(nestedDir, "100000_keep.json"), "{}");
 
@@ -264,7 +268,7 @@ test("cleanupOverflowCallLogFiles ignores directory entries that fail nested ins
 	};
 
 	try {
-		assert.doesNotThrow(() => cleanupOverflowCallLogFiles(CALL_LOGS_DIR, 1));
+		assert.doesNotThrow(() => cleanupOverflowCallLogFiles(callLogsDir, 1));
 	} finally {
 		fs.readdirSync = originalReaddirSync;
 	}
@@ -274,17 +278,18 @@ test("cleanupOverflowCallLogFiles ignores directory entries that fail nested ins
 });
 
 test("cleanupOverflowCallLogFiles ignores rmSync failures for old artifacts", () => {
-	assert.ok(CALL_LOGS_DIR, "CALL_LOGS_DIR should resolve for test data dir");
-	fs.rmSync(CALL_LOGS_DIR, { recursive: true, force: true });
-	fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+	const callLogsDir = getCallLogsDir();
+	assert.ok(callLogsDir, "CALL_LOGS_DIR should resolve for test data dir");
+	fs.rmSync(callLogsDir, { recursive: true, force: true });
+	fs.mkdirSync(callLogsDir, { recursive: true });
 
-	const dayDir = path.join(CALL_LOGS_DIR, "2026-04-02");
+	const dayDir = path.join(callLogsDir, "2026-04-02");
 	fs.mkdirSync(dayDir, { recursive: true });
 
 	const newerRelPath = "2026-04-02/110000_keep.json";
 	const olderRelPath = "2026-04-02/100000_remove.json";
-	const newerFile = path.join(CALL_LOGS_DIR, newerRelPath);
-	const olderFile = path.join(CALL_LOGS_DIR, olderRelPath);
+	const newerFile = path.join(callLogsDir, newerRelPath);
+	const olderFile = path.join(callLogsDir, olderRelPath);
 	fs.writeFileSync(newerFile, "{}");
 	fs.writeFileSync(olderFile, "{}");
 
@@ -312,7 +317,7 @@ test("cleanupOverflowCallLogFiles ignores rmSync failures for old artifacts", ()
 	};
 
 	try {
-		assert.doesNotThrow(() => cleanupOverflowCallLogFiles(CALL_LOGS_DIR, 1));
+		assert.doesNotThrow(() => cleanupOverflowCallLogFiles(callLogsDir, 1));
 	} finally {
 		fs.rmSync = originalRmSync;
 	}

@@ -74,6 +74,6 @@ test("decrypt returns the original ciphertext when the value is malformed or the
 	process.env.STORAGE_ENCRYPTION_KEY = "task-304-secret-d";
 	const secondModule = await importFresh("src/lib/db/encryption.ts");
 
-	assert.equal(secondModule.decrypt(encrypted), "top-secret");
+	assert.equal(secondModule.decrypt(encrypted), encrypted);
 	assert.equal(secondModule.decrypt("enc:v1:not-valid"), "enc:v1:not-valid");
 });

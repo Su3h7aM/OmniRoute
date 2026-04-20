@@ -24,9 +24,9 @@ import { protectPayloadForLog, parseStoredPayload } from "../logPayloads";
 import { getCallLogMaxEntries, getCallLogRetentionDays, getCallLogsTableMaxRows } from "../logEnv";
 import { pickMaskedDisplayValue } from "@/shared/utils/maskEmail";
 import {
-	CALL_LOGS_DIR,
 	cleanupEmptyCallLogDirs,
 	deleteCallArtifact,
+	getCallLogsDir,
 	listCallLogArtifactFiles,
 	readCallArtifact,
 	writeCallArtifact,
@@ -352,7 +352,8 @@ function readLegacyLogFromDisk(entry: {
 	model: string | null;
 	status: number;
 }) {
-	if (!CALL_LOGS_DIR || !entry.timestamp) return null;
+	const callLogsDir = getCallLogsDir();
+	if (!callLogsDir || !entry.timestamp) return null;
 
 	try {
 		const date = new Date(entry.timestamp);
@@ -362,7 +363,7 @@ function readLegacyLogFromDisk(entry: {
 			2,
 			"0"
 		)}-${String(date.getDate()).padStart(2, "0")}`;
-		const dir = path.join(CALL_LOGS_DIR, dateFolder);
+		const dir = path.join(callLogsDir, dateFolder);
 		if (!fs.existsSync(dir)) return null;
 
 		const time = `${String(date.getHours()).padStart(2, "0")}${String(
@@ -440,7 +441,7 @@ function deleteCallLogRowsByIds(ids: string[]): DeleteResult {
 	};
 }
 
-export function cleanupOrphanCallLogFiles(baseDir = CALL_LOGS_DIR) {
+export function cleanupOrphanCallLogFiles(baseDir = getCallLogsDir()) {
 	if (!baseDir || !fs.existsSync(baseDir)) return 0;
 
 	try {
@@ -463,7 +464,7 @@ export function cleanupOrphanCallLogFiles(baseDir = CALL_LOGS_DIR) {
 	}
 }
 
-export function cleanupOverflowCallLogFiles(baseDir = CALL_LOGS_DIR, maxEntries?: number) {
+export function cleanupOverflowCallLogFiles(baseDir = getCallLogsDir(), maxEntries?: number) {
 	if (!baseDir || !fs.existsSync(baseDir)) return 0;
 
 	const limit = maxEntries ?? getCallLogMaxEntries();
@@ -732,7 +733,8 @@ export async function saveCallLog(entry: any) {
 }
 
 export function rotateCallLogs() {
-	if (!CALL_LOGS_DIR || !fs.existsSync(CALL_LOGS_DIR)) return;
+	const callLogsDir = getCallLogsDir();
+	if (!callLogsDir || !fs.existsSync(callLogsDir)) return;
 
 	try {
 		const retentionMs = getCallLogRetentionDays() * 24 * 60 * 60 * 1000;
@@ -740,8 +742,8 @@ export function rotateCallLogs() {
 
 		deleteCallLogsBefore(cutoff);
 		trimCallLogsToMaxRows(getCallLogsTableMaxRows());
-		cleanupOverflowCallLogFiles(CALL_LOGS_DIR, getCallLogMaxEntries());
-		cleanupOrphanCallLogFiles(CALL_LOGS_DIR);
+		cleanupOverflowCallLogFiles(callLogsDir, getCallLogMaxEntries());
+		cleanupOrphanCallLogFiles(callLogsDir);
 	} catch (error) {
 		console.error("[callLogs] Failed to rotate request artifacts:", (error as Error).message);
 	}

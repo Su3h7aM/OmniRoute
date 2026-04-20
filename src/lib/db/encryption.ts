@@ -16,6 +16,7 @@ const KEY_LENGTH = 32;
 const PREFIX = "enc:v1:";
 
 let _derivedKey: Buffer | null = null;
+let _derivedKeySource: string | null = null;
 
 /** Connection object with potentially encrypted credential fields. */
 export interface ConnectionFields {
@@ -31,10 +32,14 @@ export interface ConnectionFields {
  * Returns null if no encryption key is configured.
  */
 function getKey(): Buffer | null {
-	if (_derivedKey !== null) return _derivedKey;
-
 	const secret = process.env.STORAGE_ENCRYPTION_KEY;
-	if (!secret) return null;
+	if (!secret) {
+		_derivedKey = null;
+		_derivedKeySource = null;
+		return null;
+	}
+
+	if (_derivedKey !== null && _derivedKeySource === secret) return _derivedKey;
 
 	if (typeof secret !== "string" || secret.trim().length === 0) {
 		console.error(
@@ -48,6 +53,7 @@ function getKey(): Buffer | null {
 	const salt = "omniroute-field-encryption-v1";
 	try {
 		_derivedKey = scryptSync(secret, salt, KEY_LENGTH);
+		_derivedKeySource = secret;
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : String(err);
 		console.error(
@@ -61,7 +67,7 @@ function getKey(): Buffer | null {
 
 /** Check if encryption is enabled. */
 export function isEncryptionEnabled(): boolean {
-	return !!process.env.STORAGE_ENCRYPTION_KEY;
+	return getKey() !== null;
 }
 
 /**

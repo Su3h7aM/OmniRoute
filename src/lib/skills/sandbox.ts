@@ -1,5 +1,6 @@
-import { spawn, type ChildProcess } from "child_process";
+import type { ChildProcess } from "child_process";
 import { randomUUID } from "crypto";
+import { createRequire } from "module";
 
 interface SandboxConfig {
 	cpuLimit: number;
@@ -17,6 +18,9 @@ interface SandboxResult {
 	duration: number;
 	killed: boolean;
 }
+
+const require = createRequire(import.meta.url);
+const childProcess = require("child_process") as typeof import("child_process");
 
 const DEFAULT_CONFIG: SandboxConfig = {
 	cpuLimit: 100,
@@ -65,8 +69,7 @@ class SandboxRunner {
 			`${this.config.memoryLimit}m`,
 			"--network",
 			this.config.networkEnabled ? "bridge" : "none",
-			"--read-only",
-			this.config.readOnly.toString(),
+			...(this.config.readOnly ? ["--read-only"] : []),
 			"--cap-add",
 			"SYS_TIME",
 			"--pids-limit",
@@ -76,7 +79,7 @@ class SandboxRunner {
 		];
 
 		return new Promise((resolve) => {
-			const proc = spawn("docker", dockerArgs, {
+			const proc = childProcess.spawn("docker", dockerArgs, {
 				env: { ...process.env, ...env },
 				stdio: ["ignore", "pipe", "pipe"],
 			});
@@ -133,7 +136,7 @@ class SandboxRunner {
 		if (proc) {
 			proc.kill("SIGTERM");
 			this.runningContainers.delete(sandboxId);
-			spawn("docker", ["kill", `omniroute-sandbox-${sandboxId}`], { stdio: "ignore" });
+			childProcess.spawn("docker", ["kill", `omniroute-sandbox-${sandboxId}`], { stdio: "ignore" });
 			return true;
 		}
 		return false;
@@ -142,7 +145,7 @@ class SandboxRunner {
 	killAll(): void {
 		for (const [id, proc] of this.runningContainers) {
 			proc.kill("SIGTERM");
-			spawn("docker", ["kill", `omniroute-sandbox-${id}`], { stdio: "ignore" });
+			childProcess.spawn("docker", ["kill", `omniroute-sandbox-${id}`], { stdio: "ignore" });
 		}
 		this.runningContainers.clear();
 	}
