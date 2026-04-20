@@ -1,10 +1,10 @@
 import { createBunFetchInit } from "@omniroute/open-sse/utils/bunFetchOptions.ts";
 import {
-	createProxyDispatcher,
 	isSocks5ProxyEnabled,
 	proxyConfigToUrl,
 	proxyUrlForLogs,
-} from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+} from "@omniroute/open-sse/utils/proxyConfig.ts";
+import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";

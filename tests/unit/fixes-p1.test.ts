@@ -17,6 +17,7 @@ const settingsDb = await import("../../src/lib/db/settings.ts");
 const localDb = await import("../../src/lib/localDb.ts");
 const tokenRefresh = await import("../../open-sse/services/tokenRefresh.ts");
 const proxyFetch = await import("../../open-sse/utils/proxyFetch.ts");
+const proxyConfig = await import("../../open-sse/utils/proxyConfig.ts");
 const proxyDispatcher = await import("../../open-sse/utils/proxyDispatcher.ts");
 const proxySettingsRoute = await import("../../src/app/api/settings/proxy/route.ts");
 const proxyTestRoute = await import("../../src/app/api/settings/proxy/test/route.ts");
@@ -384,14 +385,14 @@ test("resolveProxyForConnection applies combo proxy for object/string model entr
 test("normalizeProxyUrl accepts socks5 only when explicitly allowed", () => {
 	const socksUrl = "socks5://127.0.0.1:1080";
 
-	const normalized = proxyDispatcher.normalizeProxyUrl(socksUrl, "test proxy", {
+	const normalized = proxyConfig.normalizeProxyUrl(socksUrl, "test proxy", {
 		allowSocks5: true,
 	});
 	assert.match(normalized, /^socks5:\/\/127\.0\.0\.1:1080\/?$/);
 
 	assert.throws(
 		() =>
-			proxyDispatcher.normalizeProxyUrl(socksUrl, "test proxy", {
+			proxyConfig.normalizeProxyUrl(socksUrl, "test proxy", {
 				allowSocks5: false,
 			}),
 		/SOCKS5 proxy is disabled/i

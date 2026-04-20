@@ -2,12 +2,12 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createBunFetchInit } from "./bunFetchOptions.ts";
 import {
-	createProxyDispatcher,
-	getDefaultDispatcher,
+	isSocksProxyUrl,
 	normalizeProxyUrl,
 	proxyConfigToUrl,
 	proxyUrlForLogs,
-} from "./proxyDispatcher.ts";
+} from "./proxyConfig.ts";
+import { createProxyDispatcher, getDefaultDispatcher } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 
@@ -206,14 +206,6 @@ export async function runWithProxyContext(proxyConfig, fn) {
 async function callUndiciFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
 	const { fetch: undiciFetch } = await import("undici");
 	return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
-}
-
-function isSocksProxyUrl(proxyUrl: string): boolean {
-	try {
-		return new URL(proxyUrl).protocol.startsWith("socks");
-	} catch {
-		return false;
-	}
 }
 
 function shouldUseBunNativeProxyFetch(proxyUrl: string | null): boolean {
