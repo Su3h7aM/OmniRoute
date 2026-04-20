@@ -10,11 +10,68 @@ const ALL_PROXY_TYPES = [
 	{ value: "http", label: "HTTP" },
 	{ value: "https", label: "HTTPS" },
 	{ value: "socks5", label: "SOCKS5" },
-];
+] as const;
 const SOCKS5_UI_ENABLED = process.env.NEXT_PUBLIC_ENABLE_SOCKS5_PROXY === "true";
 const PROXY_TYPES = SOCKS5_UI_ENABLED
 	? ALL_PROXY_TYPES
 	: ALL_PROXY_TYPES.filter((type) => type.value !== "socks5");
+
+type ProxyType = (typeof ALL_PROXY_TYPES)[number]["value"];
+type ProxyLevel = "global" | "provider" | "combo" | "key";
+type ProxyScope = Exclude<ProxyLevel, "key"> | "account";
+type ProxyPortValue = string | number | null | undefined;
+
+type SavedProxy = {
+	id: string;
+	name?: string;
+	type?: string;
+	host?: string;
+	port?: ProxyPortValue;
+	username?: string;
+	password?: string;
+};
+
+type ProxyPayload = {
+	type: string;
+	host: string;
+	port: string;
+	username?: string;
+	password?: string;
+};
+
+type TestResult = {
+	success: boolean;
+	publicIp?: string;
+	latencyMs?: number;
+	error?: string;
+} | null;
+
+type InheritedProxy = {
+	level: string;
+	proxy?: {
+		type?: string;
+		host?: string;
+		port?: ProxyPortValue;
+	};
+} | null;
+
+type ProxyConfigModalProps = {
+	isOpen: boolean;
+	onClose: () => void;
+	level: ProxyLevel;
+	levelId?: string;
+	levelLabel?: string;
+	onSaved?: () => void;
+};
+
+const getDefaultPort = (type: string) => {
+	if (type === "socks5") return "1080";
+	if (type === "https") return "443";
+	return "8080";
+};
+
+const normalizePortValue = (value: ProxyPortValue) => String(value ?? "").trim();
+const getScope = (level: ProxyLevel): ProxyScope => (level === "key" ? "account" : level);
 
 /**
  * ProxyConfigModal — Reusable proxy configuration modal for all 4 levels
@@ -33,37 +90,32 @@ export default function ProxyConfigModal({
 	levelId,
 	levelLabel,
 	onSaved,
-}: {
-	isOpen: any;
-	onClose: any;
-	level: any;
-	levelId?: any;
-	levelLabel?: any;
-	onSaved?: any;
-}) {
+}: ProxyConfigModalProps) {
 	const t = useTranslations("proxyConfigModal");
 	const [mode, setMode] = useState("saved");
-	const [savedProxies, setSavedProxies] = useState([]);
+	const [savedProxies, setSavedProxies] = useState<SavedProxy[]>([]);
 	const [selectedProxyId, setSelectedProxyId] = useState("");
-	const [proxyType, setProxyType] = useState(PROXY_TYPES[0]?.value || "http");
+	const [proxyType, setProxyType] = useState<ProxyType>(PROXY_TYPES[0]?.value || "http");
 	const [host, setHost] = useState("");
-	const [port, setPort] = useState("");
+	const [port, setPort] = useState<ProxyPortValue>("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [showAuth, setShowAuth] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [testing, setTesting] = useState(false);
-	const [testResult, setTestResult] = useState(null);
+	const [testResult, setTestResult] = useState<TestResult>(null);
 	const [loading, setLoading] = useState(true);
-	const [inheritedFrom, setInheritedFrom] = useState(null);
+	const [inheritedFrom, setInheritedFrom] = useState<InheritedProxy>(null);
 	const [hasOwnProxy, setHasOwnProxy] = useState(false);
-	const [formError, setFormError] = useState(null);
+	const [formError, setFormError] = useState<string | null>(null);
 
-	const getDefaultPort = (type) => {
-		if (type === "socks5") return "1080";
-		if (type === "https") return "443";
-		return "8080";
-	};
+	const getTrimmedCustomProxy = (): ProxyPayload => ({
+		type: proxyType,
+		host: host.trim(),
+		port: normalizePortValue(port) || getDefaultPort(proxyType),
+		username: username.trim(),
+		password: password.trim(),
+	});
 
 	const resetFields = useCallback(() => {
 		setProxyType(PROXY_TYPES[0]?.value || "http");
@@ -95,7 +147,7 @@ export default function ProxyConfigModal({
 					setSavedProxies([]);
 				}
 
-				const scope = level === "key" ? "account" : level;
+				const scope = getScope(level);
 				const assignmentParams = new URLSearchParams({ scope });
 				if (level !== "global" && levelId) {
 					assignmentParams.set("scopeId", levelId);
@@ -193,7 +245,7 @@ export default function ProxyConfigModal({
 		setFormError(null);
 		setSaving(true);
 		try {
-			const scope = level === "key" ? "account" : level;
+			const scope = getScope(level);
 			let res;
 			if (mode === "saved") {
 				res = await fetch("/api/settings/proxies/assignments", {
@@ -231,13 +283,7 @@ export default function ProxyConfigModal({
 					return;
 				}
 
-				const proxy = {
-					type: proxyType,
-					host: host.trim(),
-					port: port.trim() || getDefaultPort(proxyType),
-					username: username.trim(),
-					password: password.trim(),
-				};
+				const proxy = getTrimmedCustomProxy();
 				res = await fetch("/api/settings/proxy", {
 					method: "PUT",
 					headers: { "Content-Type": "application/json" },
@@ -267,7 +313,7 @@ export default function ProxyConfigModal({
 		setFormError(null);
 		setSaving(true);
 		try {
-			const scope = level === "key" ? "account" : level;
+			const scope = getScope(level);
 			await fetch("/api/settings/proxies/assignments", {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
@@ -305,13 +351,7 @@ export default function ProxyConfigModal({
 		setTesting(true);
 		setTestResult(null);
 		try {
-			let proxy: {
-				type: string;
-				host: string;
-				port: string;
-				username?: string;
-				password?: string;
-			} | null = null;
+			let proxy: ProxyPayload | null = null;
 
 			if (mode === "saved") {
 				if (!selectedProxyId) {
@@ -319,7 +359,7 @@ export default function ProxyConfigModal({
 					setTesting(false);
 					return;
 				}
-				const found = (savedProxies as any[]).find((p: any) => p.id === selectedProxyId);
+				const found = savedProxies.find((p) => p.id === selectedProxyId);
 				if (!found) {
 					setFormError(t("errorProxyNotFound"));
 					setTesting(false);
@@ -328,20 +368,14 @@ export default function ProxyConfigModal({
 				proxy = {
 					type: found.type || "http",
 					host: found.host || "",
-					port: String(found.port || 8080),
+					port: normalizePortValue(found.port) || getDefaultPort(found.type || "http"),
 				};
 			} else {
 				if (!host.trim()) {
 					setTesting(false);
 					return;
 				}
-				proxy = {
-					type: proxyType,
-					host: host.trim(),
-					port: port.trim() || getDefaultPort(proxyType),
-					username: username.trim(),
-					password: password.trim(),
-				};
+				proxy = getTrimmedCustomProxy();
 			}
 
 			const res = await fetch("/api/settings/proxy/test", {
@@ -369,7 +403,7 @@ export default function ProxyConfigModal({
 		level === "global"
 			? t("titleGlobal")
 			: t("titleLevel", {
-					level: t(`level${level.charAt(0).toUpperCase() + level.slice(1)}` as any),
+					level: t(`level${level.charAt(0).toUpperCase() + level.slice(1)}`),
 					label: levelLabel || levelId || "",
 				});
 
@@ -439,7 +473,7 @@ export default function ProxyConfigModal({
 								className="w-full px-3 py-2.5 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary"
 							>
 								<option value="">{t("selectSavedProxyPlaceholder")}</option>
-								{savedProxies.map((item: any) => (
+								{savedProxies.map((item) => (
 									<option key={item.id} value={item.id}>
 										{item.name} ({item.type}://{item.host}:{item.port})
 									</option>
