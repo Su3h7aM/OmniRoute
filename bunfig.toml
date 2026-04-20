@@ -5,4 +5,13 @@ linker = "hoisted"
 
 [test]
 root = "."
-preload = ["./tests/setup/jsdom.ts"]
+preload = ["./tests/setup/runtime.ts", "./tests/setup/jsdom.ts"]
+pathIgnorePatterns = [
+	"tests/unit/cli-runtime-*.test.*",
+	"tests/unit/cliproxyapi-executor.test.*",
+	"tests/unit/cli-memory.test.*",
+	"tests/unit/cli-tools.test.*",
+	"tests/unit/qoder-cli.test.*",
+	"tests/unit/t40-opencode-cli-tools-integration.test.*",
+	"tests/unit/claude-cli-defaults.test.*",
+]

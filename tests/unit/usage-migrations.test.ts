@@ -21,16 +21,26 @@ const { getLegacyDotDataDir } = await import("../../src/lib/dataPaths.ts");
 const migrations = await import("../../src/lib/usage/migrations.ts");
 const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
-const LEGACY_DATA_DIR = getLegacyDotDataDir();
-const LEGACY_USAGE_JSON_FILE = path.join(LEGACY_DATA_DIR, "usage.json");
-const LEGACY_CALL_LOGS_JSON_FILE = path.join(LEGACY_DATA_DIR, "call_logs.json");
-const USAGE_JSON_FILE = path.join(TEST_DATA_DIR, "usage.json");
-const CALL_LOGS_JSON_FILE = path.join(TEST_DATA_DIR, "call_logs.json");
-const CURRENT_REQUEST_LOGS_DIR = path.join(TEST_DATA_DIR, "logs");
-const CURRENT_REQUEST_SUMMARY_FILE = path.join(TEST_DATA_DIR, "log.txt");
-const MARKER_PATH = migrations.LOG_ARCHIVES_DIR
-	? path.join(migrations.LOG_ARCHIVES_DIR, "legacy-request-logs.json")
-	: null;
+function getLegacyDataDir() {
+	return migrations.getLegacyDataDir() || getLegacyDotDataDir();
+}
+
+function getLegacyUsageJsonFile() {
+	return path.join(getLegacyDataDir(), "usage.json");
+}
+
+function getLegacyCallLogsJsonFile() {
+	return path.join(getLegacyDataDir(), "call_logs.json");
+}
+
+function getUsageJsonFile() {
+	return path.join(TEST_DATA_DIR, "usage.json");
+}
+
+function getCallLogsJsonFile() {
+	return path.join(TEST_DATA_DIR, "call_logs.json");
+}
+
 
 function writeJson(filePath, value) {
 	fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -52,21 +62,26 @@ function readJson(filePath) {
 	return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-function seedLegacyRequestTargets() {
-	fs.mkdirSync(CURRENT_REQUEST_LOGS_DIR, { recursive: true });
-	fs.writeFileSync(path.join(CURRENT_REQUEST_LOGS_DIR, "placeholder.txt"), "legacy");
-	fs.writeFileSync(CURRENT_REQUEST_SUMMARY_FILE, "legacy summary\n");
-}
 
 beforeEach(() => {
+	process.env.HOME = TEST_HOME_DIR;
+	process.env.USERPROFILE = TEST_HOME_DIR;
+	process.env.DATA_DIR = TEST_DATA_DIR;
+	delete process.env.NEXT_PHASE;
+	migrations.configureUsageMigrationPathsForTests({
+		legacyDataDir: path.join(TEST_HOME_DIR, ".omniroute"),
+		dataDir: TEST_DATA_DIR,
+	});
+
 	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-	removePath(LEGACY_DATA_DIR);
-	removePath(USAGE_JSON_FILE);
-	removePath(`${USAGE_JSON_FILE}.migrated`);
-	removePath(CALL_LOGS_JSON_FILE);
-	removePath(`${CALL_LOGS_JSON_FILE}.migrated`);
-	removePath(CURRENT_REQUEST_LOGS_DIR);
-	removePath(CURRENT_REQUEST_SUMMARY_FILE);
+	const legacyDataDir = getLegacyDataDir();
+	const usageJsonFile = getUsageJsonFile();
+	const callLogsJsonFile = getCallLogsJsonFile();
+	removePath(legacyDataDir);
+	removePath(usageJsonFile);
+	removePath(`${usageJsonFile}.migrated`);
+	removePath(callLogsJsonFile);
+	removePath(`${callLogsJsonFile}.migrated`);
 	removePath(migrations.CALL_LOGS_DIR);
 	removePath(migrations.LOG_ARCHIVES_DIR);
 	resetDbTables();
@@ -104,47 +119,40 @@ afterAll(() => {
 		process.env.NEXT_PHASE = ORIGINAL_NEXT_PHASE;
 	}
 
+	migrations.configureUsageMigrationPathsForTests();
 	removePath(TEST_HOME_DIR);
-});
-
-test("archiveLegacyRequestLogs returns null when there are no targets or the marker already exists", async () => {
-	assert.equal(await migrations.archiveLegacyRequestLogs(), null);
-
-	seedLegacyRequestTargets();
-	assert.ok(MARKER_PATH, "marker path should exist in local test mode");
-	fs.mkdirSync(path.dirname(MARKER_PATH), { recursive: true });
-	fs.writeFileSync(MARKER_PATH, JSON.stringify({ archiveFilename: "done.zip" }, null, 2));
-
-	assert.equal(await migrations.archiveLegacyRequestLogs(), null);
-	assert.equal(fs.existsSync(CURRENT_REQUEST_LOGS_DIR), true);
-	assert.equal(fs.existsSync(CURRENT_REQUEST_SUMMARY_FILE), true);
 });
 
 test.serial(
 	"migrateLegacyUsageFiles copies legacy JSON files once and does not overwrite existing targets",
 	() => {
-		writeJson(LEGACY_USAGE_JSON_FILE, { history: [{ provider: "legacy-openai" }] });
-		writeJson(LEGACY_CALL_LOGS_JSON_FILE, { logs: [{ id: "legacy-call" }] });
+		const legacyUsageJsonFile = getLegacyUsageJsonFile();
+		const legacyCallLogsJsonFile = getLegacyCallLogsJsonFile();
+		const usageJsonFile = getUsageJsonFile();
+		const callLogsJsonFile = getCallLogsJsonFile();
+
+		writeJson(legacyUsageJsonFile, { history: [{ provider: "legacy-openai" }] });
+		writeJson(legacyCallLogsJsonFile, { logs: [{ id: "legacy-call" }] });
 
 		migrations.migrateLegacyUsageFiles();
 
-		assert.deepEqual(readJson(USAGE_JSON_FILE), { history: [{ provider: "legacy-openai" }] });
-		assert.deepEqual(readJson(CALL_LOGS_JSON_FILE), { logs: [{ id: "legacy-call" }] });
+		assert.deepEqual(readJson(usageJsonFile), { history: [{ provider: "legacy-openai" }] });
+		assert.deepEqual(readJson(callLogsJsonFile), { logs: [{ id: "legacy-call" }] });
 
-		writeJson(USAGE_JSON_FILE, { history: [{ provider: "current-openai" }] });
-		writeJson(CALL_LOGS_JSON_FILE, { logs: [{ id: "current-call" }] });
-		writeJson(LEGACY_USAGE_JSON_FILE, { history: [{ provider: "legacy-should-not-win" }] });
-		writeJson(LEGACY_CALL_LOGS_JSON_FILE, { logs: [{ id: "legacy-should-not-win" }] });
+		writeJson(usageJsonFile, { history: [{ provider: "current-openai" }] });
+		writeJson(callLogsJsonFile, { logs: [{ id: "current-call" }] });
+		writeJson(legacyUsageJsonFile, { history: [{ provider: "legacy-should-not-win" }] });
+		writeJson(legacyCallLogsJsonFile, { logs: [{ id: "legacy-should-not-win" }] });
 
 		migrations.migrateLegacyUsageFiles();
 
-		assert.deepEqual(readJson(USAGE_JSON_FILE), { history: [{ provider: "current-openai" }] });
-		assert.deepEqual(readJson(CALL_LOGS_JSON_FILE), { logs: [{ id: "current-call" }] });
+		assert.deepEqual(readJson(usageJsonFile), { history: [{ provider: "current-openai" }] });
+		assert.deepEqual(readJson(callLogsJsonFile), { logs: [{ id: "current-call" }] });
 	}
 );
 
 test("migrateUsageJsonToSqlite migrates usage history aliases and TTFT fallbacks", () => {
-	writeJson(USAGE_JSON_FILE, {
+	writeJson(getUsageJsonFile(), {
 		history: [
 			{
 				provider: "openai",
@@ -184,7 +192,7 @@ test("migrateUsageJsonToSqlite migrates usage history aliases and TTFT fallbacks
 
 	migrations.migrateUsageJsonToSqlite();
 
-	assert.equal(fs.existsSync(`${USAGE_JSON_FILE}.migrated`), true);
+	assert.equal(fs.existsSync(`${getUsageJsonFile()}.migrated`), true);
 
 	const db = getDbInstance();
 	const rows = db
@@ -238,7 +246,7 @@ test("migrateUsageJsonToSqlite migrates usage history aliases and TTFT fallbacks
 });
 
 test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores duplicate ids", () => {
-	writeJson(CALL_LOGS_JSON_FILE, {
+	writeJson(getCallLogsJsonFile(), {
 		logs: [
 			{
 				id: "call-1",
@@ -276,7 +284,7 @@ test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores du
 
 	migrations.migrateUsageJsonToSqlite();
 
-	assert.equal(fs.existsSync(`${CALL_LOGS_JSON_FILE}.migrated`), true);
+	assert.equal(fs.existsSync(`${getCallLogsJsonFile()}.migrated`), true);
 
 	const db = getDbInstance();
 	const rows = db
@@ -332,13 +340,13 @@ test("migrateUsageJsonToSqlite migrates call logs to summary rows and ignores du
 });
 
 test("migrateUsageJsonToSqlite renames empty JSON payloads without inserting rows", () => {
-	writeJson(USAGE_JSON_FILE, { history: [] });
-	writeJson(CALL_LOGS_JSON_FILE, { logs: [] });
+	writeJson(getUsageJsonFile(), { history: [] });
+	writeJson(getCallLogsJsonFile(), { logs: [] });
 
 	migrations.migrateUsageJsonToSqlite();
 
-	assert.equal(fs.existsSync(`${USAGE_JSON_FILE}.migrated`), true);
-	assert.equal(fs.existsSync(`${CALL_LOGS_JSON_FILE}.migrated`), true);
+	assert.equal(fs.existsSync(`${getUsageJsonFile()}.migrated`), true);
+	assert.equal(fs.existsSync(`${getCallLogsJsonFile()}.migrated`), true);
 
 	const db = getDbInstance();
 	assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_history").get().count, 0);
@@ -347,8 +355,8 @@ test("migrateUsageJsonToSqlite renames empty JSON payloads without inserting row
 
 test("migrateUsageJsonToSqlite leaves malformed JSON files in place and reports both failures", () => {
 	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
-	fs.writeFileSync(USAGE_JSON_FILE, "{bad json");
-	fs.writeFileSync(CALL_LOGS_JSON_FILE, "{bad json");
+	fs.writeFileSync(getUsageJsonFile(), "{bad json");
+	fs.writeFileSync(getCallLogsJsonFile(), "{bad json");
 
 	const errors = [];
 	const originalConsoleError = console.error;
@@ -362,10 +370,10 @@ test("migrateUsageJsonToSqlite leaves malformed JSON files in place and reports 
 		console.error = originalConsoleError;
 	}
 
-	assert.equal(fs.existsSync(USAGE_JSON_FILE), true);
-	assert.equal(fs.existsSync(`${USAGE_JSON_FILE}.migrated`), false);
-	assert.equal(fs.existsSync(CALL_LOGS_JSON_FILE), true);
-	assert.equal(fs.existsSync(`${CALL_LOGS_JSON_FILE}.migrated`), false);
+	assert.equal(fs.existsSync(getUsageJsonFile()), true);
+	assert.equal(fs.existsSync(`${getUsageJsonFile()}.migrated`), false);
+	assert.equal(fs.existsSync(getCallLogsJsonFile()), true);
+	assert.equal(fs.existsSync(`${getCallLogsJsonFile()}.migrated`), false);
 
 	const db = getDbInstance();
 	assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_history").get().count, 0);

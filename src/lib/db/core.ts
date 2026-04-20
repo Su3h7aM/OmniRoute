@@ -53,11 +53,34 @@ export const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
 // ──────────────── Paths ────────────────
 
-export const DATA_DIR = resolveDataDir({ isCloud });
-const _LEGACY_DATA_DIR = isCloud ? null : getLegacyDotDataDir();
-export const SQLITE_FILE = isCloud ? null : path.join(DATA_DIR, "storage.sqlite");
-const JSON_DB_FILE = isCloud ? null : path.join(DATA_DIR, "db.json");
-export const DB_BACKUPS_DIR = isCloud ? null : path.join(DATA_DIR, "db_backups");
+export function getDataDir() {
+	return resolveDataDir({ isCloud });
+}
+
+export function getLegacyDataDir() {
+	return isCloud ? null : getLegacyDotDataDir();
+}
+
+export function getSqliteFile() {
+	const dataDir = getDataDir();
+	return isCloud ? null : path.join(dataDir, "storage.sqlite");
+}
+
+export function getJsonDbFile() {
+	const dataDir = getDataDir();
+	return isCloud ? null : path.join(dataDir, "db.json");
+}
+
+export function getDbBackupsDir() {
+	const dataDir = getDataDir();
+	return isCloud ? null : path.join(dataDir, "db_backups");
+}
+
+export const DATA_DIR = getDataDir();
+const _LEGACY_DATA_DIR = getLegacyDataDir();
+export const SQLITE_FILE = getSqliteFile();
+const JSON_DB_FILE = getJsonDbFile();
+export const DB_BACKUPS_DIR = getDbBackupsDir();
 const DEFAULT_CRITICAL_TABLE_ROW_LIMIT = 10_000;
 const SKIP_PRESERVE_NAMESPACES = new Set(["syncedAvailableModels", "providerLimitsCache", "lkgp"]);
 const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
@@ -90,19 +113,23 @@ const CRITICAL_DB_TABLES: CriticalTableSpec[] = [
 	{ table: "webhooks", maxRows: 5_000 },
 ];
 
-// Ensure data directory exists — with fallback for restricted home directories (#133)
-if (!isCloud && !fs.existsSync(DATA_DIR)) {
+function ensureDataDirExists() {
+	const dataDir = getDataDir();
+	if (isCloud || fs.existsSync(dataDir)) return;
 	try {
-		fs.mkdirSync(DATA_DIR, { recursive: true });
+		fs.mkdirSync(dataDir, { recursive: true });
 	} catch (err: unknown) {
 		const msg = err instanceof Error ? err.message : String(err);
 		console.warn(
-			`[DB] Cannot create data directory '${DATA_DIR}': ${msg}\n` +
+			`[DB] Cannot create data directory '${dataDir}': ${msg}\n` +
 				`[DB] Set the DATA_DIR environment variable to a writable path, e.g.:\n` +
 				`[DB]   DATA_DIR=/path/to/writable/dir omniroute`
 		);
 	}
 }
+
+// Ensure data directory exists — with fallback for restricted home directories (#133)
+ensureDataDirExists();
 
 // ──────────────── Schema ────────────────
 
@@ -407,7 +434,13 @@ declare global {
 }
 
 function getDb(): SqliteDatabase | null {
-	return globalThis.__omnirouteDb ?? null;
+	const db = globalThis.__omnirouteDb ?? null;
+	if (!db) return null;
+	if (db.open === false) {
+		delete globalThis.__omnirouteDb;
+		return null;
+	}
+	return db;
 }
 
 function setDb(db: SqliteDatabase | null): void {
@@ -1005,11 +1038,13 @@ export function getDbInstance(): SqliteDatabase {
 		return memoryDb;
 	}
 
-	const sqliteFile = SQLITE_FILE;
+	ensureDataDirExists();
+
+	const sqliteFile = getSqliteFile();
 	if (!sqliteFile) {
 		throw new Error("SQLITE_FILE is unavailable for local mode");
 	}
-	const jsonDbFile = JSON_DB_FILE;
+	const jsonDbFile = getJsonDbFile();
 	const probeFailureBackups = listProbeFailureBackups(sqliteFile);
 	if (!fs.existsSync(sqliteFile) && probeFailureBackups.length > 0) {
 		throw new Error(
@@ -1327,7 +1362,8 @@ export function closeDbInstance(options?: { checkpointMode?: CheckpointMode | nu
 		}
 	} finally {
 		try {
-			if (!isCloud && !isBuildPhase && SQLITE_FILE) {
+			const sqliteFile = getSqliteFile();
+			if (!isCloud && !isBuildPhase && sqliteFile) {
 				db.fileControl(sqliteConstants.SQLITE_FCNTL_PERSIST_WAL, 0);
 			}
 			if (db.open) db.close();

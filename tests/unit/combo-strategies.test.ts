@@ -1,8 +1,14 @@
-import { test } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, test } from "bun:test";
 import assert from "node:assert/strict";
 
-import { handleComboChat } from "../../open-sse/services/combo.ts";
-import * as combosDb from "../../src/lib/db/combos.ts";
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-combo-strategies-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const { handleComboChat } = await import("../../open-sse/services/combo.ts");
+const combosDb = await import("../../src/lib/db/combos.ts");
 
 function stubConnection() {
 	return [
@@ -70,6 +76,16 @@ test("handleComboChat with 'context' strategy hits sortModelsByContextSize", asy
 	try {
 		const _res = await handleComboChat(id, req, stubConnection());
 	} catch (_e) {}
+});
+
+afterAll(() => {
+	try {
+		if (globalThis.__omnirouteDb?.open) {
+			globalThis.__omnirouteDb.close();
+		}
+	} catch {}
+	delete globalThis.__omnirouteDb;
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 });
 
 test("handleComboChat hits extractPromptForIntent edge cases", async () => {

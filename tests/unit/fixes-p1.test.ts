@@ -118,19 +118,21 @@ test("restoreDbBackup clears stale sqlite sidecars before reopen", {
 
 	const backupId = "db_2000-01-01T00-00-00-000Z_manual.sqlite";
 	const backupPath = path.join(core.DB_BACKUPS_DIR, backupId);
+	const sqlitePath = core.getSqliteFile();
+	assert.ok(sqlitePath);
 	fs.mkdirSync(core.DB_BACKUPS_DIR, { recursive: true });
 	db.run("PRAGMA wal_checkpoint(TRUNCATE)");
-	fs.copyFileSync(core.SQLITE_FILE, backupPath);
+	fs.copyFileSync(sqlitePath, backupPath);
 
 	core.resetDbInstance();
-	fs.writeFileSync(`${core.SQLITE_FILE}-wal`, "STALE-WAL-MARKER");
-	fs.writeFileSync(`${core.SQLITE_FILE}-shm`, "STALE-SHM-MARKER");
-	fs.writeFileSync(`${core.SQLITE_FILE}-journal`, "STALE-JOURNAL-MARKER");
+	fs.writeFileSync(`${sqlitePath}-wal`, "STALE-WAL-MARKER");
+	fs.writeFileSync(`${sqlitePath}-shm`, "STALE-SHM-MARKER");
+	fs.writeFileSync(`${sqlitePath}-journal`, "STALE-JOURNAL-MARKER");
 
 	await backupDb.restoreDbBackup(backupId);
 
 	for (const suffix of ["-wal", "-shm", "-journal"]) {
-		const sidecarPath = `${core.SQLITE_FILE}${suffix}`;
+		const sidecarPath = `${sqlitePath}${suffix}`;
 		if (!fs.existsSync(sidecarPath)) continue;
 		const text = fs.readFileSync(sidecarPath, "utf8");
 		assert.equal(
@@ -159,7 +161,9 @@ test("closeDbInstance checkpoints WAL changes into the primary SQLite file", asy
 	core.closeDbInstance();
 
 	const snapshotPath = path.join(TEST_DATA_DIR, "storage-snapshot.sqlite");
-	fs.copyFileSync(core.SQLITE_FILE, snapshotPath);
+	const sqlitePath = core.getSqliteFile();
+	assert.ok(sqlitePath);
+	fs.copyFileSync(sqlitePath, snapshotPath);
 
 	const { Database } = await import("bun:sqlite");
 	const snapshotDb = new Database(snapshotPath, { readonly: true, strict: true });
@@ -289,7 +293,8 @@ test("provider connection persists rateLimitProtection across reopen", async () 
 test('provider connection migration adds "group" column for existing databases', async () => {
 	await resetStorage();
 
-	const sqlitePath = core.SQLITE_FILE;
+	const sqlitePath = core.getSqliteFile();
+	assert.ok(sqlitePath);
 	core.resetDbInstance();
 
 	const { Database } = await import("bun:sqlite");

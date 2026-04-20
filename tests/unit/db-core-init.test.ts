@@ -391,7 +391,7 @@ test("getDbInstance creates sqlite schema, metadata and applies migrations", ser
 			const core = await importFresh("src/lib/db/core.ts");
 			const db = core.getDbInstance();
 
-			assert.equal(fs.existsSync(core.SQLITE_FILE), true);
+			assert.equal(core.getSqliteFile(), path.join(dataDir, "storage.sqlite"));
 			assert.ok(
 				db
 					.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")

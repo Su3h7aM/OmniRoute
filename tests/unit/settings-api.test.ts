@@ -1,8 +1,25 @@
-import { describe, test } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, describe, test } from "bun:test";
 import assert from "node:assert/strict";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-settings-api-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
 import { makeManagementSessionRequest } from "../helpers/managementSession.ts";
-import { getSettings, updateSettings } from "../../src/lib/db/settings.ts";
+const { getSettings, updateSettings } = await import("../../src/lib/db/settings.ts");
 const settingsRoute = await import("../../src/app/api/settings/route.ts");
+
+afterAll(() => {
+	try {
+		if (globalThis.__omnirouteDb?.open) {
+			globalThis.__omnirouteDb.close();
+		}
+	} catch {}
+	delete globalThis.__omnirouteDb;
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
+});
 
 describe("Settings API - debugMode and hiddenSidebarItems", () => {
 	describe("debugMode", () => {

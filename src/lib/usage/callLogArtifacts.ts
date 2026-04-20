@@ -6,9 +6,21 @@ import { resolveDataDir } from "../dataPaths";
 
 const isCloud = typeof globalThis.caches === "object" && globalThis.caches !== null;
 const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
-const DATA_DIR = resolveDataDir({ isCloud });
 
-export const CALL_LOGS_DIR = isCloud ? null : path.join(DATA_DIR, "call_logs");
+function getDataDir() {
+	return resolveDataDir({ isCloud });
+}
+
+function logCallArtifactError(action: string, error: unknown): void {
+	const message = error instanceof Error ? error.message : String(error);
+	console.error(`[callLogs] Failed to ${action} request artifact:`, message);
+}
+
+export function getCallLogsDir() {
+	return isCloud ? null : path.join(getDataDir(), "call_logs");
+}
+
+export const CALL_LOGS_DIR = getCallLogsDir();
 
 export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
@@ -67,9 +79,10 @@ export function writeCallArtifact(
 	artifact: CallLogArtifact,
 	relativePath = buildArtifactRelativePath(artifact.summary.timestamp, artifact.summary.id)
 ): CallLogArtifactWriteResult | null {
-	if (!CALL_LOGS_DIR || isBuildPhase) return null;
+	const callLogsDir = getCallLogsDir();
+	if (!callLogsDir || isBuildPhase) return null;
 
-	const absPath = path.join(CALL_LOGS_DIR, relativePath);
+	const absPath = path.join(callLogsDir, relativePath);
 	const tmpPath = `${absPath}.${process.pid}.${Date.now()}.tmp`;
 
 	try {
@@ -99,7 +112,7 @@ export function writeCallArtifact(
 		} catch {
 			// Best effort cleanup only.
 		}
-		console.error("[callLogs] Failed to write request artifact:", (error as Error).message);
+		logCallArtifactError("write", error);
 		return null;
 	}
 }
@@ -108,12 +121,13 @@ export function readCallArtifact(relativePath: string | null): {
 	artifact: CallLogArtifact | null;
 	state: "ready" | "missing" | "corrupt";
 } {
-	if (!CALL_LOGS_DIR || !relativePath) {
+	const callLogsDir = getCallLogsDir();
+	if (!callLogsDir || !relativePath) {
 		return { artifact: null, state: "missing" };
 	}
 
 	try {
-		const absPath = path.join(CALL_LOGS_DIR, relativePath);
+		const absPath = path.join(callLogsDir, relativePath);
 		if (!fs.existsSync(absPath)) {
 			return { artifact: null, state: "missing" };
 		}
@@ -122,16 +136,17 @@ export function readCallArtifact(relativePath: string | null): {
 			state: "ready",
 		};
 	} catch (error) {
-		console.error("[callLogs] Failed to read request artifact:", (error as Error).message);
+		logCallArtifactError("read", error);
 		return { artifact: null, state: "corrupt" };
 	}
 }
 
 export function deleteCallArtifact(relativePath: string | null): boolean {
-	if (!CALL_LOGS_DIR || !relativePath) return false;
+	const callLogsDir = getCallLogsDir();
+	if (!callLogsDir || !relativePath) return false;
 
 	try {
-		const absPath = path.join(CALL_LOGS_DIR, relativePath);
+		const absPath = path.join(callLogsDir, relativePath);
 		if (!fs.existsSync(absPath)) return false;
 		fs.rmSync(absPath, { force: true });
 		return true;

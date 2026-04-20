@@ -137,6 +137,11 @@ function setCachedAuditDb(database: AuditDatabase | null): void {
 	globalThis.__omnirouteMcpAuditDb = database;
 }
 
+function logAuditWarning(message: string, error: unknown): void {
+	const detail = error instanceof Error ? error.message : String(error);
+	console.warn(message, detail);
+}
+
 function toNumber(value: unknown, fallback = 0): number {
 	const parsed =
 		typeof value === "number"
@@ -170,8 +175,13 @@ async function getDb(): Promise<AuditDatabase | null> {
 			return null;
 		}
 
-		const { Database } = await import("bun:sqlite");
-		const database = new Database(dbPath, { create: true, strict: true }) as AuditDatabase;
+		const mockDbFactory = (globalThis as any).mockDbFactory;
+		const database = mockDbFactory
+			? (mockDbFactory(dbPath) as AuditDatabase)
+			: (new (await import("bun:sqlite")).Database(dbPath, {
+					create: true,
+					strict: true,
+				}) as AuditDatabase);
 		setCachedAuditDb(database);
 		return database;
 	} catch (err: unknown) {
@@ -187,22 +197,18 @@ export function closeAuditDb(): boolean {
 
 	setCachedAuditDb(null);
 
+	if (database.open !== false) {
+		try {
+			database.run("PRAGMA wal_checkpoint(TRUNCATE)");
+		} catch (error: unknown) {
+			logAuditWarning("[MCP Audit] WAL checkpoint failed during close:", error);
+		}
+	}
+
 	try {
-		try {
-			if (database.open !== false) {
-				database.run("PRAGMA wal_checkpoint(TRUNCATE)");
-			}
-		} catch (err: unknown) {
-			const message = err instanceof Error ? err.message : String(err);
-			console.warn("[MCP Audit] WAL checkpoint failed during close:", message);
-		}
-	} finally {
-		try {
-			database.close();
-		} catch (err: unknown) {
-			const message = err instanceof Error ? err.message : String(err);
-			console.warn("[MCP Audit] Failed to close database:", message);
-		}
+		database.close();
+	} catch (error: unknown) {
+		logAuditWarning("[MCP Audit] Failed to close database:", error);
 	}
 
 	return true;

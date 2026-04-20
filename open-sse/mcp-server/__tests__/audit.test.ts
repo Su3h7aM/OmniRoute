@@ -48,7 +48,7 @@ describe("MCP audit shutdown", () => {
 		};
 		(globalThis as any).mockDbFactory = vi.fn(() => mockDb);
 
-		const audit = await import("file:///tmp/omniroute-audit-test-close.ts?case=close");
+		const audit = await import(new URL("../audit.ts", import.meta.url).href + "?case=close");
 
 		await audit.logToolCall("omniroute_get_health", { ok: true }, { ok: true }, 12, true);
 		expect(mockDb.prepare).toHaveBeenCalledTimes(1);
@@ -71,7 +71,7 @@ describe("MCP audit shutdown", () => {
 		};
 		(globalThis as any).mockDbFactory = vi.fn(() => mockDb);
 
-		const audit = await import("file:///tmp/omniroute-audit-test-busy.ts?case=busy");
+		const audit = await import(new URL("../audit.ts", import.meta.url).href + "?case=busy");
 
 		await audit.logToolCall("omniroute_get_health", {}, {}, 5, true);
 		expect(audit.closeAuditDb()).toBe(true);

@@ -351,12 +351,14 @@ async function invokeChatCore({
 
 afterEach(async () => {
 	globalThis.fetch = originalFetch;
+	globalThis.setTimeout = originalSetTimeout;
 	await waitForAsyncSideEffects();
 	await resetStorage();
 });
 
 afterAll(async () => {
 	globalThis.fetch = originalFetch;
+	globalThis.setTimeout = originalSetTimeout;
 	await waitForAsyncSideEffects();
 	await resetStorage();
 	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
@@ -1365,34 +1367,38 @@ test("chatCore retries Qwen quota 429 responses before succeeding", async () => 
 		return 0;
 	};
 
-	const { calls, result } = await invokeChatCore({
-		provider: "qwen",
-		model: "qwen3-coder",
-		body: {
+	try {
+		const { calls, result } = await invokeChatCore({
+			provider: "qwen",
 			model: "qwen3-coder",
-			stream: false,
-			messages: [{ role: "user", content: "retry the quota hit" }],
-		},
-		responseFactory(_captured, seenCalls) {
-			if (seenCalls.length === 1) {
-				return new Response(
-					JSON.stringify({
-						error: { message: "You exceeded your current quota for Qwen." },
-					}),
-					{
-						status: 429,
-						headers: { "Content-Type": "application/json" },
-					}
-				);
-			}
-			return buildOpenAIResponse(false, "qwen recovered");
-		},
-	});
+			body: {
+				model: "qwen3-coder",
+				stream: false,
+				messages: [{ role: "user", content: "retry the quota hit" }],
+			},
+			responseFactory(_captured, seenCalls) {
+				if (seenCalls.length === 1) {
+					return new Response(
+						JSON.stringify({
+							error: { message: "You exceeded your current quota for Qwen." },
+						}),
+						{
+							status: 429,
+							headers: { "Content-Type": "application/json" },
+						}
+					);
+				}
+				return buildOpenAIResponse(false, "qwen recovered");
+			},
+		});
 
-	const payload = await result.response.json();
-	assert.equal(result.success, true);
-	assert.equal(calls.length, 2);
-	assert.equal(payload.choices[0].message.content, "qwen recovered");
+		const payload = await result.response.json();
+		assert.equal(result.success, true);
+		assert.equal(calls.length, 2);
+		assert.equal(payload.choices[0].message.content, "qwen recovered");
+	} finally {
+		globalThis.setTimeout = originalSetTimeout;
+	}
 });
 
 test("chatCore injects fallback user for Qwen OAuth requests without user", async () => {

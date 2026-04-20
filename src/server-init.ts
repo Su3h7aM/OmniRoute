@@ -16,7 +16,8 @@ import { registerBuiltinSkills } from "./lib/skills/builtins";
 
 async function startServer() {
 	// Trigger request-log layout migration during startup, before serving requests.
-	await import("./lib/usage/migrations");
+	const { runStartupUsageMigrations } = await import("./lib/usage/migrations");
+	await runStartupUsageMigrations();
 
 	// Console interceptor: capture all console output to log file (must be first)
 	initConsoleInterceptor();

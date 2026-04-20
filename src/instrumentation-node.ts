@@ -20,10 +20,11 @@ function toHex(bytes: Uint8Array): string {
 	return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+const TRUTHY_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
+
 function isBackgroundServicesDisabled(): boolean {
 	const raw = process.env.OMNIROUTE_DISABLE_BACKGROUND_SERVICES;
-	if (!raw) return false;
-	return new Set(["1", "true", "yes", "on"]).has(raw.trim().toLowerCase());
+	return typeof raw === "string" && TRUTHY_ENV_VALUES.has(raw.trim().toLowerCase());
 }
 
 async function ensureSecrets(): Promise<void> {
@@ -40,33 +41,41 @@ async function ensureSecrets(): Promise<void> {
 		);
 	}
 
-	if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === "") {
-		const persisted = getPersistedSecret("jwtSecret");
-		if (persisted) {
-			process.env.JWT_SECRET = persisted;
-			console.log("[STARTUP] JWT_SECRET restored from persistent store");
-		} else {
-			const generated = toBase64(getRandomBytes(48));
-			process.env.JWT_SECRET = generated;
-			persistSecret("jwtSecret", generated);
-			console.log(
-				"[STARTUP] JWT_SECRET auto-generated and persisted (random 64-char secret)"
-			);
-		}
-	}
+	const secretConfigs = [
+		{
+			envKey: "JWT_SECRET",
+			storeKey: "jwtSecret",
+			generate: () => toBase64(getRandomBytes(48)),
+			onRestore: "[STARTUP] JWT_SECRET restored from persistent store",
+			onGenerate: "[STARTUP] JWT_SECRET auto-generated and persisted (random 64-char secret)",
+		},
+		{
+			envKey: "API_KEY_SECRET",
+			storeKey: "apiKeySecret",
+			generate: () => toHex(getRandomBytes(32)),
+			onRestore: null,
+			onGenerate:
+				"[STARTUP] API_KEY_SECRET auto-generated and persisted (random 64-char hex secret)",
+		},
+	] as const;
 
-	if (!process.env.API_KEY_SECRET || process.env.API_KEY_SECRET.trim() === "") {
-		const persisted = getPersistedSecret("apiKeySecret");
+	for (const secretConfig of secretConfigs) {
+		const currentValue = process.env[secretConfig.envKey];
+		if (typeof currentValue === "string" && currentValue.trim() !== "") continue;
+
+		const persisted = getPersistedSecret(secretConfig.storeKey);
 		if (persisted) {
-			process.env.API_KEY_SECRET = persisted;
-		} else {
-			const generated = toHex(getRandomBytes(32));
-			process.env.API_KEY_SECRET = generated;
-			persistSecret("apiKeySecret", generated);
-			console.log(
-				"[STARTUP] API_KEY_SECRET auto-generated and persisted (random 64-char hex secret)"
-			);
+			process.env[secretConfig.envKey] = persisted;
+			if (secretConfig.onRestore) {
+				console.log(secretConfig.onRestore);
+			}
+			continue;
 		}
+
+		const generated = secretConfig.generate();
+		process.env[secretConfig.envKey] = generated;
+		persistSecret(secretConfig.storeKey, generated);
+		console.log(secretConfig.onGenerate);
 	}
 }
 
@@ -80,7 +89,8 @@ export async function registerNodejs(): Promise<void> {
 	enforceWebRuntimeEnv();
 
 	// Trigger request-log layout migration during startup, before any request hits usageDb.
-	await import("@/lib/usage/migrations");
+	const { runStartupUsageMigrations } = await import("@/lib/usage/migrations");
+	await runStartupUsageMigrations();
 
 	const { initConsoleInterceptor } = await import("@/lib/consoleInterceptor");
 	initConsoleInterceptor();

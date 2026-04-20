@@ -10,30 +10,45 @@ import { promisify } from "util";
 import { getChecksums, getReleaseByVersion } from "./releaseChecker.ts";
 
 const execFileAsync = promisify(execFile);
-const DEFAULT_DATA_DIR = process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
+
+function getDefaultDataDir(): string {
+	return process.env.DATA_DIR || path.join(os.homedir(), ".omniroute");
+}
 
 type Platform = "linux" | "darwin" | "windows" | "freebsd";
 type Arch = "amd64" | "arm64";
 
 function detectPlatform(): Platform {
-	const p = process.platform;
-	if (p === "linux") return "linux";
-	if (p === "darwin") return "darwin";
-	if (p === "win32") return "windows";
-	return "linux";
+	switch (process.platform) {
+		case "linux":
+			return "linux";
+		case "darwin":
+			return "darwin";
+		case "win32":
+			return "windows";
+		default:
+			return "linux";
+	}
 }
 
 function detectArch(): Arch {
-	const a = process.arch;
-	if (a === "x64") return "amd64";
-	if (a === "arm64") return "arm64";
-	return "amd64";
+	switch (process.arch) {
+		case "arm64":
+			return "arm64";
+		case "x64":
+		default:
+			return "amd64";
+	}
 }
 
-export function getAssetName(platform?: Platform, arch?: Arch): string {
-	const plat = platform || detectPlatform();
-	const arc = arch || detectArch();
-	return `CLIProxyAPI_{version}_${plat}_${arc}${plat === "windows" ? ".zip" : ".tar.gz"}`;
+function getArchiveExtension(platform: Platform): ".zip" | ".tar.gz" {
+	return platform === "windows" ? ".zip" : ".tar.gz";
+}
+
+export function getAssetName(version: string, platform?: Platform, arch?: Arch): string {
+	const targetPlatform = platform || detectPlatform();
+	const targetArch = arch || detectArch();
+	return `CLIProxyAPI_${version}_${targetPlatform}_${targetArch}${getArchiveExtension(targetPlatform)}`;
 }
 
 export function getTargetPlatform(): { platform: Platform; arch: Arch } {
@@ -85,8 +100,7 @@ export async function downloadRelease(
 	if (!release) throw new Error(`Version ${version} not found`);
 
 	const { platform, arch } = getTargetPlatform();
-	const ext = platform === "windows" ? ".zip" : ".tar.gz";
-	const assetName = `CLIProxyAPI_${release.version}_${platform}_${arch}${ext}`;
+	const assetName = getAssetName(release.version, platform, arch);
 	const asset = release.assets.find((a) => a.name === assetName);
 	if (!asset) throw new Error(`No asset for ${platform}/${arch}`);
 
@@ -124,7 +138,7 @@ export async function downloadRelease(
 }
 
 export async function installVersion(version: string, dataDir?: string): Promise<string> {
-	const dir = dataDir || DEFAULT_DATA_DIR;
+	const dir = dataDir || getDefaultDataDir();
 	const binDir = path.join(dir, "bin");
 	await fs.mkdir(binDir, { recursive: true });
 
@@ -144,7 +158,7 @@ export async function installVersion(version: string, dataDir?: string): Promise
 }
 
 export async function getCurrentBinaryPath(dataDir?: string): Promise<string | null> {
-	const dir = dataDir || DEFAULT_DATA_DIR;
+	const dir = dataDir || getDefaultDataDir();
 	const symlinkPath = path.join(dir, "bin", "cliproxyapi");
 	try {
 		const real = await fs.realpath(symlinkPath);
@@ -155,7 +169,7 @@ export async function getCurrentBinaryPath(dataDir?: string): Promise<string | n
 }
 
 export async function getInstalledVersions(dataDir?: string): Promise<string[]> {
-	const dir = dataDir || DEFAULT_DATA_DIR;
+	const dir = dataDir || getDefaultDataDir();
 	const binDir = path.join(dir, "bin");
 	try {
 		const entries = await fs.readdir(binDir);
@@ -178,7 +192,7 @@ export async function rollbackVersion(dataDir?: string): Promise<string | null> 
 	versions.sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
 	const previous = versions[1];
 
-	const dir = dataDir || DEFAULT_DATA_DIR;
+	const dir = dataDir || getDefaultDataDir();
 	const binDir = path.join(dir, "bin");
 	const oldBinary = findBinaryInDir(path.join(binDir, `cliproxyapi-${previous}`));
 	if (!oldBinary) return null;
@@ -197,7 +211,7 @@ export async function rollbackVersion(dataDir?: string): Promise<string | null> 
 }
 
 export async function removeVersion(version: string, dataDir?: string): Promise<boolean> {
-	const dir = dataDir || DEFAULT_DATA_DIR;
+	const dir = dataDir || getDefaultDataDir();
 	const versionDir = path.join(dir, "bin", `cliproxyapi-${version}`);
 	try {
 		await fs.rm(versionDir, { recursive: true, force: true });

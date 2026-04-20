@@ -1,7 +1,14 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterAll, beforeAll, describe, test } from "bun:test";
 import assert from "node:assert/strict";
-import { getCacheMetrics } from "../../src/lib/db/settings.ts";
-import { getDbInstance } from "../../src/lib/db/core.ts";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-cache-metrics-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
+
+const { getCacheMetrics } = await import("../../src/lib/db/settings.ts");
+const { getDbInstance } = await import("../../src/lib/db/core.ts");
 
 describe("Cache Metrics Database", () => {
 	let db;
@@ -37,6 +44,13 @@ describe("Cache Metrics Database", () => {
 	afterAll(async () => {
 		// Clean up test data
 		db.prepare("DELETE FROM usage_history WHERE provider = 'test-provider'").run();
+		try {
+			if (globalThis.__omnirouteDb?.open) {
+				globalThis.__omnirouteDb.close();
+			}
+		} catch {}
+		delete globalThis.__omnirouteDb;
+		fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 	});
 
 	describe("getCacheMetrics", () => {

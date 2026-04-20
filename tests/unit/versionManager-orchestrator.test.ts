@@ -1,5 +1,11 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, it, afterAll as after } from "bun:test";
 import assert from "node:assert/strict";
+
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-version-orchestrator-"));
+process.env.DATA_DIR = TEST_DATA_DIR;
 
 // The orchestrator imports chain triggers getDbInstance() which runs migrations.
 // A pre-existing migration conflict (014_create_memories_down.sql) causes a
@@ -60,6 +66,13 @@ describe("versionManager orchestrator (index.ts)", () => {
 });
 
 after(() => {
+	try {
+		if (globalThis.__omnirouteDb?.open) {
+			globalThis.__omnirouteDb.close();
+		}
+	} catch {}
+	delete globalThis.__omnirouteDb;
+	fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true });
 	if (!forceExitScheduled) {
 		forceExitScheduled = true;
 		// Force exit to avoid hanging on unresolved promises from DB migration errors

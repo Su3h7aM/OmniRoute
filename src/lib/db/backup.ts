@@ -10,9 +10,9 @@ import {
 	resetDbInstance,
 	isBuildPhase,
 	isCloud,
-	SQLITE_FILE,
-	DB_BACKUPS_DIR,
-	DATA_DIR,
+	getSqliteFile,
+	getDbBackupsDir,
+	getDataDir,
 } from "./core";
 import { resetAllDbModuleState } from "./stateReset";
 
@@ -50,7 +50,7 @@ export function getDbBackupRetentionDays() {
 }
 
 function getBackupDir() {
-	return DB_BACKUPS_DIR || path.join(DATA_DIR, "db_backups");
+	return getDbBackupsDir() || path.join(getDataDir(), "db_backups");
 }
 
 function getBackupFamilyBase(filename: string) {
@@ -208,10 +208,11 @@ export async function unlinkFileWithRetry(
 export function backupDbFile(reason = "auto") {
 	try {
 		if (isBuildPhase || isCloud) return null;
-		if (!SQLITE_FILE || !fs.existsSync(SQLITE_FILE)) return null;
+		const sqliteFile = getSqliteFile();
+		if (!sqliteFile || !fs.existsSync(sqliteFile)) return null;
 		if (reason !== "manual" && isSqliteAutoBackupDisabled()) return null;
 
-		const stat = fs.statSync(SQLITE_FILE);
+		const stat = fs.statSync(sqliteFile);
 		if (stat.size < 4096) {
 			console.warn(`[DB] Backup SKIPPED — DB too small (${stat.size}B)`);
 			return null;
@@ -252,9 +253,9 @@ export function backupDbFile(reason = "auto") {
 		const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 		const backupFile = path.join(backupDir, `db_${timestamp}_${reason}.sqlite`);
 
-		fs.copyFileSync(SQLITE_FILE, backupFile);
+		fs.copyFileSync(sqliteFile, backupFile);
 		for (const ext of ["-wal", "-shm"]) {
-			const sidecar = `${SQLITE_FILE}${ext}`;
+			const sidecar = `${sqliteFile}${ext}`;
 			if (fs.existsSync(sidecar)) {
 				fs.copyFileSync(sidecar, `${backupFile}${ext}`);
 			}
@@ -363,8 +364,9 @@ export async function restoreDbBackup(backupId: string) {
 	if (!isSqliteAutoBackupDisabled()) {
 		_lastBackupAt = 0;
 		const backupDirForPre = getBackupDir();
-		if (SQLITE_FILE && fs.existsSync(SQLITE_FILE)) {
-			const stat = fs.statSync(SQLITE_FILE);
+		const sqliteFile = getSqliteFile();
+		if (sqliteFile && fs.existsSync(sqliteFile)) {
+			const stat = fs.statSync(sqliteFile);
 			if (stat.size >= 4096) {
 				if (!fs.existsSync(backupDirForPre))
 					fs.mkdirSync(backupDirForPre, { recursive: true });
@@ -375,7 +377,7 @@ export async function restoreDbBackup(backupId: string) {
 				const dbForBackup = getDbInstance();
 				dbForBackup.fileControl(sqliteConstants.SQLITE_FCNTL_PERSIST_WAL, 0);
 				dbForBackup.run("PRAGMA wal_checkpoint(TRUNCATE)");
-				fs.copyFileSync(SQLITE_FILE, preBackupPath);
+				fs.copyFileSync(sqliteFile, preBackupPath);
 				_lastBackupAt = Date.now();
 			}
 		}
@@ -387,7 +389,7 @@ export async function restoreDbBackup(backupId: string) {
 	// Clear all cached prepared statements and other state bound to the old connection
 	resetAllDbModuleState();
 
-	const sqliteFile = SQLITE_FILE;
+	const sqliteFile = getSqliteFile();
 	if (!sqliteFile) {
 		throw new Error("SQLITE_FILE is unavailable in local backup restore");
 	}

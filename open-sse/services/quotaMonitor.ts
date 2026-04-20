@@ -113,9 +113,9 @@ function toIsoTimestamp(value: number | null): string | null {
 }
 
 function getMonitorStatus(percentUsed: number | null): MonitorState["status"] {
-	if (!Number.isFinite(percentUsed)) return "idle";
-	if ((percentUsed as number) >= EXHAUSTION_THRESHOLD) return "exhausted";
-	if ((percentUsed as number) >= WARN_THRESHOLD) return "warning";
+	if (percentUsed === null || !Number.isFinite(percentUsed)) return "idle";
+	if (percentUsed >= EXHAUSTION_THRESHOLD) return "exhausted";
+	if (percentUsed >= WARN_THRESHOLD) return "warning";
 	return "healthy";
 }
 
@@ -165,13 +165,20 @@ function sortSnapshots(snapshots: QuotaMonitorSnapshot[]): QuotaMonitorSnapshot[
 	});
 }
 
+function toFiniteNumber(value: unknown): number | null {
+	return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function toNonEmptyString(value: unknown): string | null {
+	return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
 function scheduleNextPoll(sessionId: string, intervalMs: number): void {
 	const state = activeMonitors.get(sessionId);
 	if (!state || state.stopped) return;
 	state.nextPollDelayMs = intervalMs;
 	state.nextPollAt = Date.now() + intervalMs;
 
-	const { provider, accountId } = state;
 	const timer = setTimeout(async () => {
 		const current = activeMonitors.get(sessionId);
 		if (!current || current.stopped) return;
@@ -181,61 +188,55 @@ function scheduleNextPoll(sessionId: string, intervalMs: number): void {
 		}
 
 		try {
-			const fetcher = quotaFetcherRegistry.get(provider);
+			const fetcher = quotaFetcherRegistry.get(current.provider);
 			if (!fetcher) {
 				current.status = current.lastQuotaPercent === null ? "idle" : current.status;
 				scheduleNextPoll(sessionId, NORMAL_INTERVAL_MS);
 				return;
 			}
+
 			current.lastPolledAt = Date.now();
 			current.totalPolls += 1;
+
 			const previousStatus = current.status;
-			const quota = await fetcher(accountId, current.connectionSnapshot || undefined);
-			const percentUsed =
-				quota && typeof quota.percentUsed === "number" && Number.isFinite(quota.percentUsed)
-					? quota.percentUsed
-					: null;
+			const quota = await fetcher(current.accountId, current.connectionSnapshot || undefined);
+			const percentUsed = toFiniteNumber(quota?.percentUsed);
+			const used = toFiniteNumber(quota?.used);
+			const total = toFiniteNumber(quota?.total);
+			const resetAt = toNonEmptyString(quota?.resetAt);
+
 			current.lastSuccessAt = Date.now();
 			current.lastError = null;
 			current.lastErrorAt = null;
 			current.consecutiveFailures = 0;
 			current.lastQuotaPercent = percentUsed;
-			current.lastQuotaUsed =
-				quota && typeof quota.used === "number" && Number.isFinite(quota.used)
-					? quota.used
-					: null;
-			current.lastQuotaTotal =
-				quota && typeof quota.total === "number" && Number.isFinite(quota.total)
-					? quota.total
-					: null;
-			current.lastResetAt =
-				quota && typeof quota.resetAt === "string" && quota.resetAt.trim().length > 0
-					? quota.resetAt
-					: null;
+			current.lastQuotaUsed = used;
+			current.lastQuotaTotal = total;
+			current.lastResetAt = resetAt;
 			current.status = getMonitorStatus(percentUsed);
 
-			if (percentUsed !== null && percentUsed >= EXHAUSTION_THRESHOLD) {
-				const emittedAlert = suppressedAlert(sessionId, provider, accountId, percentUsed);
+			const isWarning = percentUsed !== null && percentUsed >= WARN_THRESHOLD;
+			const isExhausted = percentUsed !== null && percentUsed >= EXHAUSTION_THRESHOLD;
+
+			if (isWarning) {
+				const emittedAlert = suppressedAlert(
+					sessionId,
+					current.provider,
+					current.accountId,
+					percentUsed
+				);
 				if (emittedAlert) {
 					current.lastAlertAt = Date.now();
 					current.totalAlerts += 1;
 				}
-				if (emittedAlert || previousStatus !== "exhausted") {
+				if (isExhausted && (emittedAlert || previousStatus !== "exhausted")) {
 					console.info(
-						`[QuotaMonitor] session=${sessionId}: marking ${accountId} for next-session cooldown`
+						`[QuotaMonitor] session=${sessionId}: marking ${current.accountId} for next-session cooldown`
 					);
 				}
-				scheduleNextPoll(sessionId, CRITICAL_INTERVAL_MS);
-			} else if (percentUsed !== null && percentUsed >= WARN_THRESHOLD) {
-				const emittedAlert = suppressedAlert(sessionId, provider, accountId, percentUsed);
-				if (emittedAlert) {
-					current.lastAlertAt = Date.now();
-					current.totalAlerts += 1;
-				}
-				scheduleNextPoll(sessionId, CRITICAL_INTERVAL_MS);
-			} else {
-				scheduleNextPoll(sessionId, NORMAL_INTERVAL_MS);
 			}
+
+			scheduleNextPoll(sessionId, isWarning ? CRITICAL_INTERVAL_MS : NORMAL_INTERVAL_MS);
 		} catch (error) {
 			current.lastErrorAt = Date.now();
 			current.lastError = error instanceof Error ? error.message : String(error);
@@ -358,4 +359,5 @@ export function clearQuotaMonitors(): void {
 		stopQuotaMonitor(sessionId);
 	}
 	alertSuppression.clear();
+	quotaFetcherRegistry.clear();
 }
