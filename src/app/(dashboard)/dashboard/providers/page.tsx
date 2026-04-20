@@ -1083,7 +1083,8 @@ function ApiKeyProviderCard({ providerId, provider, stats, authType, onToggle })
 									alt={provider.name}
 									width={30}
 									height={30}
-									className="object-contain rounded-lg max-w-[30px] max-h-[30px]"
+									className="object-contain rounded-lg"
+									style={{ width: 30, height: 30 }}
 									sizes="30px"
 								/>
 							) : (

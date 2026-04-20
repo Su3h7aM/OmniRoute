@@ -324,8 +324,14 @@ export default function ProviderUtilizationTab() {
 					</div>
 				) : (
 					<div className="flex flex-col gap-5">
-						<div className="h-80 w-full rounded-xl border border-black/5 bg-black/[0.02] px-3 py-4 dark:border-white/5 dark:bg-white/[0.02]">
-							<ResponsiveContainer width="100%" height="100%">
+						<div className="h-80 min-h-80 w-full min-w-0 rounded-xl border border-black/5 bg-black/[0.02] px-3 py-4 dark:border-white/5 dark:bg-white/[0.02]">
+							<ResponsiveContainer
+								width="100%"
+								height="100%"
+								minWidth={0}
+								minHeight={240}
+								initialDimension={{ width: 400, height: 288 }}
+							>
 								<LineChart
 									data={chartData}
 									margin={{ top: 8, right: 16, bottom: 0, left: 0 }}

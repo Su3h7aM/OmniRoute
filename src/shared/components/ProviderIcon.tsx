@@ -266,7 +266,7 @@ const ProviderIcon = memo(function ProviderIcon({
 					alt={providerId}
 					width={size}
 					height={size}
-					style={{ objectFit: "contain" }}
+					style={{ objectFit: "contain", width: size, height: size }}
 					onError={() => {
 						setUsePng(false);
 						setUseSvg(hasSvg);
@@ -288,7 +288,7 @@ const ProviderIcon = memo(function ProviderIcon({
 					alt={providerId}
 					width={size}
 					height={size}
-					style={{ objectFit: "contain" }}
+					style={{ objectFit: "contain", width: size, height: size }}
 					onError={() => setUseSvg(false)}
 					unoptimized
 				/>

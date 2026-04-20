@@ -2621,7 +2621,8 @@ export default function ProviderDetailPage() {
 								alt={providerInfo.name}
 								width={48}
 								height={48}
-								className="object-contain rounded-lg max-w-[48px] max-h-[48px]"
+								className="object-contain rounded-lg"
+								style={{ width: 48, height: 48 }}
 								sizes="48px"
 								onError={() => setHeaderImgError(true)}
 							/>
