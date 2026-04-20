@@ -218,3 +218,31 @@ test.if(isBunRuntime)("proxy fetch uses Bun native proxy option for HTTP proxies
 		}
 	);
 });
+
+test.if(isBunRuntime)(
+	"proxy fetch uses native fetch directly for Bun direct requests",
+	async () => {
+		await withHttpServer(
+			(_req, res) => {
+				res.writeHead(200, { "Content-Type": "text/plain" });
+				res.end("direct-bun-ok");
+			},
+			async (url) => {
+				await withEnv(
+					{
+						HTTP_PROXY: undefined,
+						HTTPS_PROXY: undefined,
+						ALL_PROXY: undefined,
+						NO_PROXY: undefined,
+						ENABLE_TLS_FINGERPRINT: undefined,
+					},
+					async () => {
+						const response = await proxyFetch(url);
+						assert.equal(response.status, 200);
+						assert.equal(await response.text(), "direct-bun-ok");
+					}
+				);
+			}
+		);
+	}
+);

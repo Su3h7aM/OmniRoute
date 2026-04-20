@@ -256,8 +256,12 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 				if (store) store.used = false;
 			}
 		}
-		// Direct connection (no proxy) — use undici with custom dispatcher for timeout control.
-		// Falls back to original native fetch if dispatcher initialization fails (#1054).
+
+		if (isBunRuntime) {
+			return originalFetchWithDispatcher(input, options);
+		}
+
+		// Direct connection (no proxy) — keep legacy undici dispatcher path on Node only.
 		try {
 			const defaultDispatcher = await getDefaultDispatcher();
 			if (!defaultDispatcher) {
