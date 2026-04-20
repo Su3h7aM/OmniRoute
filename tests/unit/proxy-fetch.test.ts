@@ -186,3 +186,35 @@ test("runWithProxyContext accepts reachable HTTP proxy endpoints and returns cal
 		}
 	);
 });
+
+test.if(isBunRuntime)("proxy fetch uses Bun native proxy option for HTTP proxies", async () => {
+	let seenProxyAuthorization: string | undefined;
+	let seenRequestUrl: string | undefined;
+
+	await withHttpServer(
+		(req, res) => {
+			seenProxyAuthorization = req.headers["proxy-authorization"];
+			seenRequestUrl = req.url;
+			res.writeHead(200, { "Content-Type": "text/plain" });
+			res.end("proxied-ok");
+		},
+		async (proxyUrl) => {
+			const proxy = new URL(proxyUrl);
+			const response = await runWithProxyContext(
+				{
+					type: "http",
+					host: proxy.hostname,
+					port: proxy.port,
+					username: "user",
+					password: "pass",
+				},
+				() => proxyFetch("http://remote.example.test/hello")
+			);
+
+			assert.equal(response.status, 200);
+			assert.equal(await response.text(), "proxied-ok");
+			assert.equal(seenProxyAuthorization, "Basic dXNlcjpwYXNz");
+			assert.equal(seenRequestUrl, "http://remote.example.test/hello");
+		}
+	);
+});

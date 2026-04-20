@@ -1,3 +1,4 @@
+import { createBunFetchInit } from "@omniroute/open-sse/utils/bunFetchOptions.ts";
 import {
 	createProxyDispatcher,
 	isSocks5ProxyEnabled,
@@ -13,17 +14,6 @@ const BASE_SUPPORTED_PROXY_TYPES = new Set(["http", "https"]);
 const PROXY_TEST_URL = "https://api64.ipify.org?format=json";
 const PROXY_TEST_TIMEOUT_MS = 10000;
 const isBunRuntime = typeof Bun !== "undefined";
-
-type BunProxyOption =
-	| string
-	| {
-			url: string;
-			headers?: Record<string, string>;
-	  };
-
-type BunFetchInit = RequestInit & {
-	proxy?: BunProxyOption;
-};
 
 function getErrorMessage(error: unknown, fallbackMessage: string): string {
 	if (error instanceof Error && error.message) {
@@ -43,42 +33,17 @@ function supportedTypesMessage() {
 	return isSocks5ProxyEnabled() ? "http, https, or socks5" : "http or https";
 }
 
-function getProxyAuthorizationHeader(proxyUrl: string): string | null {
-	const parsed = new URL(proxyUrl);
-	if (!parsed.username) return null;
-
-	const username = decodeURIComponent(parsed.username);
-	const password = decodeURIComponent(parsed.password || "");
-	return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
-}
-
-function createBunProxyOption(proxyUrl: string): BunProxyOption {
-	const proxyAuthorization = getProxyAuthorizationHeader(proxyUrl);
-	if (!proxyAuthorization) return proxyUrl;
-
-	const parsed = new URL(proxyUrl);
-	parsed.username = "";
-	parsed.password = "";
-
-	return {
-		url: parsed.toString(),
-		headers: {
-			"Proxy-Authorization": proxyAuthorization,
-		},
-	};
-}
-
 async function fetchPublicIpWithBun(proxyUrl: string | null): Promise<string> {
-	const init: BunFetchInit = {
-		method: "GET",
-		signal: AbortSignal.timeout(PROXY_TEST_TIMEOUT_MS),
-	};
-
-	if (proxyUrl) {
-		init.proxy = createBunProxyOption(proxyUrl);
-	}
-
-	const response = await fetch(PROXY_TEST_URL, init);
+	const response = await fetch(
+		PROXY_TEST_URL,
+		createBunFetchInit(
+			{
+				method: "GET",
+				signal: AbortSignal.timeout(PROXY_TEST_TIMEOUT_MS),
+			},
+			proxyUrl
+		)
+	);
 	return response.text();
 }
 

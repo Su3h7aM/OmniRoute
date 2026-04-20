@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { AsyncLocalStorage } from "node:async_hooks";
+import { createBunFetchInit } from "./bunFetchOptions.ts";
 import {
 	createProxyDispatcher,
 	getDefaultDispatcher,
@@ -31,6 +32,7 @@ type PatchState = {
 };
 
 const isCloud = typeof caches !== "undefined" && typeof caches === "object";
+const isBunRuntime = typeof Bun !== "undefined";
 const PATCH_STATE_KEY = Symbol.for("omniroute.proxyFetch.state");
 
 function getPatchState(): PatchState {
@@ -206,6 +208,18 @@ async function callUndiciFetch(input: RequestInfo | URL, options: FetchWithDispa
 	return (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, options);
 }
 
+function isSocksProxyUrl(proxyUrl: string): boolean {
+	try {
+		return new URL(proxyUrl).protocol.startsWith("socks");
+	} catch {
+		return false;
+	}
+}
+
+function shouldUseBunNativeProxyFetch(proxyUrl: string | null): boolean {
+	return isBunRuntime && Boolean(proxyUrl) && !isSocksProxyUrl(proxyUrl);
+}
+
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
 	if (options?.dispatcher) {
 		return callUndiciFetch(input, options);
@@ -282,6 +296,10 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 	}
 
 	try {
+		if (shouldUseBunNativeProxyFetch(proxyUrl)) {
+			return await originalFetchWithDispatcher(input, createBunFetchInit(options, proxyUrl));
+		}
+
 		const dispatcher = await createProxyDispatcher(proxyUrl);
 		if (!dispatcher) {
 			return originalFetchWithDispatcher(input, options);
