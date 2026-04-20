@@ -8,6 +8,7 @@ import {
 	proxyUrlForLogs,
 } from "./proxyConfig.ts";
 import { createProxyDispatcher, getDefaultDispatcher } from "./proxyDispatcher.ts";
+import { fetchViaSocksProxy } from "./socksFetch.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
 
@@ -294,6 +295,10 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
 	try {
 		if (shouldUseBunNativeProxyFetch(proxyUrl)) {
 			return await originalFetchWithDispatcher(input, createBunFetchInit(options, proxyUrl));
+		}
+
+		if (isBunRuntime && proxyUrl && isSocksProxyUrl(proxyUrl)) {
+			return await fetchViaSocksProxy(input, options, proxyUrl);
 		}
 
 		const dispatcher = await createProxyDispatcher(proxyUrl);

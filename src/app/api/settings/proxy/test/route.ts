@@ -1,10 +1,12 @@
 import { createBunFetchInit } from "@omniroute/open-sse/utils/bunFetchOptions.ts";
 import {
 	isSocks5ProxyEnabled,
+	isSocksProxyUrl,
 	proxyConfigToUrl,
 	proxyUrlForLogs,
 } from "@omniroute/open-sse/utils/proxyConfig.ts";
 import { createProxyDispatcher } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import { fetchViaSocksProxy } from "@omniroute/open-sse/utils/socksFetch.ts";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
@@ -34,6 +36,18 @@ function supportedTypesMessage() {
 }
 
 async function fetchPublicIpWithBun(proxyUrl: string | null): Promise<string> {
+	if (proxyUrl && isSocksProxyUrl(proxyUrl)) {
+		const response = await fetchViaSocksProxy(
+			PROXY_TEST_URL,
+			{
+				method: "GET",
+				signal: AbortSignal.timeout(PROXY_TEST_TIMEOUT_MS),
+			},
+			proxyUrl
+		);
+		return response.text();
+	}
+
 	const response = await fetch(
 		PROXY_TEST_URL,
 		createBunFetchInit(
@@ -184,10 +198,9 @@ export async function POST(request: Request) {
 		const startTime = Date.now();
 
 		try {
-			const responseText =
-				isBunRuntime && proxyType !== "socks5"
-					? await fetchPublicIpWithBun(proxyUrl)
-					: await fetchPublicIpWithLegacyDispatcher(proxyUrl);
+			const responseText = isBunRuntime
+				? await fetchPublicIpWithBun(proxyUrl)
+				: await fetchPublicIpWithLegacyDispatcher(proxyUrl);
 			const parsed = parsePublicIpResponse(responseText);
 
 			return Response.json({
