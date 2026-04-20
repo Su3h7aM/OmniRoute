@@ -3,6 +3,12 @@ import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 type Dispatcher = unknown;
 const isBunRuntime = typeof Bun !== "undefined";
 
+/**
+ * Legacy dispatcher compatibility layer.
+ * Bun-native request execution should avoid this module for active fetch behavior.
+ * Remaining runtime responsibilities here are Node compatibility and SOCKS5 support.
+ */
+
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
 const SUPPORTED_PROTOCOLS = new Set(["http:", "https:", "socks5:"]);
@@ -60,6 +66,7 @@ function getDispatcherOptions() {
 	};
 }
 
+/** Node-only legacy direct-fetch dispatcher. Returns null on Bun. */
 export async function getDefaultDispatcher(): Promise<Dispatcher | null> {
 	if (isBunRuntime) return null;
 
@@ -219,6 +226,7 @@ export function proxyConfigToUrl(
 	return normalizeProxyUrl(proxyUrlStr, "context proxy", { allowSocks5 });
 }
 
+/** Node-only legacy proxy dispatcher. Returns null on Bun. */
 export async function createProxyDispatcher(proxyUrl: string): Promise<Dispatcher | null> {
 	if (isBunRuntime) return null;
 
