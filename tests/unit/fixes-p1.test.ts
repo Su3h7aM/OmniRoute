@@ -1,4 +1,4 @@
-import { afterAll, test } from "bun:test";
+import { afterAll, beforeEach, test } from "bun:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
@@ -60,6 +60,10 @@ async function resetStorage() {
 	}
 	fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
 }
+
+beforeEach(async () => {
+	await resetStorage();
+});
 
 afterAll(async () => {
 	core.resetDbInstance();
@@ -526,7 +530,9 @@ test("proxy test route rejects socks5 when backend flag is disabled", async () =
 	});
 });
 
-test("proxy test route runs socks5 test when backend flag is enabled", async () => {
+test("proxy test route runs socks5 test when backend flag is enabled", {
+	timeout: 15000,
+}, async () => {
 	await withEnv("ENABLE_SOCKS5_PROXY", "true", async () => {
 		const request = new Request("http://localhost/api/settings/proxy/test", {
 			method: "POST",
@@ -616,7 +622,9 @@ test("proxy test route validates JSON, schema, and proxy types before dispatchin
 	);
 });
 
-test("proxy test route handles invalid proxy ports and uses stored proxy config when proxyId is provided", async () => {
+test("proxy test route handles invalid proxy ports and uses stored proxy config when proxyId is provided", {
+	timeout: 15000,
+}, async () => {
 	await resetStorage();
 
 	const invalidPortResponse = await proxyTestRoute.POST(

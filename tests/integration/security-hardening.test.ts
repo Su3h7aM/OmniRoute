@@ -131,6 +131,7 @@ test("package.json test script runs tests", () => {
 		testScript.includes("--test") ||
 			testScript.includes("bun test") ||
 			testScript.includes("run-bun-tests") ||
+			testScript.includes("bun run test:") ||
 			testScript.includes("jest"),
 		`test script should run tests, got: ${testScript}`
 	);
