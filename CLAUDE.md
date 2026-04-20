@@ -6,25 +6,25 @@
 ## Quick Start
 
 ```bash
-npm install                    # Install deps (auto-generates .env from .env.example)
-npm run dev                    # Dev server at http://localhost:20128
-npm run build                  # Production build (Next.js 16 standalone)
-npm run lint                   # ESLint (0 errors expected; warnings are pre-existing)
-npm run typecheck:core         # tsgo type check (should be clean)
-npm run typecheck:noimplicit:core  # tsgo strict check (no implicit any)
-npm run test:coverage          # Unit tests + coverage gate (60% min)
-npm run check                  # lint + test combined
-npm run check:cycles           # Detect circular dependencies
+bun install                       # Install deps (auto-generates .env from .env.example)
+bun run dev                       # Dev server at http://localhost:20128
+bun run build                     # Production build (Next.js 16 standalone)
+bun run lint                      # Biome check
+bun run typecheck:core            # tsgo type check (should be clean)
+bun run typecheck:noimplicit:core # tsgo strict check (no implicit any)
+bun run test:coverage             # Unit tests + coverage gate (60% min)
+bun run check                     # lint + test combined
+bun run check:cycles              # Detect circular dependencies
 ```
 
 ### Running a Single Test
 
 ```bash
-# Node.js native test runner (most tests)
-node --import tsx/esm --test tests/unit/your-file.test.mjs
+# Bun-first single-file execution
+bun test --env-file=.env.test ./tests/unit/your-file.test.ts --parallel 1
 
 # Vitest (MCP server, autoCombo, cache)
-npm run test:vitest
+bun run test:vitest
 ```
 
 ---
@@ -158,17 +158,17 @@ Client → /v1/chat/completions (Next.js route)
 
 ## Testing Cheat Sheet
 
-| What                    | Command                                                 |
-| ----------------------- | ------------------------------------------------------- |
-| All tests               | `npm run test:all`                                      |
-| Unit tests              | `npm run test:unit`                                     |
-| Single file             | `node --import tsx/esm --test tests/unit/file.test.mjs` |
-| Vitest (MCP, autoCombo) | `npm run test:vitest`                                   |
-| E2E (Playwright)        | `npm run test:e2e`                                      |
-| Protocol E2E (MCP+A2A)  | `npm run test:protocols:e2e`                            |
-| Ecosystem               | `npm run test:ecosystem`                                |
-| Coverage gate           | `npm run test:coverage` (60% min all metrics)           |
-| Coverage report         | `npm run coverage:report`                               |
+| What                    | Command                                                        |
+| ----------------------- | -------------------------------------------------------------- |
+| All tests               | `bun run test:all`                                             |
+| Unit tests              | `bun run test:unit`                                            |
+| Single file             | `bun test --env-file=.env.test ./tests/unit/file.test.ts --parallel 1` |
+| Vitest (MCP, autoCombo) | `bun run test:vitest`                                          |
+| E2E (Playwright)        | `bun run test:e2e`                                             |
+| Protocol E2E (MCP+A2A)  | `bun run test:protocols:e2e`                                   |
+| Ecosystem               | `bun run test:ecosystem`                                       |
+| Coverage gate           | `bun run test:coverage` (60% min all metrics)                  |
+| Coverage report         | `bun run coverage:report`                                      |
 
 **PR rule**: If you change production code in `src/`, `open-sse/`, `electron/`, or `bin/`,
 you must include or update tests in the same PR.
@@ -177,17 +177,19 @@ you must include or update tests in the same PR.
 
 ---
 
-## Git Workflow
+## JJ Workflow
 
 ```bash
-# Never commit directly to main
-git checkout -b feat/your-feature
+# Never commit directly to main-equivalent trunk
+jj new
 # ... make changes ...
-git commit -m "feat: describe your change"
-git push -u origin feat/your-feature
+# always run formatter + linter before commit
+bun run format
+bun run lint
+jj commit -m "feat: describe your change"
 ```
 
-**Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`
+**Change prefixes**: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 **Commit format** ([Conventional Commits](https://www.conventionalcommits.org/)):
 
@@ -206,7 +208,7 @@ refactor(db): consolidate rate limit tables
 
 ## Environment
 
-- **Runtime**: Node.js ≥18 <24, ES Modules
+- **Runtime**: Bun-first workflow, Node.js ≥18 <24 compatibility where still required, ES Modules
 - **TypeScript**: 5.9, target ES2022, module esnext, resolution bundler
 - **Path aliases**: `@/*` → `src/`, `@omniroute/open-sse` → `open-sse/`
 - **Default port**: 20128 (API + dashboard on same port)
@@ -216,6 +218,10 @@ refactor(db): consolidate rate limit tables
 ---
 
 ## Hard Rules (Never Violate)
+
+- Prefer scoped Bun test commands with `--parallel 1` for unit/integration suites.
+- Do not run raw `bun test --env-file=.env.test --parallel 1` at repo root; it can accidentally include Playwright `.spec.ts` files.
+- Always run `bun run format` and `bun run lint` before committing with `jj`.
 
 1. Never commit secrets or credentials
 2. Never add logic to `localDb.ts`

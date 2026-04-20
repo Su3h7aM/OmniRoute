@@ -10,7 +10,7 @@ with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 
 ## Stack
 
-- **Runtime**: Next.js 16 (App Router), Node.js ≥18 <24, ES Modules (`"type": "module"`)
+- **Runtime**: Next.js 16 (App Router), Bun-first runtime/tooling, Node.js ≥18 <24 compatibility where still required, ES Modules (`"type": "module"`)
 - **Language**: TypeScript 5.9 (`src/`) + JavaScript (`open-sse/`, `electron/`)
 - **Database**: better-sqlite3 (SQLite) — `DATA_DIR` configurable, default `~/.omniroute/`
 - **Streaming**: SSE via `open-sse` internal workspace package
@@ -25,47 +25,57 @@ with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 
 | Command                             | Description                       |
 | ----------------------------------- | --------------------------------- |
-| `npm run dev`                       | Start Next.js dev server          |
-| `npm run build`                     | Production build (isolated)       |
-| `npm run start`                     | Run production build              |
-| `npm run build:cli`                 | Build CLI package                 |
-| `npm run lint`                      | ESLint on all source files        |
-| `npm run typecheck:core`            | TypeScript core type checking     |
-| `npm run typecheck:noimplicit:core` | Strict checking (no implicit any) |
-| `npm run check`                     | Run lint + test                   |
-| `npm run check:cycles`              | Check for circular dependencies   |
-| `npm run electron:dev`              | Run Electron app in dev mode      |
-| `npm run electron:build`            | Build Electron app for current OS |
+| `bun run dev`                       | Start Next.js dev server                 |
+| `bun run build`                     | Production build (isolated)              |
+| `bun run start`                     | Run production build                     |
+| `bun run build:cli`                 | Build CLI package                        |
+| `bun run lint`                      | Biome check on all source files          |
+| `bun run typecheck:core`            | TypeScript core type checking            |
+| `bun run typecheck:noimplicit:core` | Strict checking (no implicit any)        |
+| `bun run check`                     | Run lint + test                          |
+| `bun run check:cycles`              | Check for circular dependencies          |
+| `bun run electron:dev`              | Run Electron app in dev mode             |
+| `bun run electron:build`            | Build Electron app for current OS        |
+| `bun run test:unit`                 | Unit tests via Bun (`--parallel 1`)      |
+| `bun run test:integration`          | Integration tests via Bun (`--parallel 1`) |
+| `bun run test:mcp-services`         | MCP/services tests via Bun (`--parallel 1`) |
 
 ### Running Tests
 
 ```bash
 # All tests (unit + integration + ecosystem + e2e)
-npm run test:all
+bun run test:all
 
-# Single test file (Node.js native test runner — most tests use this)
-node --import tsx/esm --test tests/unit/your-file.test.ts
-node --import tsx/esm --test tests/unit/plan3-p0.test.ts
-node --import tsx/esm --test tests/unit/fixes-p1.test.ts
-node --import tsx/esm --test tests/unit/security-fase01.test.ts
+# Preferred Bun suites (isolated through worker mode)
+bun run test:unit
+bun run test:integration
+bun run test:mcp-services
+
+# Single test files
+bun test --env-file=.env.test ./tests/unit/your-file.test.ts --parallel 1
+bun test --env-file=.env.test ./tests/unit/plan3-p0.test.ts --parallel 1
+DISABLE_SQLITE_AUTO_BACKUP=true bun test ./tests/unit/fixes-p1.test.ts --parallel 1
+DISABLE_SQLITE_AUTO_BACKUP=true bun test ./tests/unit/security-fase01.test.ts --parallel 1
 
 # Integration tests
-node --import tsx/esm --test tests/integration/*.test.ts
+bun test --env-file=.env.test ./tests/integration --parallel 1
 
 # E2E with Playwright
-npm run test:e2e
+bun run test:e2e
 
 # Protocol clients E2E (MCP transports, A2A)
-npm run test:protocols:e2e
+bun run test:protocols:e2e
 
 # Ecosystem compatibility tests
-npm run test:ecosystem
+bun run test:ecosystem
 
 # Coverage (see CONTRIBUTING.md)
-npm run test:coverage
+bun run test:coverage
 ```
 
 **For authoritative coverage requirements, test execution, and PR gates, see [`CONTRIBUTING.md`](CONTRIBUTING.md#running-tests).**
+
+**Important**: avoid `bun test --env-file=.env.test --parallel 1` at repo root. It can pull in Playwright `.spec.ts` files and unrelated suites. Prefer the scoped scripts above.
 
 ---
 
@@ -74,7 +84,7 @@ npm run test:coverage
 ### Formatting (Biome — enforced via lint-staged)
 
 Tabs · width 4 · semicolons required · double quotes (`"`) · 100 char width · es5 trailing commas.
-Always run `bun run format` or `biome format --write .` on changed files.
+Always run `bun run format` and `bun run lint` on changed files before committing.
 
 ### TypeScript
 
