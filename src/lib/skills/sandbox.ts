@@ -136,7 +136,9 @@ class SandboxRunner {
 		if (proc) {
 			proc.kill("SIGTERM");
 			this.runningContainers.delete(sandboxId);
-			childProcess.spawn("docker", ["kill", `omniroute-sandbox-${sandboxId}`], { stdio: "ignore" });
+			childProcess.spawn("docker", ["kill", `omniroute-sandbox-${sandboxId}`], {
+				stdio: "ignore",
+			});
 			return true;
 		}
 		return false;

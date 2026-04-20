@@ -309,7 +309,8 @@ test("Codex token exchange retries temporary connection errors and succeeds", as
 		new Response(
 			JSON.stringify({
 				error: {
-					message: "The server had an error while processing your request. Sorry about that!",
+					message:
+						"The server had an error while processing your request. Sorry about that!",
 					type: "server_error",
 					param: null,
 					code: "token_exchange_connection_error",

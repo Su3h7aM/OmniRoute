@@ -41,7 +41,6 @@ function getCallLogsJsonFile() {
 	return path.join(TEST_DATA_DIR, "call_logs.json");
 }
 
-
 function writeJson(filePath, value) {
 	fs.mkdirSync(path.dirname(filePath), { recursive: true });
 	fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
@@ -61,7 +60,6 @@ function resetDbTables() {
 function readJson(filePath) {
 	return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
-
 
 beforeEach(() => {
 	process.env.HOME = TEST_HOME_DIR;

@@ -137,7 +137,8 @@ async function exchangeCodexTokenWithRetry(
 
 		lastErrorText = await response.text();
 		const errorCode = parseTokenExchangeErrorPayload(lastErrorText)?.error?.code || null;
-		const shouldRetry = errorCode === "token_exchange_connection_error" && attempt < maxAttempts;
+		const shouldRetry =
+			errorCode === "token_exchange_connection_error" && attempt < maxAttempts;
 		if (!shouldRetry) {
 			throw buildTokenExchangeError(lastErrorText);
 		}

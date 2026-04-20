@@ -183,8 +183,14 @@ test("cleanupDbBackups removes overflow families and orphaned sidecars", async (
 test("cleanupDbBackups honors retentionDays for older backups", async () => {
 	fs.mkdirSync(core.getDbBackupsDir(), { recursive: true });
 
-	const oldBackup = path.join(core.getDbBackupsDir(), "db_2026-04-01T00-00-00-000Z_manual.sqlite");
-	const freshBackup = path.join(core.getDbBackupsDir(), "db_2026-04-15T00-00-00-000Z_manual.sqlite");
+	const oldBackup = path.join(
+		core.getDbBackupsDir(),
+		"db_2026-04-01T00-00-00-000Z_manual.sqlite"
+	);
+	const freshBackup = path.join(
+		core.getDbBackupsDir(),
+		"db_2026-04-15T00-00-00-000Z_manual.sqlite"
+	);
 	fs.writeFileSync(oldBackup, "old");
 	fs.writeFileSync(freshBackup, "fresh");
 

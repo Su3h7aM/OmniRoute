@@ -192,7 +192,9 @@ export function getTelemetrySummary(windowMs = 300000): {
 			count: durations.length,
 			p50: getPercentile(durations, 50),
 			p95: getPercentile(durations, 95),
-			avg: Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length),
+			avg: Math.round(
+				durations.reduce((sum, duration) => sum + duration, 0) / durations.length
+			),
 		};
 	}
 
