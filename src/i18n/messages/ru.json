@@ -173,7 +173,6 @@
 		"system": "Система",
 		"help": "Помощь",
 		"primarySection": "Основные",
-		"cliSection": "CLI",
 		"debugSection": "Отладка",
 		"systemSection": "Система",
 		"helpSection": "Справка",
@@ -196,7 +195,9 @@
 		"cache": "Кэш",
 		"cacheShort": "Кэш",
 		"memory": "Память",
-		"skills": "Навыки"
+		"skills": "Навыки",
+		"capabilitiesSection": "Capabilities",
+		"operationsSection": "Operations"
 	},
 	"themesPage": {
 		"title": "Темы",

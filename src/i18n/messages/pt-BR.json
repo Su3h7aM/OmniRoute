@@ -175,7 +175,6 @@
 		"system": "Sistema",
 		"help": "Ajuda",
 		"primarySection": "Main",
-		"cliSection": "CLI",
 		"debugSection": "Debug",
 		"systemSection": "System",
 		"helpSection": "Help",
@@ -196,7 +195,9 @@
 		"themeCyan": "Cyan",
 		"cliToolsShort": "Ferramentas",
 		"cache": "Cache",
-		"cacheShort": "Cache"
+		"cacheShort": "Cache",
+		"capabilitiesSection": "Capacidades",
+		"operationsSection": "Operações"
 	},
 	"themesPage": {
 		"title": "Themes",

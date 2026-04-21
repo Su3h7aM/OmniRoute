@@ -3139,21 +3139,11 @@ export default function ProviderDetailPage() {
 							</h2>
 							<p className="text-sm text-text-muted mt-1">
 								CLIProxyAPI is configured as an upstream proxy layer, not as a
-								direct provider connection. Manage the binary/runtime in CLI Tools
-								and enable proxy routing on each provider via the provider proxy
-								controls.
+								direct provider connection. Enable proxy routing on each provider
+								via the provider proxy controls.
 							</p>
 						</div>
 						<div className="flex flex-wrap gap-2">
-							<Link
-								href="/dashboard/cli-tools"
-								className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"
-							>
-								<span className="material-symbols-outlined text-base">
-									terminal
-								</span>
-								Open CLI Tools
-							</Link>
 							<Link
 								href="/dashboard/settings"
 								className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-text-main hover:border-primary/40 hover:text-text-primary transition-colors"

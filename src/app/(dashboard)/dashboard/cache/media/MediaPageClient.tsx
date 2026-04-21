@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { IMAGE_PROVIDERS } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
 
 type Modality = "image" | "video" | "music" | "speech" | "transcription";
 type GenerationResult = {
@@ -14,10 +13,37 @@ type GenerationResult = {
 	audioUrl?: string;
 };
 
-const PROVIDER_METADATA = AI_PROVIDERS as Record<string, { name?: string }>;
+const MEDIA_PROVIDER_NAME_OVERRIDES: Record<string, string> = {
+	openai: "OpenAI",
+	google: "Google",
+	gemini: "Gemini",
+	xai: "xAI",
+	stability: "Stability AI",
+	fal: "Fal",
+	together: "Together AI",
+	replicate: "Replicate",
+	azure: "Azure OpenAI",
+	deepinfra: "DeepInfra",
+	cloudflare: "Cloudflare",
+	comfyui: "ComfyUI",
+	sdwebui: "SD WebUI",
+	huggingface: "HuggingFace",
+};
+
+function getMediaProviderName(providerId: string): string {
+	const override = MEDIA_PROVIDER_NAME_OVERRIDES[providerId];
+	if (override) return override;
+
+	return providerId
+		.split(/[-_]/g)
+		.filter(Boolean)
+		.map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+		.join(" ");
+}
+
 const IMAGE_PROVIDER_MODELS = Object.entries(IMAGE_PROVIDERS).map(([providerId, config]) => ({
 	id: providerId,
-	name: PROVIDER_METADATA[providerId]?.name || providerId,
+	name: getMediaProviderName(providerId),
 	models: config.models.map((model) => ({
 		id: `${providerId}/${model.id}`,
 		name: model.name,

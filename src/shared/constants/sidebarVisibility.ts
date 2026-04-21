@@ -8,8 +8,6 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
 	"analytics",
 	"cache",
 	"limits",
-	"cli-tools",
-	"agents",
 	"memory",
 	"skills",
 	"translator",
@@ -25,7 +23,13 @@ export const HIDEABLE_SIDEBAR_ITEM_IDS = [
 ] as const;
 
 export type HideableSidebarItemId = (typeof HIDEABLE_SIDEBAR_ITEM_IDS)[number];
-export type SidebarSectionId = "primary" | "cli" | "debug" | "system" | "help";
+export type SidebarSectionId =
+	| "primary"
+	| "operations"
+	| "capabilities"
+	| "debug"
+	| "system"
+	| "help";
 
 export interface SidebarItemDefinition {
 	id: HideableSidebarItemId;
@@ -51,16 +55,17 @@ const PRIMARY_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
 	{ id: "api-manager", href: "/dashboard/api-manager", i18nKey: "apiManager", icon: "vpn_key" },
 	{ id: "providers", href: "/dashboard/providers", i18nKey: "providers", icon: "dns" },
 	{ id: "combos", href: "/dashboard/combos", i18nKey: "combos", icon: "layers" },
+];
+
+const OPERATIONS_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
 	{ id: "costs", href: "/dashboard/costs", i18nKey: "costs", icon: "account_balance_wallet" },
 	{ id: "analytics", href: "/dashboard/analytics", i18nKey: "analytics", icon: "analytics" },
 	{ id: "cache", href: "/dashboard/cache", i18nKey: "cache", icon: "cached" },
 	{ id: "limits", href: "/dashboard/limits", i18nKey: "limits", icon: "tune" },
-	{ id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
 ];
 
-const CLI_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
-	{ id: "cli-tools", href: "/dashboard/cli-tools", i18nKey: "cliToolsShort", icon: "terminal" },
-	{ id: "agents", href: "/dashboard/agents", i18nKey: "agents", icon: "smart_toy" },
+const CAPABILITIES_SIDEBAR_ITEMS: readonly SidebarItemDefinition[] = [
+	{ id: "media", href: "/dashboard/cache/media", i18nKey: "media", icon: "perm_media" },
 	{ id: "memory", href: "/dashboard/memory", i18nKey: "memory", icon: "psychology" },
 	{ id: "skills", href: "/dashboard/skills", i18nKey: "skills", icon: "auto_fix_high" },
 ];
@@ -103,10 +108,16 @@ export const SIDEBAR_SECTIONS: readonly SidebarSectionDefinition[] = [
 		showTitleInSidebar: false,
 	},
 	{
-		id: "cli",
-		titleKey: "cliSection",
-		titleFallback: "CLI",
-		items: CLI_SIDEBAR_ITEMS,
+		id: "operations",
+		titleKey: "operationsSection",
+		titleFallback: "Operations",
+		items: OPERATIONS_SIDEBAR_ITEMS,
+	},
+	{
+		id: "capabilities",
+		titleKey: "capabilitiesSection",
+		titleFallback: "Capabilities",
+		items: CAPABILITIES_SIDEBAR_ITEMS,
 	},
 	{
 		id: "debug",

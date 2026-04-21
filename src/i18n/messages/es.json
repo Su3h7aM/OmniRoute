@@ -173,7 +173,6 @@
 		"system": "Sistema",
 		"help": "Ayuda",
 		"primarySection": "Main",
-		"cliSection": "CLI",
 		"debugSection": "Debug",
 		"systemSection": "System",
 		"helpSection": "Help",
@@ -196,7 +195,9 @@
 		"cache": "Cache",
 		"cacheShort": "Cache",
 		"memory": "Memory",
-		"skills": "Skills"
+		"skills": "Skills",
+		"capabilitiesSection": "Capabilities",
+		"operationsSection": "Operations"
 	},
 	"themesPage": {
 		"title": "Temas",

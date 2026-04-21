@@ -15,7 +15,7 @@ test("system sidebar items place logs before health", () => {
 	);
 });
 
-test("primary sidebar items place limits after cache", () => {
+test("primary sidebar keeps the core routing pages", () => {
 	const primarySection = sidebarVisibility.SIDEBAR_SECTIONS.find(
 		(section) => section.id === "primary"
 	);
@@ -23,17 +23,30 @@ test("primary sidebar items place limits after cache", () => {
 	assert.ok(primarySection, "expected primary sidebar section to exist");
 	assert.deepEqual(
 		primarySection.items.map((item) => item.id),
-		[
-			"home",
-			"endpoints",
-			"api-manager",
-			"providers",
-			"combos",
-			"costs",
-			"analytics",
-			"cache",
-			"limits",
-			"media",
-		]
+		["home", "endpoints", "api-manager", "providers", "combos"]
+	);
+});
+
+test("operations sidebar groups costs, analytics, cache, and limits", () => {
+	const operationsSection = sidebarVisibility.SIDEBAR_SECTIONS.find(
+		(section) => section.id === "operations"
+	);
+
+	assert.ok(operationsSection, "expected operations sidebar section to exist");
+	assert.deepEqual(
+		operationsSection.items.map((item) => item.id),
+		["costs", "analytics", "cache", "limits"]
+	);
+});
+
+test("capabilities sidebar includes media, memory, and skills", () => {
+	const capabilitiesSection = sidebarVisibility.SIDEBAR_SECTIONS.find(
+		(section) => section.id === "capabilities"
+	);
+
+	assert.ok(capabilitiesSection, "expected capabilities sidebar section to exist");
+	assert.deepEqual(
+		capabilitiesSection.items.map((item) => item.id),
+		["media", "memory", "skills"]
 	);
 });

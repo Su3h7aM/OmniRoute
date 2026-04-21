@@ -141,7 +141,6 @@ export default function HomePageClient({ machineId }) {
 		{ label: ts("combos"), href: "/dashboard/combos", icon: "layers" },
 		{ label: ts("analytics"), href: "/dashboard/analytics", icon: "analytics" },
 		{ label: t("healthMonitor"), href: "/dashboard/health", icon: "health_and_safety" },
-		{ label: ts("cliTools"), href: "/dashboard/cli-tools", icon: "terminal" },
 		{
 			label: t("reportIssue"),
 			href: "https://github.com/diegosouzapw/OmniRoute/issues",
