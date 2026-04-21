@@ -583,7 +583,7 @@ export function openaiResponsesToOpenAIResponse(chunk, state) {
 	// Function call arguments delta
 	// NOTE: Do NOT include `id` or `type` here - only first chunk (response.output_item.added)
 	// should have them. Including `id` on every chunk causes openai-to-claude.ts to emit
-	// a new content_block_start for each delta, breaking Claude Code ACP sessions.
+	// a new content_block_start for each delta, breaking Claude Code-compatible streaming sessions.
 	if (eventType === "response.function_call_arguments.delta") {
 		const argsDelta = data.delta || "";
 		if (!argsDelta) return null;

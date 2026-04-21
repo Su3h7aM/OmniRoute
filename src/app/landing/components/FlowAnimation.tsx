@@ -7,7 +7,7 @@ export default function FlowAnimation() {
 	const t = useTranslations("landing");
 	const [activeFlow, setActiveFlow] = useState(0);
 
-	const cliTools = [
+	const apiClients = [
 		{ id: "claude", name: t("flowToolClaudeCode"), image: "/providers/claude.png" },
 		{ id: "codex", name: t("flowToolOpenAICodex"), image: "/providers/codex.png" },
 		{ id: "cline", name: t("flowToolCline"), image: "/providers/cline.png" },
@@ -65,9 +65,9 @@ export default function FlowAnimation() {
 					<div className="absolute inset-0 rounded-full border border-[#E54D5E]/30 animate-ping opacity-20"></div>
 				</div>
 
-				{/* CLI Tools - Left side */}
+				{/* API clients - Left side */}
 				<div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col gap-7">
-					{cliTools.map((tool) => (
+					{apiClients.map((tool) => (
 						<div
 							key={tool.id}
 							className="flex items-center gap-3 opacity-70 hover:opacity-100 transition-opacity group"

@@ -104,8 +104,6 @@ function usePageInfo(pathname: string | null): {
 			description: t("analyticsDescription"),
 			breadcrumbs: [],
 		};
-	if (pathname.includes("/cli-tools"))
-		return { title: t("cliTools"), description: t("cliToolsDescription"), breadcrumbs: [] };
 	if (pathname === "/dashboard")
 		return { title: t("home"), description: t("homeDescription"), breadcrumbs: [] };
 	if (pathname.includes("/mcp"))

@@ -1,13 +1,13 @@
 -- Migration 016: Version Manager & Upstream Proxy tables
 -- 
--- Adds two tables for CLIProxyAPI integration:
---   version_manager       — binary lifecycle management for CLI tools (CLIProxyAPI, etc.)
+-- Adds two tables for upstream proxy integration:
+--   version_manager       — binary lifecycle management for upstream proxy helpers (CLIProxyAPI, etc.)
 --   upstream_proxy_config — per-provider routing mode (native vs CLIProxyAPI vs fallback)
 
 -- --------------------------------------------------------------------------
 -- Table: version_manager
 -- Tracks installed versions, process state, and update settings for
--- externally managed CLI tools (initially CLIProxyAPI).
+-- externally managed upstream proxy helpers (initially CLIProxyAPI).
 -- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS version_manager (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,

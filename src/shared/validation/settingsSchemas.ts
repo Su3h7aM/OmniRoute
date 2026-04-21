@@ -76,22 +76,8 @@ export const updateSettingsSchema = z.object({
 	// Adaptive Volume Routing
 	adaptiveVolumeRouting: z.boolean().optional(),
 	// Usage token buffer — safety margin added to reported prompt/input token counts.
-	// Prevents CLI tools from overrunning context windows. Set to 0 to disable.
+	// Prevents clients from overrunning context windows. Set to 0 to disable.
 	usageTokenBuffer: z.number().int().min(0).max(50000).optional(),
-	// Custom CLI agent definitions for ACP
-	customAgents: z
-		.array(
-			z.object({
-				id: z.string().max(50),
-				name: z.string().max(100),
-				binary: z.string().max(200),
-				versionCommand: z.string().max(300),
-				providerAlias: z.string().max(50),
-				spawnArgs: z.array(z.string().max(200)),
-				protocol: z.enum(["stdio", "http"]),
-			})
-		)
-		.optional(),
 	// SkillsMP marketplace API key
 	skillsmpApiKey: z.string().max(200).optional(),
 	// models.dev sync settings

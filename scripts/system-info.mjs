@@ -10,12 +10,12 @@
  *   - OmniRoute version
  *   - OS info
  *   - Relevant system packages (if apt available)
- *   - Agent CLI tools (qoder, gemini, claude, codex, antigravity, droid, etc.)
  *   - Docker / PM2 status
  */
 
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
+import os from "os";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -30,16 +30,6 @@ function run(cmd, fallback = "N/A") {
   } catch {
     return fallback;
   }
-}
-
-function toolVersion(cmd, args = "--version") {
-  const version = run(`${cmd} ${args}`, null);
-  if (version === null) return "not installed";
-  // Trim to first line, remove prefixes like "v", "Version: "
-  return version
-    .split("\n")[0]
-    .replace(/^(version\s*:?\s*|v)/i, "")
-    .trim();
 }
 
 function section(title) {
@@ -82,27 +72,6 @@ lines.push(`Global Bun: ${installedGlobal || "not installed globally"}`);
 const pm2Status = run("pm2 list 2>/dev/null | grep omniroute | awk '{print $4, $10, $12}'");
 lines.push(`PM2 status: ${pm2Status || "not running via PM2"}`);
 
-// ── Agent CLI Tools ──────────────────────────────────────────────────────
-
-lines.push(section("Agent CLI Tools"));
-
-const cliTools = [
-  { name: "qoder-cli", cmd: "qoder", args: "--version" },
-  { name: "gemini-cli", cmd: "gemini", args: "--version" },
-  { name: "claude-code", cmd: "claude", args: "--version" },
-  { name: "openai-codex", cmd: "codex", args: "--version" },
-  { name: "antigravity", cmd: "antigravity", args: "--version" },
-  { name: "droid", cmd: "droid", args: "--version" },
-  { name: "openclaw", cmd: "openclaw", args: "--version" },
-  { name: "kilo", cmd: "kilo", args: "--version" },
-  { name: "cursor", cmd: "cursor", args: "--version" },
-  { name: "aider", cmd: "aider", args: "--version" },
-];
-
-for (const { name, cmd, args } of cliTools) {
-  const v = toolVersion(cmd, args);
-  lines.push(`${name.padEnd(20)} ${v}`);
-}
 
 // ── Docker ───────────────────────────────────────────────────────────────
 

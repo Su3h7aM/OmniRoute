@@ -223,7 +223,7 @@ export async function isAuthRequired(): Promise<boolean> {
 		// Note: this is safe because Bearer API key auth is still checked in verifyAuth().
 		// The security concern from #151 (password row lost after being set) is handled by the
 		// hasPassword flag — if a password WAS set and then somehow lost, the user can use the
-		// reset-password CLI tool (bin/reset-password.mjs).
+		// reset-password helper (bin/reset-password.mjs).
 		if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
 		return true;
 	} catch (error: any) {

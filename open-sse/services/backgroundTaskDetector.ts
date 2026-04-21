@@ -1,7 +1,7 @@
 /**
  * Background Task Detector — Feature 3
  *
- * Detects when CLI tools send "background" requests (title generation,
+ * Detects when clients send "background" requests (title generation,
  * summarization, short descriptions) and provides model degradation
  * recommendations to save premium model quota.
  *
