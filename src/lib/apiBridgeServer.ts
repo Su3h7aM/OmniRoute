@@ -1,6 +1,3 @@
-import http from "http";
-import type { IncomingMessage, ServerResponse } from "http";
-import net from "net";
 import { getRuntimePorts } from "@/lib/runtime/ports";
 import { getApiBridgeTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
 
@@ -18,196 +15,222 @@ const OPENAI_COMPAT_PATHS = [
 	/^\/callback(?:\?|$)/,
 ];
 
+type BridgeWebSocketData = {
+	upstream?: WebSocket;
+};
+
+declare global {
+	var __omnirouteApiBridgeStarted: boolean | undefined;
+	var __omnirouteApiBridgeServer: Server | undefined;
+	var __testRuntimePorts:
+		| {
+				apiPort: number;
+				dashboardPort: number;
+		  }
+		| undefined;
+}
+
 function isOpenAiCompatiblePath(pathname: string): boolean {
 	return OPENAI_COMPAT_PATHS.some((pattern) => pattern.test(pathname));
 }
 
-function proxyRequest(req: IncomingMessage, res: ServerResponse, dashboardPort: number): void {
-	const targetReq = http.request(
+function createNotFoundResponse(): Response {
+	return Response.json(
 		{
-			hostname: "127.0.0.1",
-			port: dashboardPort,
-			method: req.method,
-			path: req.url,
-			headers: {
-				...req.headers,
-				host: `127.0.0.1:${dashboardPort}`,
-			},
-			timeout: API_BRIDGE_TIMEOUTS.proxyTimeoutMs,
+			error: "not_found",
+			message: "API port only serves OpenAI-compatible routes.",
 		},
-		(targetRes) => {
-			res.writeHead(targetRes.statusCode || 502, targetRes.headers);
-			targetRes.pipe(res);
+		{ status: 404 }
+	);
+}
+
+function createTimeoutResponse(): Response {
+	return Response.json(
+		{
+			error: "api_bridge_timeout",
+			detail: `Proxy request timed out after ${API_BRIDGE_TIMEOUTS.proxyTimeoutMs}ms`,
+		},
+		{ status: 504 }
+	);
+}
+
+function createProxyErrorResponse(error: unknown): Response {
+	return Response.json(
+		{
+			error: "api_bridge_unavailable",
+			detail: String(error instanceof Error ? error.message : error),
+		},
+		{ status: 502 }
+	);
+}
+
+function getRequestBody(request: Request): BodyInit | undefined {
+	if (request.method === "GET" || request.method === "HEAD") {
+		return undefined;
+	}
+	return request.body;
+}
+
+function createDashboardUrl(requestUrl: string, dashboardPort: number): URL {
+	const targetUrl = new URL(requestUrl);
+	targetUrl.hostname = "127.0.0.1";
+	targetUrl.port = String(dashboardPort);
+	return targetUrl;
+}
+
+function createDashboardHeaders(request: Request, dashboardPort: number): Headers {
+	const headers = new Headers(request.headers);
+	headers.set("host", `127.0.0.1:${dashboardPort}`);
+	return headers;
+}
+
+async function proxyHttpRequest(request: Request, dashboardPort: number): Promise<Response> {
+	const targetUrl = createDashboardUrl(request.url, dashboardPort);
+	const headers = createDashboardHeaders(request, dashboardPort);
+
+	try {
+		const timeoutSignal = AbortSignal.timeout(API_BRIDGE_TIMEOUTS.proxyTimeoutMs);
+		const response = await fetch(targetUrl, {
+			method: request.method,
+			headers,
+			body: getRequestBody(request),
+			signal: timeoutSignal,
+			duplex: "half",
+		});
+		return new Response(response.body, {
+			status: response.status,
+			headers: response.headers,
+		});
+	} catch (error) {
+		if (error instanceof Error && error.name === "TimeoutError") {
+			return createTimeoutResponse();
 		}
+		return createProxyErrorResponse(error);
+	}
+}
+
+function toWebSocketUrl(requestUrl: string, dashboardPort: number): string {
+	const url = createDashboardUrl(requestUrl, dashboardPort);
+	url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+	return url.toString();
+}
+
+function getWebSocketOptions(request: Request, dashboardPort: number) {
+	const headers = createDashboardHeaders(request, dashboardPort);
+	const protocols = request.headers.get("sec-websocket-protocol");
+	if (!protocols) {
+		return { headers };
+	}
+	return {
+		headers,
+		protocols: protocols
+			.split(",")
+			.map((value) => value.trim())
+			.filter(Boolean),
+	};
+}
+
+function forEachLinkedSocket(
+	server: Server<BridgeWebSocketData>,
+	upstream: WebSocket,
+	callback: (socket: ServerWebSocket<BridgeWebSocketData>) => void
+) {
+	server.pendingWebSockets?.forEach((socket) => {
+		if (socket.data.upstream === upstream) {
+			callback(socket);
+		}
+	});
+}
+
+function bridgeWebSockets(
+	request: Request,
+	server: Server<BridgeWebSocketData>,
+	dashboardPort: number
+): Response {
+	const upgraded = server.upgrade(request, { data: {} as BridgeWebSocketData });
+	if (!upgraded) {
+		return createProxyErrorResponse("Failed to upgrade API bridge websocket");
+	}
+
+	const upstream = new WebSocket(
+		toWebSocketUrl(request.url, dashboardPort),
+		getWebSocketOptions(request, dashboardPort)
 	);
 
-	targetReq.on("timeout", () => {
-		targetReq.destroy();
-		if (res.headersSent) return;
-		res.writeHead(504, { "content-type": "application/json" });
-		res.end(
-			JSON.stringify({
-				error: "api_bridge_timeout",
-				detail: `Proxy request timed out after ${API_BRIDGE_TIMEOUTS.proxyTimeoutMs}ms`,
-			})
-		);
+	server.pendingWebSockets?.forEach((socket) => {
+		if (!socket.data.upstream) {
+			socket.data.upstream = upstream;
+		}
 	});
 
-	targetReq.on("error", (error) => {
-		if (res.headersSent) return;
-		res.writeHead(502, { "content-type": "application/json" });
-		res.end(
-			JSON.stringify({
-				error: "api_bridge_unavailable",
-				detail: String(error.message || error),
-			})
-		);
+	upstream.addEventListener("message", (event) => {
+		forEachLinkedSocket(server, upstream, (socket) => {
+			socket.send(event.data);
+		});
 	});
 
-	req.on("aborted", () => {
-		targetReq.destroy();
-	});
+	const closeLinkedSockets = () => {
+		forEachLinkedSocket(server, upstream, (socket) => {
+			socket.close();
+		});
+	};
 
-	req.pipe(targetReq);
+	upstream.addEventListener("close", closeLinkedSockets);
+	upstream.addEventListener("error", closeLinkedSockets);
+
+	return new Response(null);
 }
 
-function writeUpgradeProxyError(socket: net.Socket, status: number, body: string): void {
-	if (!socket.writable || socket.destroyed) return;
-	const buffer = Buffer.from(body, "utf8");
-	const response = [
-		`HTTP/1.1 ${status} ${http.STATUS_CODES[status] || "Error"}`,
-		"Connection: close",
-		"Content-Type: application/json; charset=utf-8",
-		`Content-Length: ${buffer.length}`,
-		"",
-		"",
-	].join("\r\n");
-
-	socket.write(response);
-	socket.end(buffer);
-}
-
-function proxyUpgrade(
-	req: IncomingMessage,
-	socket: net.Socket,
-	head: Buffer,
-	dashboardPort: number
-) {
-	const upstream = net.connect(dashboardPort, "127.0.0.1");
-
-	upstream.on("connect", () => {
-		const requestLine = `${req.method || "GET"} ${req.url || "/"} HTTP/${req.httpVersion || "1.1"}`;
-		const headerLines: string[] = [requestLine];
-		let wroteHost = false;
-
-		for (let index = 0; index < req.rawHeaders.length; index += 2) {
-			const name = req.rawHeaders[index];
-			const rawValue = req.rawHeaders[index + 1] || "";
-			if (name.toLowerCase() === "host") {
-				headerLines.push(`Host: 127.0.0.1:${dashboardPort}`);
-				wroteHost = true;
-			} else {
-				headerLines.push(`${name}: ${rawValue}`);
+function createApiBridgeServer(apiPort: number, dashboardPort: number, host: string): Server {
+	return Bun.serve<BridgeWebSocketData>({
+		port: apiPort,
+		hostname: host,
+		idleTimeout: Math.max(1, Math.ceil(API_BRIDGE_TIMEOUTS.serverKeepAliveTimeoutMs / 1000)),
+		fetch(request, server) {
+			const pathname = new URL(request.url).pathname;
+			if (!isOpenAiCompatiblePath(pathname)) {
+				return createNotFoundResponse();
 			}
-		}
 
-		if (!wroteHost) {
-			headerLines.push(`Host: 127.0.0.1:${dashboardPort}`);
-		}
+			if (request.headers.get("upgrade")?.toLowerCase() === "websocket") {
+				return bridgeWebSockets(request, server, dashboardPort);
+			}
 
-		upstream.write(`${headerLines.join("\r\n")}\r\n\r\n`);
-		if (head.length > 0) {
-			upstream.write(head);
-		}
-
-		socket.pipe(upstream);
-		upstream.pipe(socket);
+			return proxyHttpRequest(request, dashboardPort);
+		},
+		websocket: {
+			message(ws, message) {
+				ws.data.upstream?.send(message);
+			},
+			close(ws) {
+				ws.data.upstream?.close();
+			},
+		},
+		error(error) {
+			if ((error as NodeJS.ErrnoException)?.code === "EADDRINUSE") {
+				console.warn(
+					`[API Bridge] Port ${apiPort} is already in use. API bridge disabled. (dashboard: ${dashboardPort})`
+				);
+				return createProxyErrorResponse(error);
+			}
+			console.warn(
+				"[API Bridge] Failed to start:",
+				error instanceof Error ? error.message : error
+			);
+			return createProxyErrorResponse(error);
+		},
 	});
-
-	upstream.on("error", (error) => {
-		writeUpgradeProxyError(
-			socket,
-			502,
-			JSON.stringify({
-				error: "api_bridge_upgrade_failed",
-				detail: String(error.message || error),
-			})
-		);
-	});
-
-	socket.on("error", () => {
-		upstream.destroy();
-	});
-
-	socket.on("close", () => {
-		upstream.destroy();
-	});
-}
-
-declare global {
-	var __omnirouteApiBridgeStarted: boolean | undefined;
 }
 
 export function initApiBridgeServer(): void {
 	if (globalThis.__omnirouteApiBridgeStarted) return;
 
-	const { apiPort, dashboardPort } = getRuntimePorts();
+	const { apiPort, dashboardPort } = globalThis.__testRuntimePorts || getRuntimePorts();
 	if (apiPort === dashboardPort) return;
 
 	const host = process.env.API_HOST || "127.0.0.1";
-
-	const server = http.createServer((req, res) => {
-		const rawUrl = req.url || "/";
-		const pathname = rawUrl.split("?")[0] || "/";
-
-		if (!isOpenAiCompatiblePath(pathname)) {
-			res.writeHead(404, { "content-type": "application/json" });
-			res.end(
-				JSON.stringify({
-					error: "not_found",
-					message: "API port only serves OpenAI-compatible routes.",
-				})
-			);
-			return;
-		}
-
-		proxyRequest(req, res, dashboardPort);
-	});
-	server.requestTimeout = API_BRIDGE_TIMEOUTS.serverRequestTimeoutMs;
-	server.headersTimeout = API_BRIDGE_TIMEOUTS.serverHeadersTimeoutMs;
-	server.keepAliveTimeout = API_BRIDGE_TIMEOUTS.serverKeepAliveTimeoutMs;
-	server.setTimeout(API_BRIDGE_TIMEOUTS.serverSocketTimeoutMs);
-	server.on("upgrade", (req, socket, head) => {
-		const rawUrl = req.url || "/";
-		const pathname = rawUrl.split("?")[0] || "/";
-
-		if (!isOpenAiCompatiblePath(pathname)) {
-			writeUpgradeProxyError(
-				socket,
-				404,
-				JSON.stringify({
-					error: "not_found",
-					message: "API port only serves OpenAI-compatible routes.",
-				})
-			);
-			return;
-		}
-
-		proxyUpgrade(req, socket, head, dashboardPort);
-	});
-
-	server.on("error", (error: NodeJS.ErrnoException) => {
-		if (error?.code === "EADDRINUSE") {
-			console.warn(
-				`[API Bridge] Port ${apiPort} is already in use. API bridge disabled. (dashboard: ${dashboardPort})`
-			);
-			return;
-		}
-		console.warn("[API Bridge] Failed to start:", error?.message || error);
-	});
-
-	server.listen(apiPort, host, () => {
-		globalThis.__omnirouteApiBridgeStarted = true;
-		console.log(`[API Bridge] Listening on ${host}:${apiPort} -> dashboard:${dashboardPort}`);
-	});
+	const server = createApiBridgeServer(apiPort, dashboardPort, host);
+	globalThis.__omnirouteApiBridgeServer = server;
+	globalThis.__omnirouteApiBridgeStarted = true;
+	console.log(`[API Bridge] Listening on ${host}:${apiPort} -> dashboard:${dashboardPort}`);
 }
