@@ -11,6 +11,8 @@
 
 import { createConnection } from "node:net";
 
+const isBunRuntime = typeof Bun !== "undefined";
+
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);
 const HEALTH_CACHE_TTL_MS = parseInt(process.env.PROXY_HEALTH_CACHE_TTL_MS ?? "30000", 10);
@@ -91,6 +93,10 @@ export function invalidateProxyHealth(proxyUrl: string): void {
 	proxyHealthCache.delete(proxyUrl);
 }
 
+export function clearProxyHealthCache(): void {
+	proxyHealthCache.clear();
+}
+
 /**
  * Get all currently cached proxy health entries (for dashboard display).
  */
@@ -124,20 +130,61 @@ function defaultPortForScheme(protocol: string): string {
 }
 
 function tcpCheck(host: string, port: number, timeoutMs: number): Promise<boolean> {
+	if (isBunRuntime) {
+		return tcpCheckWithBun(host, port, timeoutMs);
+	}
+	return tcpCheckWithNode(host, port, timeoutMs);
+}
+
+function tcpCheckWithNode(host: string, port: number, timeoutMs: number): Promise<boolean> {
 	return new Promise<boolean>((resolve) => {
 		let settled = false;
-		const finish = (value: boolean) => {
+		const socket = createConnection({ host, port }, () => finish(true));
+		const timer = globalThis.setTimeout(() => finish(false), timeoutMs);
+
+		function finish(value: boolean) {
 			if (settled) return;
 			settled = true;
 			clearTimeout(timer);
 			socket.destroy();
 			resolve(value);
-		};
-
-		const socket = createConnection({ host, port }, () => finish(true));
-		const timer = globalThis.setTimeout(() => finish(false), timeoutMs);
+		}
 
 		socket.on("error", () => finish(false));
 		socket.on("timeout", () => finish(false));
 	});
+}
+
+async function tcpCheckWithBun(host: string, port: number, timeoutMs: number): Promise<boolean> {
+	let socket: Awaited<ReturnType<typeof Bun.connect>> | null = null;
+	let timer: ReturnType<typeof setTimeout> | null = null;
+
+	try {
+		const connectPromise = Bun.connect({
+			hostname: host,
+			port,
+			socket: {
+				data() {},
+				open() {},
+				close() {},
+				drain() {},
+				error() {},
+				connectError() {},
+				end() {},
+				timeout() {},
+			},
+		});
+		const timeoutPromise = new Promise<null>((resolve) => {
+			timer = globalThis.setTimeout(() => resolve(null), timeoutMs);
+		});
+		const result = await Promise.race([connectPromise, timeoutPromise]);
+		if (!result) return false;
+		socket = result;
+		return true;
+	} catch {
+		return false;
+	} finally {
+		if (timer) clearTimeout(timer);
+		if (socket) socket.end();
+	}
 }
