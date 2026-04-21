@@ -9,10 +9,6 @@
  * Ref: sub2api PR #1167 (fix: proxy-fast-fail)
  */
 
-import { createConnection } from "node:net";
-
-const isBunRuntime = typeof Bun !== "undefined";
-
 // Configurable via env vars
 const FAST_FAIL_TIMEOUT_MS = parseInt(process.env.PROXY_FAST_FAIL_TIMEOUT_MS ?? "2000", 10);
 const HEALTH_CACHE_TTL_MS = parseInt(process.env.PROXY_HEALTH_CACHE_TTL_MS ?? "30000", 10);
@@ -130,29 +126,7 @@ function defaultPortForScheme(protocol: string): string {
 }
 
 function tcpCheck(host: string, port: number, timeoutMs: number): Promise<boolean> {
-	if (isBunRuntime) {
-		return tcpCheckWithBun(host, port, timeoutMs);
-	}
-	return tcpCheckWithNode(host, port, timeoutMs);
-}
-
-function tcpCheckWithNode(host: string, port: number, timeoutMs: number): Promise<boolean> {
-	return new Promise<boolean>((resolve) => {
-		let settled = false;
-		const socket = createConnection({ host, port }, () => finish(true));
-		const timer = globalThis.setTimeout(() => finish(false), timeoutMs);
-
-		function finish(value: boolean) {
-			if (settled) return;
-			settled = true;
-			clearTimeout(timer);
-			socket.destroy();
-			resolve(value);
-		}
-
-		socket.on("error", () => finish(false));
-		socket.on("timeout", () => finish(false));
-	});
+	return tcpCheckWithBun(host, port, timeoutMs);
 }
 
 async function tcpCheckWithBun(host: string, port: number, timeoutMs: number): Promise<boolean> {

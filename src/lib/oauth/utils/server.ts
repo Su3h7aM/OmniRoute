@@ -1,4 +1,3 @@
-import http from "http";
 import { URL } from "url";
 
 type LocalServerHandle = {
@@ -7,7 +6,6 @@ type LocalServerHandle = {
 	close: () => void;
 };
 
-const isBunRuntime = typeof Bun !== "undefined";
 const CALLBACK_PATHS = new Set(["/callback", "/auth/callback"]);
 const SUCCESS_HTML = `<!DOCTYPE html>
 <html>
@@ -61,7 +59,7 @@ function buildCallbackResponse(url: URL, onCallback: (params: Record<string, str
 	});
 }
 
-function startLocalServerWithBun(
+function createLocalServerHandle(
 	onCallback: (params: Record<string, string>) => void,
 	fixedPort: number | null
 ): LocalServerHandle {
@@ -82,50 +80,6 @@ function startLocalServerWithBun(
 	};
 }
 
-function startLocalServerWithNode(
-	onCallback: (params: Record<string, string>) => void,
-	fixedPort: number | null
-): Promise<LocalServerHandle> {
-	return new Promise((resolve, reject) => {
-		const server = http.createServer((req, res) => {
-			const response = buildCallbackResponse(
-				new URL(req.url || "/", "http://localhost"),
-				onCallback
-			);
-			res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
-			response
-				.text()
-				.then((body) => res.end(body))
-				.catch((error) => {
-					res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
-					res.end(String(error instanceof Error ? error.message : error));
-				});
-		});
-
-		const portToUse = fixedPort || 0;
-		server.listen(portToUse, "127.0.0.1", () => {
-			const addr = server.address() as { port: number };
-			resolve({
-				server,
-				port: addr.port,
-				close: () => server.close(),
-			});
-		});
-
-		server.on("error", (err: NodeJS.ErrnoException) => {
-			if (err.code === "EADDRINUSE" && fixedPort) {
-				reject(
-					new Error(
-						`Port ${fixedPort} is already in use. Please close other applications using this port.`
-					)
-				);
-				return;
-			}
-			reject(err);
-		});
-	});
-}
-
 /**
  * Start a local HTTP server to receive OAuth callback
  */
@@ -133,10 +87,7 @@ export function startLocalServer(
 	onCallback: (params: Record<string, string>) => void,
 	fixedPort: number | null = null
 ): Promise<LocalServerHandle> {
-	if (isBunRuntime) {
-		return Promise.resolve(startLocalServerWithBun(onCallback, fixedPort));
-	}
-	return startLocalServerWithNode(onCallback, fixedPort);
+	return Promise.resolve(createLocalServerHandle(onCallback, fixedPort));
 }
 
 /**
