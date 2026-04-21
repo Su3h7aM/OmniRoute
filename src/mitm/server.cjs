@@ -4,6 +4,7 @@ const path = require("path");
 const dns = require("dns");
 const { promisify } = require("util");
 const os = require("os");
+const { passthroughToTarget } = require("./upstream.cjs");
 
 // Resolve data directory — mirrors src/lib/dataPaths.ts logic.
 // This file runs as a standalone CommonJS process and cannot import the ES module.
@@ -71,19 +72,6 @@ function saveRequestLog(url, bodyBuffer) {
 		const body = JSON.parse(bodyBuffer.toString());
 		fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
 		console.log(`💾 Saved request: ${filePath}`);
-	} catch {
-		// Ignore
-	}
-}
-
-function _saveResponseLog(url, data) {
-	if (!ENABLE_FILE_LOG) return;
-	try {
-		const ts = new Date().toISOString().replace(/[:.]/g, "-");
-		const urlSlug = url.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 60);
-		const filePath = safeLogPath(`${ts}_${urlSlug}_response.txt`);
-		fs.writeFileSync(filePath, data);
-		console.log(`💾 Saved response: ${filePath}`);
 	} catch {
 		// Ignore
 	}
@@ -170,37 +158,25 @@ function getMappedModel(model) {
 	return null;
 }
 
+function isTlsVerificationEnabled() {
+	return process.env.MITM_DISABLE_TLS_VERIFY !== "1";
+}
+
 async function passthrough(req, res, bodyBuffer) {
-	const targetIP = await resolveTargetIP();
-
-	// TLS validation is enabled by default. Set MITM_DISABLE_TLS_VERIFY=1 only
-	// in controlled local environments where the target uses a self-signed cert.
-	const rejectUnauthorized = process.env.MITM_DISABLE_TLS_VERIFY !== "1";
-
-	const forwardReq = https.request(
-		{
-			hostname: targetIP,
-			port: 443,
-			path: req.url,
-			method: req.method,
-			headers: { ...req.headers, host: TARGET_HOST },
-			servername: TARGET_HOST,
-			rejectUnauthorized,
-		},
-		(forwardRes) => {
-			res.writeHead(forwardRes.statusCode, forwardRes.headers);
-			forwardRes.pipe(res);
-		}
-	);
-
-	forwardReq.on("error", (err) => {
+	try {
+		await passthroughToTarget({
+			req,
+			res,
+			bodyBuffer,
+			targetHost: TARGET_HOST,
+			resolveTargetIP,
+			tlsRejectUnauthorized: isTlsVerificationEnabled(),
+		});
+	} catch (err) {
 		console.error(`❌ Passthrough error: ${err.message}`);
 		if (!res.headersSent) res.writeHead(502);
 		res.end("Bad Gateway");
-	});
-
-	if (bodyBuffer.length > 0) forwardReq.write(bodyBuffer);
-	forwardReq.end();
+	}
 }
 
 async function intercept(_req, res, bodyBuffer, mappedModel) {
@@ -258,7 +234,7 @@ const server = https.createServer(sslOptions, async (req, res) => {
 		return passthrough(req, res, bodyBuffer);
 	}
 
-	const isChatRequest = CHAT_URL_PATTERNS.some((p) => req.url.includes(p));
+	const isChatRequest = CHAT_URL_PATTERNS.some((pattern) => req.url.includes(pattern));
 
 	if (!isChatRequest) {
 		return passthrough(req, res, bodyBuffer);
