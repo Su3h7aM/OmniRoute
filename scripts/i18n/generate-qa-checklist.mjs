@@ -52,7 +52,6 @@ function classifyPriority(route) {
     "/dashboard/audit-log",
     "/dashboard/health",
     "/dashboard/api-manager",
-    "/dashboard/cli-tools",
     "/dashboard/combos",
     "/dashboard/translator",
     "/dashboard/analytics",
