@@ -20,11 +20,9 @@
 		"open-sse/mcp-server/tools/",
 		"open-sse/mcp-server/README.md",
 		"src/shared/contracts/",
-		"src/shared/utils/nodeRuntimeSupport.ts",
 		".env.example",
 		"scripts/postinstall.mjs",
 		"scripts/postinstallSupport.mjs",
-		"scripts/check-supported-node-runtime.ts",
 		"scripts/sync-env.mjs",
 		"scripts/native-binary-compat.mjs",
 		"scripts/build-next-isolated.mjs",
@@ -76,7 +74,6 @@
 		"check:route-validation:t06": "bun scripts/check-route-validation.mjs",
 		"check:any-budget:t11": "bun scripts/check-t11-any-budget.mjs",
 		"check:docs-sync": "bun scripts/check-docs-sync.mjs",
-		"check:node-runtime": "bun scripts/check-supported-node-runtime.ts",
 		"check:pack-artifact": "bun scripts/validate-pack-artifact.ts",
 		"typecheck:core": "tsgo --pretty false -p tsconfig.typecheck-core.json",
 		"typecheck:noimplicit:core": "tsgo --pretty false -p tsconfig.typecheck-noimplicit-core.json",
@@ -113,7 +110,6 @@
 		"netbun": "^0.2.3",
 		"next": "^16.2.3",
 		"next-intl": "^4.8.3",
-		"node-machine-id": "^1.1.12",
 		"open": "^11.0.0",
 		"ora": "^9.1.0",
 		"pino": "^10.3.1",
@@ -137,7 +133,6 @@
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.2",
 		"@types/bcryptjs": "^3.0.0",
-		"@types/node": "^25.2.3",
 		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.3",
 		"@typescript/native-preview": "^7.0.0-dev.20260418.1",
@@ -149,8 +144,7 @@
 		"prop-types": "^15.8.1",
 		"tailwindcss": "^4",
 		"typescript": "^6.0.3",
-		"wait-on": "^9.0.4",
-		"wtfnode": "^0.10.1"
+		"wait-on": "^9.0.4"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": ["@parcel/watcher", "@swc/core", "esbuild", "omniroute", "sharp"]
@@ -160,7 +154,6 @@
 		"dompurify": "^3.4.0",
 		"path-to-regexp": "^8.4.0",
 		"hono": "^4.12.14",
-		"@hono/node-server": "^1.19.13",
 		"react": "$react",
 		"react-dom": "$react-dom"
 	}

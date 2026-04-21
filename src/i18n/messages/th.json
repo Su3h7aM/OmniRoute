@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "ผู้ให้บริการในปัจจุบันได้รับการติดตามโดยเครื่องตรวจสุขภาพของเซอร์กิตเบรกเกอร์",
 		"healthyCount": "{count} สุขภาพแข็งแรง",
-		"nodeVersion": "โหนด {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} ล้มเหลว",
 		"failuresPlural": "{count} ล้มเหลว",
 		"lastFailure": "สุดท้าย",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "กำลังรอการอนุญาต OpenAI...",
 		"waitingForAntigravityAuthorization": "กำลังรอการอนุญาตต้านแรงโน้มถ่วง...",
 		"waitingForQoderAuthorization": "กำลังรอการอนุญาตจาก Qoder...",
-		"exchangingCodeForTokens": "การเปลี่ยนรหัสเป็นโทเค็น...",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version"
+		"exchangingCodeForTokens": "การเปลี่ยนรหัสเป็นโทเค็น..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

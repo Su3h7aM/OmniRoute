@@ -1,12 +1,13 @@
 /**
- * GET  /api/system/version  — Returns current version and latest available on npm
+ * GET  /api/system/version  — Returns current version and latest available on the registry
  * POST /api/system/version  — Triggers a deployment-aware background update
  *
  * Security: Requires admin authentication (same as other management routes).
- * Safety: Update only runs if a newer version is available on npm.
+ * Safety: Update only runs if a newer registry version is available.
  */
 import { type NextRequest, NextResponse } from "next/server";
 import { execFile } from "child_process";
+import packageJson from "../../../../../package.json";
 import { promisify } from "util";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import {
@@ -18,13 +19,27 @@ import {
 
 const execFileAsync = promisify(execFile);
 
+type CommandError = Error & { stderr?: string };
+
+function getCommandErrorMessage(error: unknown): string {
+	if (error instanceof Error) {
+		const commandError = error as CommandError;
+		return commandError.stderr || commandError.message;
+	}
+	return String(error);
+}
+
 export const dynamic = "force-dynamic";
 
-async function getLatestNpmVersion(): Promise<string | null> {
+async function getLatestRegistryVersion(): Promise<string | null> {
 	try {
-		const { stdout } = await execFileAsync("npm", ["info", "omniroute", "version", "--json"], {
-			timeout: 10000,
-		});
+		const { stdout } = await execFileAsync(
+			"bun",
+			["pm", "view", "omniroute", "version", "--json"],
+			{
+				timeout: 10000,
+			}
+		);
 		const parsed = JSON.parse(stdout.trim());
 		return typeof parsed === "string" ? parsed : null;
 	} catch {
@@ -33,11 +48,7 @@ async function getLatestNpmVersion(): Promise<string | null> {
 }
 
 function getCurrentVersion(): string {
-	try {
-		return require("../../../../../package.json").version as string;
-	} catch {
-		return "unknown";
-	}
+	return packageJson.version || "unknown";
 }
 
 function isNewer(a: string | null, b: string): boolean {
@@ -56,7 +67,7 @@ export async function GET(req: NextRequest) {
 	}
 
 	const current = getCurrentVersion();
-	const latest = await getLatestNpmVersion();
+	const latest = await getLatestRegistryVersion();
 	const updateAvailable = isNewer(latest, current);
 	const config = getAutoUpdateConfig();
 	const validation = await validateAutoUpdateRuntime(config);
@@ -77,11 +88,11 @@ export async function POST(req: NextRequest) {
 	}
 
 	const current = getCurrentVersion();
-	const latest = await getLatestNpmVersion();
+	const latest = await getLatestRegistryVersion();
 
 	if (!latest) {
 		return NextResponse.json(
-			{ success: false, error: "Could not reach npm registry" },
+			{ success: false, error: "Could not reach package registry" },
 			{ status: 503 }
 		);
 	}
@@ -213,14 +224,14 @@ export async function POST(req: NextRequest) {
 						status: "running",
 						message: "Installing dependencies...",
 					});
-					await execFileAsync("npm", ["install", "--legacy-peer-deps"], {
+					await execFileAsync("bun", ["install"], {
 						timeout: 300_000,
 						cwd: process.cwd(),
 					});
 					send({ step: "rebuild", status: "done", message: "Dependencies installed" });
 
 					try {
-						await execFileAsync("node", ["scripts/sync-env.mjs"], {
+						await execFileAsync("bun", ["scripts/sync-env.mjs"], {
 							timeout: 15_000,
 							cwd: process.cwd(),
 						});
@@ -233,7 +244,7 @@ export async function POST(req: NextRequest) {
 						status: "running",
 						message: "Building application...",
 					});
-					await execFileAsync("npm", ["run", "build"], {
+					await execFileAsync("bun", ["run", "build"], {
 						timeout: 600_000,
 						cwd: process.cwd(),
 					});
@@ -264,8 +275,8 @@ export async function POST(req: NextRequest) {
 					console.log(
 						`[AutoUpdate] Successfully updated to ${resolvedTargetTag} via source mode`
 					);
-				} catch (err: any) {
-					const errMsg = err?.stderr || err?.message || String(err);
+				} catch (err) {
+					const errMsg = getCommandErrorMessage(err);
 					send({ step: "error", status: "failed", message: errMsg });
 					console.error("[AutoUpdate] Source update failed:", err);
 				} finally {
@@ -283,7 +294,7 @@ export async function POST(req: NextRequest) {
 		});
 	}
 
-	// Stream progress events so the frontend can show real-time status for NPM/PM2 mode
+	// Stream progress events so the frontend can show real-time status for package/PM2 mode
 	const encoder = new TextEncoder();
 	const stream = new ReadableStream({
 		async start(controller) {
@@ -298,19 +309,9 @@ export async function POST(req: NextRequest) {
 					status: "running",
 					message: `Installing omniroute@${latest}...`,
 				});
-				await execFileAsync(
-					"npm",
-					[
-						"install",
-						"-g",
-						`omniroute@${latest}`,
-						"--ignore-scripts",
-						"--legacy-peer-deps",
-					],
-					{
-						timeout: 300000,
-					}
-				);
+				await execFileAsync("bun", ["add", "--global", `omniroute@${latest}`], {
+					timeout: 300000,
+				});
 				send({ step: "install", status: "done", message: `Installed omniroute@${latest}` });
 
 				// Step 2: Restart PM2
@@ -341,8 +342,8 @@ export async function POST(req: NextRequest) {
 					message: `Update to v${latest} complete!`,
 				});
 				console.log(`[AutoUpdate] Successfully updated to v${latest}`);
-			} catch (err: any) {
-				const errMsg = err?.stderr || err?.message || String(err);
+			} catch (err) {
+				const errMsg = getCommandErrorMessage(err);
 				send({ step: "error", status: "failed", message: errMsg });
 				console.error(`[AutoUpdate] Update failed:`, err);
 			} finally {

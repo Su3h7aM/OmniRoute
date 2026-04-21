@@ -1517,7 +1517,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Provedores atualmente monitorados por monitores de integridade dos disjuntores.",
 		"healthyCount": "{count} íntegro",
-		"nodeVersion": "Nó {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} falha",
 		"failuresPlural": "{count} falhas",
 		"lastFailure": "Último",
@@ -2890,11 +2890,7 @@
 		"waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
 		"waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
 		"waitingForQoderAuthorization": "Waiting for Qoder authorization...",
-		"exchangingCodeForTokens": "Exchanging code for tokens...",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release."
+		"exchangingCodeForTokens": "Exchanging code for tokens..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

@@ -148,7 +148,8 @@ export function buildHealthPayload({
 	const timestamp = new Date().toISOString();
 	const system = {
 		version: appVersion,
-		nodeVersion: process.version,
+		runtime: "bun",
+		runtimeVersion: Bun.version,
 		uptime: process.uptime(),
 		memoryUsage: process.memoryUsage(),
 		pid: process.pid,

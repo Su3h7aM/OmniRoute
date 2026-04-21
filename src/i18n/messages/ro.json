@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Furnizorii sunt urmăriți în prezent de monitoarele de sănătate ale întreruptoarelor.",
 		"healthyCount": "{count} sănătos",
-		"nodeVersion": "Nodul {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} eșec",
 		"failuresPlural": "{count} eșecuri",
 		"lastFailure": "Ultimul",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Se așteaptă autorizarea OpenAI...",
 		"waitingForAntigravityAuthorization": "Se așteaptă autorizația antigravitație...",
 		"waitingForQoderAuthorization": "Se așteaptă autorizarea Qoder...",
-		"exchangingCodeForTokens": "Se schimbă codul pentru jetoane...",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended."
+		"exchangingCodeForTokens": "Se schimbă codul pentru jetoane..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

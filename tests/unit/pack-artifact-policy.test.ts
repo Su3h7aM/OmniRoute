@@ -60,10 +60,5 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
 		PACK_ARTIFACT_REQUIRED_PATHS
 	);
 
-	assert.deepEqual(missingPaths, [
-		"bin/mcp-server.mjs",
-		"bin/nodeRuntimeSupport.mjs",
-		"scripts/native-binary-compat.mjs",
-		"src/shared/utils/nodeRuntimeSupport.ts",
-	]);
+	assert.deepEqual(missingPaths, ["bin/mcp-server.mjs", "scripts/native-binary-compat.mjs"]);
 });

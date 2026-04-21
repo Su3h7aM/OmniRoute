@@ -1,12 +1,12 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * system-info.mjs — OmniRoute System Information Reporter (#280)
  *
  * Collects system/environment info for bug reports.
- * Usage: node scripts/system-info.mjs [--output system-info.txt]
+ * Usage: bun scripts/system-info.mjs [--output system-info.txt]
  *
  * Output includes:
- *   - Node.js version
+ *   - Bun version
  *   - OmniRoute version
  *   - OS info
  *   - Relevant system packages (if apt available)
@@ -18,7 +18,6 @@ import { execSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import os from "os";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -55,14 +54,13 @@ const lines = [];
 lines.push("OmniRoute System Information Report");
 lines.push(`Generated: ${new Date().toISOString()}`);
 
-// ── Node.js & Runtime ────────────────────────────────────────────────────
+// ── Bun & Runtime ────────────────────────────────────────────────────────
 
-lines.push(section("Node.js & Runtime"));
-lines.push(`Node.js:    ${process.version}`);
-lines.push(`npm:        v${run("npm --version")}`);
+lines.push(section("Bun & Runtime"));
+lines.push(`Bun:        v${typeof Bun !== "undefined" ? Bun.version : "unknown"}`);
 lines.push(`Platform:   ${process.platform} (${process.arch})`);
-lines.push(`OS:         ${os.type()} ${os.release()} (${os.arch()})`);
-lines.push(`Hostname:   ${os.hostname()}`);
+lines.push(`OS:         ${process.platform} (${process.arch})`);
+lines.push(`Hostname:   ${Bun.env.HOSTNAME || Bun.env.COMPUTERNAME || "unknown"}`);
 lines.push(`CPUs:       ${os.cpus().length}x ${os.cpus()[0]?.model || "unknown"}`);
 lines.push(`Total RAM:  ${Math.round(os.totalmem() / 1024 / 1024)} MB`);
 lines.push(`Free RAM:   ${Math.round(os.freemem() / 1024 / 1024)} MB`);
@@ -78,8 +76,8 @@ try {
   lines.push("Version:    unable to read package.json");
 }
 
-const installedGlobal = run("npm list -g omniroute --depth=0 2>/dev/null | grep omniroute");
-lines.push(`Global npm: ${installedGlobal || "not installed globally"}`);
+const installedGlobal = run("bun pm ls -g omniroute 2>/dev/null | grep omniroute");
+lines.push(`Global Bun: ${installedGlobal || "not installed globally"}`);
 
 const pm2Status = run("pm2 list 2>/dev/null | grep omniroute | awk '{print $4, $10, $12}'");
 lines.push(`PM2 status: ${pm2Status || "not running via PM2"}`);

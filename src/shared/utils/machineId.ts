@@ -86,13 +86,9 @@ function getMachineIdRaw(): string {
 		// hostname failed — continue
 	}
 
-	// Strategy 5: Node.js os.hostname() (no exec needed)
-	try {
-		const os = require("os");
-		return os.hostname().toLowerCase();
-	} catch {
-		// Final fallback
-	}
+	// Strategy 5: environment-provided hostname (no exec needed)
+	const envHostname = Bun.env.HOSTNAME || Bun.env.COMPUTERNAME;
+	if (envHostname) return envHostname.toLowerCase();
 
 	return "unknown-machine";
 }
@@ -118,7 +114,6 @@ export async function getConsistentMachineId(salt = null) {
 		return hashedMachineId.substring(0, 16);
 	} catch (error) {
 		console.log("Error getting machine ID:", error);
-		// Fallback to random ID if node-machine-id fails
 		try {
 			const cryptoFallback = await import("crypto");
 			return cryptoFallback.randomUUID();
@@ -141,7 +136,6 @@ export async function getRawMachineId() {
 		return getMachineIdRaw();
 	} catch (error) {
 		console.log("Error getting raw machine ID:", error);
-		// Fallback to random ID if node-machine-id fails
 		try {
 			const cryptoFallback = await import("crypto");
 			return cryptoFallback.randomUUID();

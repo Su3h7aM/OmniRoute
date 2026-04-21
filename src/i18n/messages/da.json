@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Udbydere, der i øjeblikket spores af strømafbryderens sundhedsmonitorer.",
 		"healthyCount": "{count} sund",
-		"nodeVersion": "Node {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} fejl",
 		"failuresPlural": "{count} fejl",
 		"lastFailure": "Sidst",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Venter på OpenAI-godkendelse...",
 		"waitingForAntigravityAuthorization": "Venter på antigravity-autorisation...",
 		"waitingForQoderAuthorization": "Venter på Qoder-godkendelse...",
-		"exchangingCodeForTokens": "Udveksler kode til tokens...",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended."
+		"exchangingCodeForTokens": "Udveksler kode til tokens..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

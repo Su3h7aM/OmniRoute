@@ -5,15 +5,8 @@ import {
 	hashManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-import { getNodeRuntimeSupport } from "@/shared/utils/nodeRuntimeSupport.ts";
 import { updateRequireLoginSchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
-
-// Node.js compatibility check — reflect the supported secure runtime floors used by CLI/CI.
-function getNodeCompatibility() {
-	const { nodeVersion, nodeCompatible } = getNodeRuntimeSupport();
-	return { nodeVersion, nodeCompatible };
-}
 
 function hasConfiguredPassword(settings: Record<string, unknown>) {
 	return hasManagementPasswordConfigured(settings);
@@ -24,17 +17,16 @@ function isBootstrapSecurityWindow(settings: Record<string, unknown>) {
 }
 
 export async function GET() {
-	const nodeInfo = getNodeCompatibility();
 	try {
 		const settings = await getSettings();
 		const requireLogin = settings.requireLogin !== false;
 		const hasPassword = hasManagementPasswordConfigured(settings);
 		const setupComplete = !!settings.setupComplete;
-		return NextResponse.json({ requireLogin, hasPassword, setupComplete, ...nodeInfo });
+		return NextResponse.json({ requireLogin, hasPassword, setupComplete });
 	} catch (error) {
 		console.error("[API] Error fetching require-login settings:", error);
 		return NextResponse.json(
-			{ requireLogin: true, hasPassword: true, setupComplete: true, ...nodeInfo },
+			{ requireLogin: true, hasPassword: true, setupComplete: true },
 			{ status: 200 }
 		);
 	}
@@ -73,7 +65,7 @@ export async function POST(request: Request) {
 		const body = validation.data;
 		const { requireLogin, password } = body;
 
-		const updates: Record<string, any> = {};
+		const updates: Record<string, unknown> = {};
 
 		if (typeof requireLogin === "boolean") {
 			updates.requireLogin = requireLogin;

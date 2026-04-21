@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Các nhà cung cấp hiện được theo dõi bởi máy theo dõi tình trạng ngắt mạch.",
 		"healthyCount": "{count} khỏe mạnh",
-		"nodeVersion": "Nút {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} thất bại",
 		"failuresPlural": "{count} thất bại",
 		"lastFailure": "Cuối cùng",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Đang chờ ủy quyền OpenAI...",
 		"waitingForAntigravityAuthorization": "Đang chờ ủy quyền chống hấp dẫn...",
 		"waitingForQoderAuthorization": "Đang chờ ủy quyền Qoder...",
-		"exchangingCodeForTokens": "Đổi mã lấy token...",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended."
+		"exchangingCodeForTokens": "Đổi mã lấy token..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

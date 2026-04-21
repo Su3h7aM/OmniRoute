@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 /**
  * OmniRoute CLI — Smart AI Router with Auto Fallback
@@ -16,26 +16,31 @@ import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { homedir, platform } from "node:os";
 import { isNativeBinaryCompatible } from "../scripts/native-binary-compat.mjs";
-import { getNodeRuntimeSupport, getNodeRuntimeWarning } from "./nodeRuntimeSupport.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = join(__dirname, "..");
 const APP_DIR = join(ROOT, "app");
 
-function loadEnvFile() {
+function getHomeDir() {
+  if (process.platform === "win32") {
+    return Bun.env.USERPROFILE || join(Bun.env.HOMEDRIVE || "", Bun.env.HOMEPATH || "");
+  }
+  return Bun.env.HOME || "";
+}
+
+function getEnvFilePaths() {
   const envPaths = [];
 
   if (process.env.DATA_DIR) {
     envPaths.push(join(process.env.DATA_DIR, ".env"));
   }
 
-  const home = homedir();
+  const home = getHomeDir();
   if (home) {
-    if (platform() === "win32") {
-      const appData = process.env.APPDATA || join(home, "AppData", "Roaming");
+    if (process.platform === "win32") {
+      const appData = Bun.env.APPDATA || join(home, "AppData", "Roaming");
       envPaths.push(join(appData, "omniroute", ".env"));
     } else {
       envPaths.push(join(home, ".omniroute", ".env"));
@@ -43,8 +48,11 @@ function loadEnvFile() {
   }
 
   envPaths.push(join(process.cwd(), ".env"));
+  return envPaths;
+}
 
-  for (const envPath of envPaths) {
+function loadEnvFile() {
+  for (const envPath of getEnvFilePaths()) {
     try {
       if (existsSync(envPath)) {
         const content = readFileSync(envPath, "utf-8");
@@ -157,42 +165,14 @@ console.log(`
    \\\\____/|_| |_| |_|_| |_|_|_|  \\\\_\\\\___/ \\\\__,_|\\\\__\\\\___|
 \x1b[0m`);
 
-const nodeSupport = getNodeRuntimeSupport();
-if (!nodeSupport.nodeCompatible) {
-  const runtimeWarning = getNodeRuntimeWarning() || "Unsupported Node.js runtime detected.";
-  console.warn(`\x1b[33m  ⚠  Warning: You are running Node.js ${process.versions.node}.
-     ${runtimeWarning}
-
-     Supported secure runtimes: ${nodeSupport.supportedDisplay}
-     Recommended: use Node.js ${nodeSupport.recommendedVersion} or newer on the 22.x LTS line.
-     Workaround:  npm rebuild better-sqlite3\x1b[0m
-`);
-}
-
 const serverJs = join(APP_DIR, "server.js");
 
 if (!existsSync(serverJs)) {
   console.error("\x1b[31m✖ Server not found at:\x1b[0m", serverJs);
   console.error("  The package may not have been built correctly.");
   console.error("");
-  const nodeExec = process.execPath || "";
-  const isMise = nodeExec.includes("mise") || nodeExec.includes(".local/share/mise");
-  const isNvm = nodeExec.includes(".nvm") || nodeExec.includes("nvm");
-  if (isMise) {
-    console.error(
-      "  \x1b[33m⚠ mise detected:\x1b[0m If you installed via `npm install -g omniroute`,"
-    );
-    console.error("    try: \x1b[36mnpx omniroute@latest\x1b[0m  (downloads a fresh copy)");
-    console.error("    or:  \x1b[36mmise exec -- npx omniroute\x1b[0m");
-  } else if (isNvm) {
-    console.error(
-      "  \x1b[33m⚠ nvm detected:\x1b[0m Try reinstalling after loading the correct Node version:"
-    );
-    console.error("    \x1b[36mnvm use --lts && npm install -g omniroute\x1b[0m");
-  } else {
-    console.error("  Try: \x1b[36mnpm install -g omniroute\x1b[0m  (reinstall)");
-    console.error("  Or:  \x1b[36mnpx omniroute@latest\x1b[0m");
-  }
+  console.error("  Try: \x1b[36mbun add -g omniroute\x1b[0m  (reinstall)");
+  console.error("  Or:  \x1b[36mbunx omniroute@latest\x1b[0m");
   process.exit(1);
 }
 
@@ -206,20 +186,14 @@ const sqliteBinary = join(
 );
 if (existsSync(sqliteBinary) && !isNativeBinaryCompatible(sqliteBinary)) {
   console.error(
-    "\x1b[31m✖ better-sqlite3 native module is incompatible with this platform.\x1b[0m"
+    "\x1b[31m✖ Found an incompatible legacy better-sqlite3 native module in the packaged app.\x1b[0m"
   );
-  console.error(`  Run: cd ${APP_DIR} && npm rebuild better-sqlite3`);
-  if (platform() === "darwin") {
-    console.error("  If build tools are missing: xcode-select --install");
-  }
+  console.error("  This Bun-only fork uses bun:sqlite and should not ship better-sqlite3.");
+  console.error("  Run: bun install --force && bun run build:cli");
   process.exit(1);
 }
 
 console.log(`  \x1b[2m⏳ Starting server...\x1b[0m\n`);
-
-const rawMemory = parseInt(process.env.OMNIROUTE_MEMORY_MB || "512", 10);
-const memoryLimit =
-  Number.isFinite(rawMemory) && rawMemory >= 64 && rawMemory <= 16384 ? rawMemory : 512;
 
 const env = {
   ...process.env,
@@ -229,10 +203,10 @@ const env = {
   API_PORT: String(apiPort),
   HOSTNAME: "0.0.0.0",
   NODE_ENV: "production",
-  NODE_OPTIONS: `--max-old-space-size=${memoryLimit}`,
+  NODE_OPTIONS: "--max-old-space-size=512",
 };
 
-const server = spawn("node", [`--max-old-space-size=${memoryLimit}`, serverJs], {
+const server = spawn(process.execPath, [serverJs], {
   cwd: APP_DIR,
   env,
   stdio: "pipe",

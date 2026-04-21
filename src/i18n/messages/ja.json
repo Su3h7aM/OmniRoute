@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "現在、プロバイダーはサーキット ブレーカー ヘルス モニターによって追跡されています。",
 		"healthyCount": "{count} は健康です",
-		"nodeVersion": "ノード {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} 失敗",
 		"failuresPlural": "{count} の失敗",
 		"lastFailure": "最後",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
 		"waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
 		"waitingForQoderAuthorization": "Waiting for Qoder authorization...",
-		"exchangingCodeForTokens": "Exchanging code for tokens...",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release."
+		"exchangingCodeForTokens": "Exchanging code for tokens..."
 	},
 	"landing": {
 		"brandName": "オムニルート",

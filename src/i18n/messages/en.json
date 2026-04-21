@@ -1087,8 +1087,14 @@
 		"failedReorder": "Failed to reorder models",
 		"builderFlowTitle": "Combo Builder Flow",
 		"builderStage": {
-			"basics": { "label": "Basics", "description": "Name and starting template" },
-			"steps": { "label": "Steps", "description": "Provider, model, and account selection" },
+			"basics": {
+				"label": "Basics",
+				"description": "Name and starting template"
+			},
+			"steps": {
+				"label": "Steps",
+				"description": "Provider, model, and account selection"
+			},
 			"strategy": {
 				"label": "Strategy",
 				"description": "Routing behavior and advanced settings"
@@ -1097,7 +1103,10 @@
 				"label": "Smart Routing",
 				"description": "Auto-routing candidate pool, presets, and scoring"
 			},
-			"review": { "label": "Review", "description": "Final validation before saving" }
+			"review": {
+				"label": "Review",
+				"description": "Final validation before saving"
+			}
 		},
 		"builderStageVisited": "Stage completed",
 		"builderStageCurrent": "Current stage",
@@ -1511,7 +1520,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Providers currently tracked by circuit-breaker health monitors.",
 		"healthyCount": "{count} healthy",
-		"nodeVersion": "Node {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} failure",
 		"failuresPlural": "{count} failures",
 		"lastFailure": "Last",
@@ -2884,11 +2893,7 @@
 		"waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
 		"waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
 		"waitingForQoderAuthorization": "Waiting for Qoder authorization...",
-		"exchangingCodeForTokens": "Exchanging code for tokens...",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended."
+		"exchangingCodeForTokens": "Exchanging code for tokens..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

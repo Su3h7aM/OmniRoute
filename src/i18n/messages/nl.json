@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Providers worden momenteel gevolgd door gezondheidsmonitors van stroomonderbrekers.",
 		"healthyCount": "{count} gezond",
-		"nodeVersion": "Knooppunt {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} fout",
 		"failuresPlural": "{count} fouten",
 		"lastFailure": "Laatste",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Wachten op OpenAI-autorisatie...",
 		"waitingForAntigravityAuthorization": "Wachten op toestemming voor anti-zwaartekracht...",
 		"waitingForQoderAuthorization": "Wachten op Qoder-autorisatie...",
-		"exchangingCodeForTokens": "Code uitwisselen voor tokens...",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release"
+		"exchangingCodeForTokens": "Code uitwisselen voor tokens..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

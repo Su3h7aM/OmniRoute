@@ -1,11 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 /**
  * Password Reset CLI — T-38
  *
  * Usage:
- *   node bin/reset-password.mjs
- *   npx omniroute reset-password
+ *   bun bin/reset-password.mjs
+ *   bunx omniroute reset-password
  *
  * Resets the admin password for OmniRoute.
  * Prompts for a new password and updates the database directly.
@@ -51,15 +51,7 @@ async function main() {
     process.exit(1);
   }
 
-  let Database;
-  try {
-    Database = (await import("better-sqlite3")).default;
-  } catch {
-    console.error("❌ better-sqlite3 not installed. Run: npm install");
-    process.exit(1);
-  }
-
-  const db = new Database(DB_PATH);
+  const db = new Bun.SQLite(DB_PATH);
 
   // Check current settings
   const row = db.prepare("SELECT value FROM settings WHERE key = 'password'").get();

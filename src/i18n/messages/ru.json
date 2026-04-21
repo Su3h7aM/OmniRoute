@@ -1489,7 +1489,7 @@
 		"monitoredProviders": "{count} под наблюдением",
 		"monitoredProvidersHint": "Поставщики услуг в настоящее время отслеживаются с помощью мониторов состояния автоматических выключателей.",
 		"healthyCount": "{count} здоров",
-		"nodeVersion": "Узел {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} сбой",
 		"failuresPlural": "{count} сбоев",
 		"lastFailure": "Последний",
@@ -2862,11 +2862,7 @@
 		"waitingForOpenAIAuthorization": "Ожидание авторизации OpenAI...",
 		"waitingForAntigravityAuthorization": "Ожидание авторизации Antigravity...",
 		"waitingForQoderAuthorization": "Ожидание авторизации Qoder...",
-		"exchangingCodeForTokens": "Обмен кода на токены...",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release"
+		"exchangingCodeForTokens": "Обмен кода на токены..."
 	},
 	"landing": {
 		"brandName": "ОмниРоут",

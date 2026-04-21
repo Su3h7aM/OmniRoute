@@ -1555,7 +1555,7 @@
 		"monitoredProviders": "{count} 个监控中",
 		"monitoredProvidersHint": "指当前由断路器健康监控器持续跟踪的提供商。",
 		"healthyCount": "{count} 健康",
-		"nodeVersion": "节点 {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} 失败",
 		"failuresPlural": "{count} 失败",
 		"lastFailure": "最近一次",
@@ -2928,11 +2928,7 @@
 		"waitingForOpenAIAuthorization": "正在等待 OpenAI 授权...",
 		"waitingForAntigravityAuthorization": "正在等待 Antigravity 授权...",
 		"waitingForQoderAuthorization": "正在等待 Qoder 授权...",
-		"exchangingCodeForTokens": "正在用授权码换取 Tokens...",
-		"nodeIncompatibleTitle": "不兼容的 Node.js 版本",
-		"nodeIncompatibleDesc": "你当前运行的是 Node.js {version}，它不在 OmniRoute 支持的安全运行时策略内。请使用已打补丁的 Node.js 20.x 或 22.x LTS 版本。",
-		"nodeIncompatibleFixLabel": "修复：安装已打补丁的 Node.js 22 LTS 版本",
-		"nodeIncompatibleHint": "OmniRoute 要求 Node.js 20.20.2+（20.x LTS）、22.22.2+（22.x LTS）或 24.0.0+（24.x LTS）。为保证稳定性，建议使用 Node 24 LTS。"
+		"exchangingCodeForTokens": "正在用授权码换取 Tokens..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

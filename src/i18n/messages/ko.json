@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "현재 회로 차단기 상태 모니터로 추적되는 공급자입니다.",
 		"healthyCount": "{count} 건강함",
-		"nodeVersion": "노드 {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} 실패",
 		"failuresPlural": "{count} 실패",
 		"lastFailure": "마지막",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Waiting for OpenAI authorization...",
 		"waitingForAntigravityAuthorization": "Waiting for Antigravity authorization...",
 		"waitingForQoderAuthorization": "Waiting for Qoder authorization...",
-		"exchangingCodeForTokens": "Exchanging code for tokens...",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version"
+		"exchangingCodeForTokens": "Exchanging code for tokens..."
 	},
 	"landing": {
 		"brandName": "옴니루트",

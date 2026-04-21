@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} sledováno",
 		"monitoredProvidersHint": "Poskytovatelé aktuálně sledovaní zdravotní pojistkou.",
 		"healthyCount": "{count} zdrávo",
-		"nodeVersion": "Uzel {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} selhání",
 		"failuresPlural": "{count} selhání",
 		"lastFailure": "Poslední",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Čekám na OpenAI autorizaci...",
 		"waitingForAntigravityAuthorization": "Čekám na Antigravity autorizaci...",
 		"waitingForQoderAuthorization": "Čekám na Qoder autorizaci...",
-		"exchangingCodeForTokens": "Vyměňuji kód za tokeny...",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version"
+		"exchangingCodeForTokens": "Vyměňuji kód za tokeny..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",

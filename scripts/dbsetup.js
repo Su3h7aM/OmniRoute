@@ -1,10 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import { spawn } from "node:child_process";
 
 const env = { ...process.env };
 
-await exec("npx next build --experimental-build-mode generate");
+await exec("bunx next build --experimental-build-mode generate");
 
 // launch application
 await exec(process.argv.slice(2).join(" "));

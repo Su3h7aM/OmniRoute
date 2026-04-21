@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * OmniRoute — Zero-Config Bootstrap
  *
@@ -7,7 +7,7 @@
  * restarts, Docker volume remounts, and upgrades.
  *
  * Works across all deployment modes:
- *   - npm / app runners:  called from run-standalone.mjs and run-next.mjs
+ *   - Bun / app runners:  called from run-standalone.mjs and run-next.mjs
  *   - Docker:     same, secrets persisted in mounted volume
  *   - Custom wrappers: secrets persisted in DATA_DIR
  *

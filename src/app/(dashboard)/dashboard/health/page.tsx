@@ -38,19 +38,92 @@ const CB_STYLES = {
 	HALF_OPEN: { bg: "bg-amber-500/10", text: "text-amber-500", labelKey: "recovering" },
 };
 
+type HealthData = {
+	system: {
+		version?: string;
+		runtime?: string;
+		runtimeVersion?: string;
+		uptime?: number;
+		memoryUsage?: { rss?: number; heapUsed?: number; heapTotal?: number };
+		pid?: number;
+		platform?: string;
+	};
+	providerHealth?: Record<
+		string,
+		{ state?: "CLOSED" | "OPEN" | "HALF_OPEN"; failures?: number; lastFailure?: string | null }
+	>;
+	providerSummary?: Record<string, unknown>;
+	rateLimitStatus?: Record<string, RateLimitStatus>;
+	lockouts?: Record<string, LockoutInfo>;
+	sessions?: {
+		total?: number;
+		byApiKey?: Record<string, number>;
+		top?: Array<{
+			sessionId: string;
+			requestCount?: number;
+			connectionId?: string;
+			idleMs?: number;
+			ageMs?: number;
+		}>;
+	};
+	quotaMonitor?: {
+		active?: number;
+		total?: number;
+		thresholdBreaches?: number;
+		idle?: number;
+		monitors?: Array<{
+			sessionId: string;
+			accountId: string;
+			requestCount?: number;
+			failureCount?: number;
+			lastRequestAt?: string | null;
+		}>;
+		accounts?: Record<string, number>;
+	};
+};
+
+type DegradationFeature = {
+	feature: string;
+	level: "full" | "limited" | "minimal" | "off";
+	capability?: string;
+	reason?: string;
+	since: string;
+};
+
+type RateLimitStatus = {
+	queued?: number;
+	running?: number;
+	limit?: number;
+};
+
+type RateLimitEntry = {
+	key: string;
+	providerId: string;
+	displayName: string;
+	providerInfo?: { name?: string; color?: string; textIcon?: string };
+	connectionId: string;
+	model: string | null;
+	status: RateLimitStatus;
+};
+
+type LockoutInfo = {
+	reason?: string;
+	until?: string | number | Date;
+};
+
 export default function HealthPage() {
 	const t = useTranslations("health");
 	const tc = useTranslations("common");
 	const tp = useTranslations("providers");
-	const [data, setData] = useState(null);
-	const [dbHealth, setDbHealth] = useState(null);
-	const [dbHealthError, setDbHealthError] = useState(null);
-	const [error, setError] = useState(null);
-	const [lastRefresh, setLastRefresh] = useState(null);
-	const [telemetry, setTelemetry] = useState(null);
-	const [cache, setCache] = useState(null);
-	const [signatureCache, setSignatureCache] = useState(null);
-	const [degradation, setDegradation] = useState(null);
+	const [data, setData] = useState<HealthData | null>(null);
+	const [dbHealth, setDbHealth] = useState<Record<string, unknown> | null>(null);
+	const [dbHealthError, setDbHealthError] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+	const [telemetry, setTelemetry] = useState<Record<string, unknown> | null>(null);
+	const [cache, setCache] = useState<Record<string, unknown> | null>(null);
+	const [signatureCache, setSignatureCache] = useState<Record<string, unknown> | null>(null);
+	const [degradation, setDegradation] = useState<{ features: DegradationFeature[] } | null>(null);
 	const [resetting, setResetting] = useState(false);
 	const [repairingDb, setRepairingDb] = useState(false);
 
@@ -63,7 +136,7 @@ export default function HealthPage() {
 			setError(null);
 			setLastRefresh(new Date());
 		} catch (err) {
-			setError(err.message);
+			setError(err instanceof Error ? err.message : String(err));
 		}
 	}, []);
 
@@ -75,7 +148,7 @@ export default function HealthPage() {
 			setDbHealth(json);
 			setDbHealthError(null);
 		} catch (err) {
-			setDbHealthError(err.message);
+			setDbHealthError(err instanceof Error ? err.message : String(err));
 		}
 	}, []);
 
@@ -135,7 +208,7 @@ export default function HealthPage() {
 			await fetchExtras();
 		} catch (err) {
 			console.error("Failed to repair database health:", err);
-			setDbHealthError(err.message);
+			setDbHealthError(err instanceof Error ? err.message : String(err));
 		} finally {
 			setRepairingDb(false);
 		}
@@ -313,7 +386,7 @@ export default function HealthPage() {
 				</div>
 				{Array.isArray(dbHealth?.issues) && dbHealth.issues.length > 0 && (
 					<div className="mt-4 space-y-2">
-						{dbHealth.issues.map((issue, index) => (
+						{dbHealth.issues.map((issue) => (
 							<div
 								key={`${issue.table}-${issue.type}-${issue.description}-${issue.count}`}
 								className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2"
@@ -354,7 +427,7 @@ export default function HealthPage() {
 					</div>
 					<p className="text-xl font-semibold text-text-main">v{system.version}</p>
 					<p className="text-xs text-text-muted mt-1">
-						{t("nodeVersion", { version: system.nodeVersion })}
+						{t("runtimeVersion", { version: system.runtimeVersion })}
 					</p>
 				</Card>
 
@@ -446,7 +519,7 @@ export default function HealthPage() {
 					</div>
 					{sessions?.top?.length > 0 ? (
 						<div className="space-y-2">
-							{sessions.top.slice(0, 5).map((session: any) => (
+							{sessions.top.slice(0, 5).map((session) => (
 								<div
 									key={session.sessionId}
 									className="rounded-lg border border-border/30 bg-surface/20 p-3 flex items-center justify-between gap-3"
@@ -514,7 +587,7 @@ export default function HealthPage() {
 					</div>
 					{quotaMonitor?.monitors?.length > 0 ? (
 						<div className="space-y-2">
-							{quotaMonitor.monitors.slice(0, 5).map((monitor: any) => (
+							{quotaMonitor.monitors.slice(0, 5).map((monitor) => (
 								<div
 									key={`${monitor.sessionId}:${monitor.accountId}`}
 									className="rounded-lg border border-border/30 bg-surface/20 p-3 flex items-center justify-between gap-3"
@@ -584,7 +657,7 @@ export default function HealthPage() {
 						</div>
 					</div>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-						{degradation.features.map((feat: any) => {
+						{degradation.features.map((feat: DegradationFeature) => {
 							const _bg =
 								feat.level === "full"
 									? "bg-green-500/5 border-green-500/10"
@@ -757,7 +830,7 @@ export default function HealthPage() {
 						{t("providerHealth")}
 					</h2>
 					<div className="flex items-center gap-3">
-						{cbEntries.some(([, cb]: [string, any]) => cb.state !== "CLOSED") && (
+						{cbEntries.some(([, cb]) => cb.state !== "CLOSED") && (
 							<button
 								type="button"
 								onClick={handleResetHealth}
@@ -807,12 +880,8 @@ export default function HealthPage() {
 					<p className="text-sm text-text-muted text-center py-4">{t("noCBData")}</p>
 				) : (
 					(() => {
-						const unhealthy = cbEntries.filter(
-							([, cb]: [string, any]) => cb.state !== "CLOSED"
-						);
-						const healthy = cbEntries.filter(
-							([, cb]: [string, any]) => cb.state === "CLOSED"
-						);
+						const unhealthy = cbEntries.filter(([, cb]) => cb.state !== "CLOSED");
+						const healthy = cbEntries.filter(([, cb]) => cb.state === "CLOSED");
 						return (
 							<div className="space-y-4">
 								{/* Unhealthy providers first */}
@@ -821,7 +890,7 @@ export default function HealthPage() {
 										<p className="text-xs font-medium text-red-400 uppercase tracking-wide">
 											{t("issuesLabel")}
 										</p>
-										{unhealthy.map(([provider, cb]: [string, any]) => {
+										{unhealthy.map(([provider, cb]) => {
 											const style = CB_STYLES[cb.state] || CB_STYLES.OPEN;
 											const providerInfo = AI_PROVIDERS[provider];
 											const displayName = providerInfo?.name || provider;
@@ -916,7 +985,7 @@ export default function HealthPage() {
 				Object.keys(rateLimitStatus).length > 0 &&
 				(() => {
 					// Parse rate limit keys ("provider:connectionId" or "provider:connectionId:model")
-					const parseKey = (key) => {
+					const parseKey = (key: string) => {
 						const parts = key.split(":");
 						const providerId = parts[0];
 						const connectionId = parts[1] || "";
@@ -948,8 +1017,8 @@ export default function HealthPage() {
 					};
 
 					// Group entries by provider for a cleaner display
-					const entries = Object.entries(rateLimitStatus).map(
-						([key, status]: [string, any]) => ({
+					const entries: RateLimitEntry[] = Object.entries(rateLimitStatus).map(
+						([key, status]) => ({
 							key,
 							...parseKey(key),
 							status,
@@ -988,7 +1057,7 @@ export default function HealthPage() {
 										connectionId,
 										model,
 										status,
-									}: any) => {
+									}) => {
 										const isActive =
 											(status.queued || 0) + (status.running || 0) > 0;
 										const isQueued = (status.queued || 0) > 0;
@@ -1085,7 +1154,7 @@ export default function HealthPage() {
 						{t("activeLockouts")}
 					</h2>
 					<div className="space-y-2">
-						{lockoutEntries.map(([key, lockout]: [string, any]) => (
+						{lockoutEntries.map(([key, lockout]) => (
 							<div
 								key={key}
 								className="rounded-lg p-3 bg-red-500/5 border border-red-500/10 flex items-center justify-between"

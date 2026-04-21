@@ -1,5 +1,5 @@
 /**
- * Shared policy for OmniRoute npm publish artifact hygiene.
+ * Shared policy for OmniRoute published artifact hygiene.
  *
  * The package currently publishes the standalone runtime under app/.
  * This policy keeps local backups, QA scratch files, and development-only
@@ -57,7 +57,6 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "LICENSE",
   "README.md",
   "bin/mcp-server.mjs",
-  "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   "bin/reset-password.mjs",
   "open-sse/mcp-server/README.md",
@@ -69,12 +68,10 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/mcp-server/server.ts",
   "package.json",
   "scripts/build-next-isolated.mjs",
-  "scripts/check-supported-node-runtime.ts",
   "scripts/native-binary-compat.mjs",
   "scripts/postinstall.mjs",
   "scripts/postinstallSupport.mjs",
   "scripts/sync-env.mjs",
-  "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
@@ -86,13 +83,11 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "app/server.js",
   "bin/mcp-server.mjs",
-  "bin/nodeRuntimeSupport.mjs",
   "bin/omniroute.mjs",
   "package.json",
   "scripts/native-binary-compat.mjs",
   "scripts/postinstall.mjs",
   "scripts/postinstallSupport.mjs",
-  "src/shared/utils/nodeRuntimeSupport.ts",
 ];
 
 PACK_ARTIFACT_ALLOWED_EXACT_PATHS.push(...PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS);

@@ -31,11 +31,6 @@ declare namespace NodeJS {
 }
 
 /* ─── Untyped Modules ───────────────────────────────────── */
-declare module "node-machine-id" {
-	export function machineIdSync(original?: boolean): string;
-	export function machineId(original?: boolean): Promise<string>;
-}
-
 declare module "figlet" {
 	export default function figlet(
 		text: string,

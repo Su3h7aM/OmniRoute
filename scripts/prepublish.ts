@@ -103,7 +103,7 @@ function removeEmptyDirectories(dir: string): boolean {
   return hasFiles;
 }
 
-console.log("🔨 OmniRoute — Building for npm publish...\n");
+console.log("🔨 OmniRoute — Building for Bun publish...\n");
 
 // ── Step 1: Clean previous app/ directory ──────────────────
 if (existsSync(APP_DIR)) {
@@ -323,7 +323,7 @@ if (existsSync(mitmSrc)) {
       resolveJsonModule: true,
       esModuleInterop: true,
       skipLibCheck: true,
-      types: ["node"],
+      types: ["bun-types"],
       baseUrl: ".",
       paths: {
         "@/*": ["src/*"],
@@ -335,7 +335,7 @@ if (existsSync(mitmSrc)) {
   writeFileSync(tmpTsconfigPath, JSON.stringify(mitmTsconfig, null, 2));
 
   try {
-    execSync("npx tsgo -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
+    execSync("bunx tsgo -p tsconfig.mitm.tmp.json", { cwd: ROOT, stdio: "inherit" });
     console.log("  ✅ MITM utilities compiled to app/src/mitm/");
   } catch (err: any) {
     console.warn("  ⚠️  MITM compile warning (non-fatal):", err.message);
@@ -359,7 +359,7 @@ if (existsSync(mcpSrcFile)) {
   mkdirSync(mcpDestDir, { recursive: true });
   try {
     execSync(
-      `npx esbuild open-sse/mcp-server/server.ts --bundle --platform=node --packages=external --format=esm --outfile=app/open-sse/mcp-server/server.js`,
+      `bunx esbuild open-sse/mcp-server/server.ts --bundle --platform=neutral --packages=external --format=esm --outfile=app/open-sse/mcp-server/server.js`,
       { cwd: ROOT, stdio: "inherit" }
     );
     console.log("  ✅ MCP Server bundled to app/open-sse/mcp-server/server.js");
@@ -376,7 +376,7 @@ if (existsSync(cliSrcFile)) {
   console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
   try {
     execSync(
-      `npx esbuild bin/omniroute.ts --bundle --platform=node --packages=external --format=esm --outfile=bin/omniroute.mjs`,
+      `bunx esbuild bin/omniroute.ts --bundle --platform=neutral --packages=external --format=esm --outfile=bin/omniroute.mjs`,
       { cwd: ROOT, stdio: "inherit" }
     );
     execSync(`chmod +x bin/omniroute.mjs`, { cwd: ROOT });
@@ -441,7 +441,7 @@ if (existsSync(swcHelpersSrc) && !existsSync(swcHelpersDst)) {
 for (const relativePath of APP_STAGING_REMOVAL_PATHS) {
   const targetPath = join(APP_DIR, relativePath);
   if (existsSync(targetPath)) {
-    console.log(`  🧹 Removing app/${relativePath} (not needed in npm package)...`);
+    console.log(`  🧹 Removing app/${relativePath} (not needed in published package)...`);
     rmSync(targetPath, { recursive: true, force: true });
     console.log(`  ✅ app/${relativePath} removed.`);
   }

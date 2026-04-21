@@ -1,6 +1,7 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,23 +16,46 @@ import {
 const __filename: string = fileURLToPath(import.meta.url);
 const __dirname: string = dirname(__filename);
 const ROOT: string = join(__dirname, "..");
-const npmCommand: string = process.platform === "win32" ? "npm.cmd" : "npm";
+
+function getTempDir() {
+  return Bun.env.TMPDIR || "/tmp";
+}
 
 function runPackDryRun(): any {
-  const output = execFileSync(npmCommand, ["pack", "--dry-run", "--json", "--ignore-scripts"], {
-    cwd: ROOT,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const destination = mkdtempSync(join(getTempDir(), "omniroute-pack-"));
 
-  const parsed = JSON.parse(output);
-  const packReport = Array.isArray(parsed) ? parsed[0] : null;
+  try {
+    const output = execFileSync(
+      "bun",
+      ["pm", "pack", "--destination", destination, "--ignore-scripts", "--quiet"],
+      {
+        cwd: ROOT,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      }
+    );
+    const filename = output.trim().split(/\r?\n/).pop() || "omniroute.tgz";
+    const tarball = filename.startsWith(destination) ? filename : join(destination, filename);
+    const tarOutput = execFileSync("tar", ["-tf", tarball], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const files = tarOutput
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((entry) => ({ path: entry.replace(/^package\//, "") }));
 
-  if (!packReport || !Array.isArray(packReport.files)) {
-    throw new Error("npm pack --dry-run --json did not return the expected files[] payload.");
+    return {
+      filename: tarball,
+      entryCount: files.length,
+      size: 0,
+      unpackedSize: 0,
+      files,
+    };
+  } finally {
+    rmSync(destination, { recursive: true, force: true });
   }
-
-  return packReport;
 }
 
 function formatBytes(bytes: number): string {
@@ -63,21 +87,21 @@ try {
     PACK_ARTIFACT_REQUIRED_PATHS
   );
 
-  console.log("📦 npm pack artifact summary");
+  console.log("📦 Bun pack artifact summary");
   console.log(`   File:          ${packReport.filename}`);
   console.log(`   Entry count:   ${packReport.entryCount}`);
   console.log(`   Packed size:   ${formatBytes(packReport.size)}`);
   console.log(`   Unpacked size: ${formatBytes(packReport.unpackedSize)}`);
 
   if (unexpectedPaths.length > 0) {
-    console.error("\n❌ Unexpected files were found in the npm publish artifact:");
+    console.error("\n❌ Unexpected files were found in the Bun publish artifact:");
     for (const unexpectedPath of unexpectedPaths) {
       console.error(`   - ${unexpectedPath}`);
     }
   }
 
   if (missingRequiredPaths.length > 0) {
-    console.error("\n❌ Required runtime files are missing from the npm publish artifact:");
+    console.error("\n❌ Required runtime files are missing from the Bun publish artifact:");
     for (const missingPath of missingRequiredPaths) {
       console.error(`   - ${missingPath}`);
     }
@@ -89,6 +113,8 @@ try {
 
   console.log("\n✅ Pack artifact policy check passed.");
 } catch (error) {
-  console.error(`\n❌ Pack artifact validation failed: ${error.message}`);
+  console.error(
+    `\n❌ Pack artifact validation failed: ${error instanceof Error ? error.message : String(error)}`
+  );
   process.exit(1);
 }

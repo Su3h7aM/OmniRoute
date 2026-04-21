@@ -1465,7 +1465,7 @@
 		"monitoredProviders": "{count} monitored",
 		"monitoredProvidersHint": "Доставчиците в момента се проследяват от монитори за изправност на прекъсвачи.",
 		"healthyCount": "{count} здрав",
-		"nodeVersion": "Възел {version}",
+		"runtimeVersion": "Bun {version}",
 		"failures": "{count} грешка",
 		"failuresPlural": "{count} грешки",
 		"lastFailure": "Последно",
@@ -2838,11 +2838,7 @@
 		"waitingForOpenAIAuthorization": "Изчаква се разрешение за OpenAI...",
 		"waitingForAntigravityAuthorization": "Изчаква се разрешение за антигравитация...",
 		"waitingForQoderAuthorization": "Изчаква се разрешение за Qoder...",
-		"exchangingCodeForTokens": "Размяна на код за токени...",
-		"nodeIncompatibleHint": "OmniRoute requires Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS) or 24.0.0+ (24.x LTS). Node 24 LTS is recommended.",
-		"nodeIncompatibleTitle": "Incompatible Node.js Version",
-		"nodeIncompatibleDesc": "You are running Node.js {version}, which is outside OmniRoute's supported secure runtime policy. Use a patched Node.js 20.x or 22.x LTS release.",
-		"nodeIncompatibleFixLabel": "Fix: install a patched Node.js 22 LTS release"
+		"exchangingCodeForTokens": "Размяна на код за токени..."
 	},
 	"landing": {
 		"brandName": "OmniRoute",
