@@ -1,26 +1,15 @@
 import http from "http";
 import { URL } from "url";
 
-/**
- * Start a local HTTP server to receive OAuth callback
- * @param {Function} onCallback - Called with query params when callback received
- * @param {number} fixedPort - Optional fixed port number (default: random)
- * @returns {Promise<{server: http.Server, port: number, close: Function}>}
- */
-export function startLocalServer(
-	onCallback: (params: Record<string, string>) => void,
-	fixedPort: number | null = null
-): Promise<{ server: any; port: number; close: () => void }> {
-	return new Promise((resolve, reject) => {
-		const server = http.createServer((req, res) => {
-			const url = new URL(req.url || "/", `http://localhost`);
+type LocalServerHandle = {
+	server: unknown;
+	port: number;
+	close: () => void;
+};
 
-			if (url.pathname === "/callback" || url.pathname === "/auth/callback") {
-				const params = Object.fromEntries(url.searchParams);
-
-				// Send success response to browser with auto-close attempt
-				res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-				res.end(`<!DOCTYPE html>
+const isBunRuntime = typeof Bun !== "undefined";
+const CALLBACK_PATHS = new Set(["/callback", "/auth/callback"]);
+const SUCCESS_HTML = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -57,19 +46,64 @@ export function startLocalServer(
     }, 1000);
   </script>
 </body>
-</html>`);
+</html>`;
 
-				// Call callback with params
-				onCallback(params);
-			} else {
-				res.writeHead(404);
-				res.end("Not found");
-			}
+function buildCallbackResponse(url: URL, onCallback: (params: Record<string, string>) => void) {
+	if (!CALLBACK_PATHS.has(url.pathname)) {
+		return new Response("Not found", { status: 404 });
+	}
+
+	const params = Object.fromEntries(url.searchParams);
+	onCallback(params);
+	return new Response(SUCCESS_HTML, {
+		status: 200,
+		headers: { "Content-Type": "text/html; charset=utf-8" },
+	});
+}
+
+function startLocalServerWithBun(
+	onCallback: (params: Record<string, string>) => void,
+	fixedPort: number | null
+): LocalServerHandle {
+	const server = Bun.serve({
+		port: fixedPort || 0,
+		hostname: "127.0.0.1",
+		fetch(request) {
+			return buildCallbackResponse(new URL(request.url), onCallback);
+		},
+	});
+
+	return {
+		server,
+		port: server.port,
+		close: () => {
+			server.stop(true);
+		},
+	};
+}
+
+function startLocalServerWithNode(
+	onCallback: (params: Record<string, string>) => void,
+	fixedPort: number | null
+): Promise<LocalServerHandle> {
+	return new Promise((resolve, reject) => {
+		const server = http.createServer((req, res) => {
+			const response = buildCallbackResponse(
+				new URL(req.url || "/", "http://localhost"),
+				onCallback
+			);
+			res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
+			response
+				.text()
+				.then((body) => res.end(body))
+				.catch((error) => {
+					res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+					res.end(String(error instanceof Error ? error.message : error));
+				});
 		});
 
-		// Listen on fixed port or find available port
 		const portToUse = fixedPort || 0;
-		server.listen(portToUse, "0.0.0.0", () => {
+		server.listen(portToUse, "127.0.0.1", () => {
 			const addr = server.address() as { port: number };
 			resolve({
 				server,
@@ -78,24 +112,35 @@ export function startLocalServer(
 			});
 		});
 
-		server.on("error", (err: any) => {
+		server.on("error", (err: NodeJS.ErrnoException) => {
 			if (err.code === "EADDRINUSE" && fixedPort) {
 				reject(
 					new Error(
 						`Port ${fixedPort} is already in use. Please close other applications using this port.`
 					)
 				);
-			} else {
-				reject(err);
+				return;
 			}
+			reject(err);
 		});
 	});
 }
 
 /**
+ * Start a local HTTP server to receive OAuth callback
+ */
+export function startLocalServer(
+	onCallback: (params: Record<string, string>) => void,
+	fixedPort: number | null = null
+): Promise<LocalServerHandle> {
+	if (isBunRuntime) {
+		return Promise.resolve(startLocalServerWithBun(onCallback, fixedPort));
+	}
+	return startLocalServerWithNode(onCallback, fixedPort);
+}
+
+/**
  * Wait for callback with timeout
- * @param {number} timeoutMs - Timeout in milliseconds
- * @returns {Promise<Object>} - Callback params
  */
 export function waitForCallback(timeoutMs = 300000) {
 	return new Promise((resolve, reject) => {
@@ -116,7 +161,6 @@ export function waitForCallback(timeoutMs = 300000) {
 			}
 		};
 
-		// Return the callback function
-		(resolve as any).__onCallback = onCallback;
+		(resolve as { __onCallback?: typeof onCallback }).__onCallback = onCallback;
 	});
 }
