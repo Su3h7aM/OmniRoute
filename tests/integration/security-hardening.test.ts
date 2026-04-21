@@ -11,29 +11,40 @@ function readIfExists(relPath) {
 	return fs.readFileSync(full, "utf-8");
 }
 
-// ─── Docker Hardening Checks ─────────────────────────
+// ─── Container Hardening Checks ──────────────────────
 
-test("Dockerfile uses non-root user", () => {
-	const content = readIfExists("Dockerfile");
+function readContainerSpec() {
+	return readIfExists("Containerfile") || readIfExists("Dockerfile");
+}
+
+function readContainerIgnore() {
+	return readIfExists(".containerignore") || readIfExists(".dockerignore");
+}
+
+test("container spec uses non-root user", () => {
+	const content = readContainerSpec();
 	if (!content) return;
 
-	// Keep as warning-only to avoid false negatives in current image policy.
 	const hasUser = /^USER\s+\S+/m.test(content);
 	if (!hasUser) {
-		console.log("  ⚠️  WARNING: Dockerfile does not specify a non-root USER");
+		console.log("  ⚠️  WARNING: container spec does not specify a non-root USER");
 	}
 });
 
-test("Dockerfile does not COPY .env or secrets", () => {
-	const content = readIfExists("Dockerfile");
+test("container spec does not COPY .env or secrets", () => {
+	const content = readContainerSpec();
 	if (!content) return;
-	assert.equal(/COPY.*\.env\b/m.test(content), false, "Dockerfile should not COPY .env files");
+	assert.equal(
+		/COPY.*\.env\b/m.test(content),
+		false,
+		"container spec should not COPY .env files"
+	);
 });
 
-test(".dockerignore excludes sensitive files", () => {
-	const content = readIfExists(".dockerignore");
+test("container ignore excludes sensitive files", () => {
+	const content = readContainerIgnore();
 	if (!content) return;
-	assert.ok(content.includes(".env"), ".dockerignore should exclude .env files");
+	assert.ok(content.includes(".env"), "container ignore should exclude .env files");
 });
 
 // ─── Secrets Hardening Checks ────────────────────────

@@ -1,5 +1,3 @@
-import { spawn } from "node:child_process";
-
 export function parsePort(value, fallback) {
   const parsed = Number.parseInt(String(value), 10);
   return Number.isFinite(parsed) && parsed > 0 && parsed <= 65535 ? parsed : fallback;
@@ -32,7 +30,7 @@ export function withRuntimePortEnv(env, runtimePorts) {
 export function sanitizeColorEnv(env = {}) {
   const sanitized = { ...env };
 
-  // Node warns when both FORCE_COLOR and NO_COLOR are set.
+  // Some tooling warns when both FORCE_COLOR and NO_COLOR are set.
   // Prefer NO_COLOR in test tooling to avoid noisy process warnings.
   if (typeof sanitized.FORCE_COLOR !== "undefined" && typeof sanitized.NO_COLOR !== "undefined") {
     delete sanitized.FORCE_COLOR;
@@ -42,13 +40,9 @@ export function sanitizeColorEnv(env = {}) {
 }
 
 export function spawnWithForwardedSignals(command, args, options = {}) {
-  const child = spawn(command, args, options);
+  const child = Bun.spawn([command, ...args], options);
 
-  child.on("exit", (code, signal) => {
-    if (signal) {
-      process.kill(process.pid, signal);
-      return;
-    }
+  void child.exited.then((code) => {
     process.exit(code ?? 0);
   });
 
