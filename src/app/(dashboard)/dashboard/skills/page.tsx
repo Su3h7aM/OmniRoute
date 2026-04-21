@@ -22,6 +22,39 @@ interface Execution {
 	createdAt: string;
 }
 
+interface MarketplaceSkill {
+	name: string;
+	description: string;
+	skillMdContent?: string;
+	version?: string;
+	sourceUrl?: string;
+}
+
+interface SkillsShSkill {
+	id: string;
+	skillId: string;
+	name: string;
+	installs: number;
+	source: string;
+}
+
+function getMarketplaceSkillKey(skill: MarketplaceSkill, index: number): string {
+	const source = skill.sourceUrl || "marketplace";
+	const version = skill.version || "unversioned";
+	return `${source}::${skill.name}::${version}::${index}`;
+}
+
+function getExecutionStatusClass(status: string): string {
+	switch (status) {
+		case "success":
+			return "bg-emerald-500/10 text-emerald-400";
+		case "error":
+			return "bg-red-500/10 text-red-400";
+		default:
+			return "bg-amber-500/10 text-amber-400";
+	}
+}
+
 export default function SkillsPage() {
 	const [skills, setSkills] = useState<Skill[]>([]);
 	const [executions, setExecutions] = useState<Execution[]>([]);
@@ -46,22 +79,12 @@ export default function SkillsPage() {
 	const [installing, setInstalling] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [mpQuery, setMpQuery] = useState("");
-	const [mpResults, setMpResults] = useState<
-		{
-			name: string;
-			description: string;
-			skillMdContent?: string;
-			version?: string;
-			sourceUrl?: string;
-		}[]
-	>([]);
+	const [mpResults, setMpResults] = useState<MarketplaceSkill[]>([]);
 	const [mpLoading, setMpLoading] = useState(false);
 	const [mpError, setMpError] = useState("");
 	const [mpInstallingId, setMpInstallingId] = useState<string | null>(null);
 	const [shQuery, setShQuery] = useState("");
-	const [shResults, setShResults] = useState<
-		{ id: string; skillId: string; name: string; installs: number; source: string }[]
-	>([]);
+	const [shResults, setShResults] = useState<SkillsShSkill[]>([]);
 	const [shLoading, setShLoading] = useState(false);
 	const [shError, setShError] = useState("");
 	const [shInstallingId, setShInstallingId] = useState<string | null>(null);
@@ -183,14 +206,8 @@ export default function SkillsPage() {
 		}
 	};
 
-	const installFromMarketplace = async (skill: {
-		name: string;
-		description: string;
-		skillMdContent?: string;
-		version?: string;
-		sourceUrl?: string;
-	}) => {
-		setMpInstallingId(skill.name);
+	const installFromMarketplace = async (skill: MarketplaceSkill, installId: string) => {
+		setMpInstallingId(installId);
 		try {
 			const res = await fetch("/api/skills/marketplace/install", {
 				method: "POST",
@@ -206,13 +223,12 @@ export default function SkillsPage() {
 			const data = await res.json();
 			if (res.ok && data.success) {
 				await refreshSkills();
-				setMpInstallingId(null);
 			} else {
 				setMpError(data.error || "Install failed");
-				setMpInstallingId(null);
 			}
 		} catch (err) {
 			setMpError(err instanceof Error ? err.message : "Install failed");
+		} finally {
 			setMpInstallingId(null);
 		}
 	};
@@ -236,13 +252,7 @@ export default function SkillsPage() {
 		}
 	};
 
-	const installFromSkillsSh = async (skill: {
-		id: string;
-		skillId: string;
-		name: string;
-		installs: number;
-		source: string;
-	}) => {
+	const installFromSkillsSh = async (skill: SkillsShSkill) => {
 		setShInstallingId(skill.id);
 		try {
 			const res = await fetch("/api/skills/skillssh/install", {
@@ -258,13 +268,12 @@ export default function SkillsPage() {
 			const data = await res.json();
 			if (res.ok && data.success) {
 				await refreshSkills();
-				setShInstallingId(null);
 			} else {
 				setShError(data.error || "Install failed");
-				setShInstallingId(null);
 			}
 		} catch (err) {
 			setShError(err instanceof Error ? err.message : "Install failed");
+		} finally {
 			setShInstallingId(null);
 		}
 	};
@@ -464,13 +473,7 @@ export default function SkillsPage() {
 											<td className="py-3 font-medium">{exec.skillName}</td>
 											<td className="py-3">
 												<span
-													className={`text-xs px-2 py-1 rounded ${
-														exec.status === "success"
-															? "bg-emerald-500/10 text-emerald-400"
-															: exec.status === "error"
-																? "bg-red-500/10 text-red-400"
-																: "bg-amber-500/10 text-amber-400"
-													}`}
+													className={`text-xs px-2 py-1 rounded ${getExecutionStatusClass(exec.status)}`}
 												>
 													{exec.status}
 												</span>
@@ -593,28 +596,36 @@ export default function SkillsPage() {
 					</Card>
 					{mpResults.length > 0 && (
 						<div className="grid gap-3">
-							{mpResults.map((skill) => (
-								<Card key={skill.name}>
-									<div className="flex items-center justify-between">
-										<div>
-											<h4 className="font-semibold">{skill.name}</h4>
-											<p className="text-sm text-text-muted mt-1">
-												{skill.description}
-											</p>
+							{mpResults.map((skill, index) => {
+								const marketplaceSkillKey = getMarketplaceSkillKey(skill, index);
+								return (
+									<Card key={marketplaceSkillKey}>
+										<div className="flex items-center justify-between">
+											<div>
+												<h4 className="font-semibold">{skill.name}</h4>
+												<p className="text-sm text-text-muted mt-1">
+													{skill.description}
+												</p>
+											</div>
+											<button
+												type="button"
+												onClick={() =>
+													installFromMarketplace(
+														skill,
+														marketplaceSkillKey
+													)
+												}
+												disabled={mpInstallingId === marketplaceSkillKey}
+												className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
+											>
+												{mpInstallingId === marketplaceSkillKey
+													? "Installing..."
+													: "Install"}
+											</button>
 										</div>
-										<button
-											type="button"
-											onClick={() => installFromMarketplace(skill)}
-											disabled={mpInstallingId === skill.name}
-											className="px-4 py-1.5 text-sm font-medium rounded-lg bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-50 transition-colors"
-										>
-											{mpInstallingId === skill.name
-												? "Installing..."
-												: "Install"}
-										</button>
-									</div>
-								</Card>
-							))}
+									</Card>
+								);
+							})}
 						</div>
 					)}
 					{!mpLoading && mpResults.length === 0 && !mpError && (
