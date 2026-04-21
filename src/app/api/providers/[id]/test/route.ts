@@ -10,15 +10,33 @@ import {
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 import { syncToCloud } from "@/lib/cloudSync";
 import { validateProviderApiKey } from "@/lib/providers/validation";
-import { getCliRuntimeStatus } from "@/shared/services/cliRuntime";
 // Use the shared open-sse token refresh with built-in dedup/race-condition cache
 import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { logProxyEvent } from "@/lib/proxyLogger";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
-// OAuth provider test endpoints
-const OAUTH_TEST_CONFIG = {
+type OAuthTestConfigEntry = {
+	checkExpiry?: boolean;
+	refreshable?: boolean;
+	url?: string;
+	method?: string;
+	authHeader?: string;
+	authPrefix?: string;
+	extraHeaders?: Record<string, string>;
+};
+
+type ConnectionTestResult = {
+	valid: boolean;
+	error: string | null;
+	refreshed?: boolean;
+	newTokens?: unknown;
+	warning?: string | null;
+	diagnosis: ReturnType<typeof makeDiagnosis>;
+	statusCode?: number | null;
+};
+
+const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
 	claude: {
 		// Claude doesn't have userinfo, we verify token exists and not expired
 		checkExpiry: true,
@@ -81,12 +99,6 @@ const OAUTH_TEST_CONFIG = {
 		checkExpiry: true,
 		refreshable: true,
 	},
-};
-
-const CLI_RUNTIME_PROVIDER_MAP = {
-	cline: "cline",
-	kilocode: "kilo",
-	qoder: "qoder",
 };
 
 /** POST body is optional; when present, only known fields are validated. */
@@ -201,51 +213,6 @@ function classifyFailure({
 	);
 }
 
-async function getProviderRuntimeStatus(connection: any) {
-	const provider = typeof connection?.provider === "string" ? connection.provider : "";
-	let toolId = CLI_RUNTIME_PROVIDER_MAP[provider];
-	if (provider === "qoder" && connection?.authType !== "apikey") {
-		toolId = null;
-	}
-	if (!toolId) return null;
-
-	try {
-		const runtime = await getCliRuntimeStatus(toolId);
-		if (runtime.installed && runtime.runnable) {
-			return runtime;
-		}
-
-		const runtimeMessage = runtime.installed
-			? `Local CLI runtime is installed but not runnable (${runtime.reason || "healthcheck_failed"})`
-			: "Local CLI runtime is not installed";
-
-		return {
-			...runtime,
-			diagnosis: makeDiagnosis(
-				"runtime_error",
-				"local",
-				runtimeMessage,
-				runtime.reason || "runtime_error"
-			),
-			error: runtimeMessage,
-		};
-	} catch (error) {
-		const runtimeMessage = `Failed to check local CLI runtime: ${(error as any)?.message || "runtime_check_failed"}`;
-		return {
-			installed: false,
-			runnable: false,
-			reason: "runtime_check_failed",
-			diagnosis: makeDiagnosis(
-				"runtime_error",
-				"local",
-				runtimeMessage,
-				"runtime_check_failed"
-			),
-			error: runtimeMessage,
-		};
-	}
-}
-
 /**
  * Refresh OAuth token using the shared open-sse getAccessToken.
  * This shares the in-flight promise cache with the SSE layer,
@@ -273,20 +240,15 @@ async function refreshOAuthToken(connection: any) {
 	}
 }
 
-/**
- * Check if token is expired or about to expire (within 5 minutes)
- */
 function isTokenExpired(connection: any) {
 	const expiresAtValue = connection.expiresAt || connection.tokenExpiresAt;
 	if (!expiresAtValue) return false;
+
 	const expiresAt = new Date(expiresAtValue).getTime();
-	const buffer = 5 * 60 * 1000; // 5 minutes
-	return expiresAt <= Date.now() + buffer;
+	const expiryBufferMs = 5 * 60 * 1000;
+	return expiresAt <= Date.now() + expiryBufferMs;
 }
 
-/**
- * Sync to cloud if enabled
- */
 async function syncToCloudIfEnabled() {
 	try {
 		const cloudEnabled = await isCloudEnabled();
@@ -299,12 +261,7 @@ async function syncToCloudIfEnabled() {
 	}
 }
 
-/**
- * Test OAuth connection by calling provider API
- * Auto-refreshes token if expired
- * @returns {{ valid: boolean, error: string|null, refreshed: boolean, newTokens: object|null }}
- */
-async function testOAuthConnection(connection: any) {
+async function testOAuthConnection(connection: any): Promise<ConnectionTestResult> {
 	const config = OAUTH_TEST_CONFIG[connection.provider];
 
 	if (!config) {
@@ -494,7 +451,7 @@ async function testOAuthConnection(connection: any) {
 /**
  * Test API key connection
  */
-async function testApiKeyConnection(connection: any) {
+async function testApiKeyConnection(connection: any): Promise<ConnectionTestResult> {
 	if (!connection.apiKey) {
 		const error = "Missing API key";
 		return {
@@ -522,7 +479,7 @@ async function testApiKeyConnection(connection: any) {
 	const error = result.valid ? null : result.error || "Invalid API key";
 	const diagnosis = result.valid
 		? makeDiagnosis("ok", "upstream", null, null)
-		: classifyFailure({ error });
+		: classifyFailure({ error: error || "Invalid API key" });
 
 	return {
 		valid: !!result.valid,
@@ -532,12 +489,6 @@ async function testApiKeyConnection(connection: any) {
 	};
 }
 
-/**
- * Core test logic — reusable by test-batch without HTTP self-calls.
- * @param {string} connectionId
- * @param {string} validationModelId Optional custom model ID to test connection with
- * @returns {Promise<object>} Test result (same shape as the JSON response)
- */
 export async function testSingleConnection(connectionId: string, validationModelId?: string) {
 	const connection = await getProviderConnectionById(connectionId);
 
@@ -573,16 +524,8 @@ export async function testSingleConnection(connectionId: string, validationModel
 
 	let result;
 	const startTime = Date.now();
-	const runtime = await getProviderRuntimeStatus(connection);
 
-	if ((runtime as any)?.diagnosis) {
-		result = {
-			valid: false,
-			error: (runtime as any).error,
-			refreshed: false,
-			diagnosis: (runtime as any).diagnosis,
-		};
-	} else if (connection.authType === "apikey") {
+	if (connection.authType === "apikey") {
 		const enrichedConnection = validationModelId
 			? {
 					...connection,
@@ -689,7 +632,6 @@ export async function testSingleConnection(connectionId: string, validationModel
 		diagnosis,
 		latencyMs,
 		statusCode: result.statusCode || null,
-		runtime: runtime || null,
 		testedAt: now,
 	};
 }

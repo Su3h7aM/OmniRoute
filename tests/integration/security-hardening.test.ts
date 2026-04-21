@@ -5,7 +5,7 @@ import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
-function readIfExists(relPath) {
+function readIfExists(relPath: string) {
 	const full = path.join(ROOT, relPath);
 	if (!fs.existsSync(full)) return null;
 	return fs.readFileSync(full, "utf-8");
@@ -13,12 +13,20 @@ function readIfExists(relPath) {
 
 // ─── Container Hardening Checks ──────────────────────
 
+function readFirstAvailable(paths: string[]) {
+	for (const relPath of paths) {
+		const content = readIfExists(relPath);
+		if (content) return content;
+	}
+	return null;
+}
+
 function readContainerSpec() {
-	return readIfExists("Containerfile") || readIfExists("Dockerfile");
+	return readFirstAvailable(["Containerfile", "Dockerfile"]);
 }
 
 function readContainerIgnore() {
-	return readIfExists(".containerignore") || readIfExists(".dockerignore");
+	return readFirstAvailable([".containerignore", ".dockerignore"]);
 }
 
 test("container spec uses non-root user", () => {
@@ -265,17 +273,6 @@ test("T06 route payload validation uses validateBody in critical endpoints", () 
 		"src/app/api/providers/test-batch/route.ts",
 		"src/app/api/providers/validate/route.ts",
 		"src/app/api/v1beta/models/[...path]/route.ts",
-		"src/app/api/cli-tools/antigravity-mitm/route.ts",
-		"src/app/api/cli-tools/antigravity-mitm/alias/route.ts",
-		"src/app/api/cli-tools/backups/route.ts",
-		"src/app/api/cli-tools/claude-settings/route.ts",
-		"src/app/api/cli-tools/cline-settings/route.ts",
-		"src/app/api/cli-tools/codex-profiles/route.ts",
-		"src/app/api/cli-tools/codex-settings/route.ts",
-		"src/app/api/cli-tools/droid-settings/route.ts",
-		"src/app/api/cli-tools/guide-settings/[toolId]/route.ts",
-		"src/app/api/cli-tools/kilo-settings/route.ts",
-		"src/app/api/cli-tools/openclaw-settings/route.ts",
 	];
 	for (const relPath of targets) {
 		const content = readIfExists(relPath);

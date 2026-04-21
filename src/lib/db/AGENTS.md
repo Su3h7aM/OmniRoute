@@ -13,7 +13,7 @@
 - **`db/migrations/`** — 21 SQL files (`001_initial_schema.sql` → `021_combo_call_log_targets.sql`). Each migration has single responsibility, runs in a transaction, never fails partially.
 - **`localDb.ts`** — Re-export layer only. Never add logic here. Consumers import domain modules from this file for convenience.
 
-### Domain Modules (22 total)
+### Domain Modules
 
 Each module owns specific tables + CRUD operations:
 
@@ -33,7 +33,6 @@ Each module owns specific tables + CRUD operations:
 | `registeredKeys.ts`     | `registered_keys`         | Whitelisted API keys for MCP/A2A access                 |
 | `quotaSnapshots.ts`     | `quota_snapshots`         | Historical quota usage for analytics                    |
 | `modelComboMappings.ts` | `model_combo_mappings`    | Map models to combo defaults                            |
-| `cliToolState.ts`       | `cli_tool_state`          | CLI-specific persistent state                           |
 | `encryption.ts`         | —                         | Helpers for encrypting/decrypting sensitive fields      |
 | `readCache.ts`          | —                         | In-memory cache for read-heavy ops (models, providers)  |
 | `secrets.ts`            | `secrets`                 | Encrypted secret storage (API keys at rest)             |

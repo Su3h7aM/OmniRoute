@@ -513,10 +513,6 @@ interface ConnectionRowProps {
 	proxyHost?: string;
 	onRefreshToken?: () => void;
 	isRefreshing?: boolean;
-	onApplyCodexAuthLocal?: () => void;
-	isApplyingCodexAuthLocal?: boolean;
-	onExportCodexAuthFile?: () => void;
-	isExportingCodexAuthFile?: boolean;
 }
 
 interface AddApiKeyModalProps {
@@ -1019,8 +1015,6 @@ export default function ProviderDetailPage() {
 	const [bulkVisibilityAction, setBulkVisibilityAction] = useState<"select" | "deselect" | null>(
 		null
 	);
-	const [applyingCodexAuthId, setApplyingCodexAuthId] = useState<string | null>(null);
-	const [exportingCodexAuthId, setExportingCodexAuthId] = useState<string | null>(null);
 	const isOpenAICompatible = isOpenAICompatibleProvider(providerId);
 	const isCcCompatible = isClaudeCodeCompatibleProvider(providerId);
 	const isAnthropicCompatible =
@@ -1658,40 +1652,7 @@ export default function ProviderDetailPage() {
 		}
 	};
 
-	// T12: Manual token refresh
 	const [refreshingId, setRefreshingId] = useState<string | null>(null);
-
-	const parseApiErrorMessage = async (res: Response, fallback: string) => {
-		const contentType = res.headers.get("content-type") || "";
-
-		if (contentType.includes("application/json")) {
-			const data = await res.json().catch(() => ({}));
-			if (typeof data?.error === "string" && data.error.trim()) {
-				return data.error;
-			}
-			if (data?.error?.message) {
-				return data.error.message;
-			}
-		}
-
-		const text = await res.text().catch(() => "");
-		return text.trim() || fallback;
-	};
-
-	const getAttachmentFilename = (res: Response, fallback: string) => {
-		const disposition = res.headers.get("content-disposition") || "";
-		const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-		if (utf8Match?.[1]) {
-			return decodeURIComponent(utf8Match[1]);
-		}
-
-		const plainMatch = disposition.match(/filename="([^"]+)"/i);
-		if (plainMatch?.[1]) {
-			return plainMatch[1];
-		}
-
-		return fallback;
-	};
 
 	const handleRefreshToken = async (connectionId: string) => {
 		if (refreshingId) return;
@@ -1710,82 +1671,6 @@ export default function ProviderDetailPage() {
 			notify.error(t("tokenRefreshFailed"));
 		} finally {
 			setRefreshingId(null);
-		}
-	};
-
-	const handleApplyCodexAuthLocal = async (connectionId: string) => {
-		if (applyingCodexAuthId) return;
-		setApplyingCodexAuthId(connectionId);
-
-		const defaultSuccess =
-			typeof t.has === "function" && t.has("codexAuthAppliedLocal")
-				? t("codexAuthAppliedLocal")
-				: "Codex auth.json applied locally";
-		const defaultError =
-			typeof t.has === "function" && t.has("codexAuthApplyFailed")
-				? t("codexAuthApplyFailed")
-				: "Failed to apply Codex auth.json locally";
-
-		try {
-			const res = await fetch(`/api/providers/${connectionId}/codex-auth/apply-local`, {
-				method: "POST",
-			});
-
-			if (!res.ok) {
-				notify.error(await parseApiErrorMessage(res, defaultError));
-				return;
-			}
-
-			notify.success(defaultSuccess);
-		} catch (error) {
-			console.error("Error applying Codex auth locally:", error);
-			notify.error(defaultError);
-		} finally {
-			setApplyingCodexAuthId(null);
-		}
-	};
-
-	const handleExportCodexAuthFile = async (connectionId: string) => {
-		if (exportingCodexAuthId) return;
-		setExportingCodexAuthId(connectionId);
-
-		const defaultSuccess =
-			typeof t.has === "function" && t.has("codexAuthExported")
-				? t("codexAuthExported")
-				: "Codex auth.json exported";
-		const defaultError =
-			typeof t.has === "function" && t.has("codexAuthExportFailed")
-				? t("codexAuthExportFailed")
-				: "Failed to export Codex auth.json";
-
-		try {
-			const res = await fetch(`/api/providers/${connectionId}/codex-auth/export`, {
-				method: "POST",
-			});
-
-			if (!res.ok) {
-				notify.error(await parseApiErrorMessage(res, defaultError));
-				return;
-			}
-
-			const blob = await res.blob();
-			const filename = getAttachmentFilename(res, "codex-auth.json");
-			const objectUrl = window.URL.createObjectURL(blob);
-			const link = document.createElement("a");
-
-			link.href = objectUrl;
-			link.download = filename;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
-
-			notify.success(defaultSuccess);
-		} catch (error) {
-			console.error("Error exporting Codex auth file:", error);
-			notify.error(defaultError);
-		} finally {
-			setExportingCodexAuthId(null);
 		}
 	};
 
@@ -2920,22 +2805,6 @@ export default function ProviderDetailPage() {
 														: undefined
 												}
 												isRefreshing={refreshingId === conn.id}
-												onApplyCodexAuthLocal={
-													providerId === "codex"
-														? () => handleApplyCodexAuthLocal(conn.id)
-														: undefined
-												}
-												isApplyingCodexAuthLocal={
-													applyingCodexAuthId === conn.id
-												}
-												onExportCodexAuthFile={
-													providerId === "codex"
-														? () => handleExportCodexAuthFile(conn.id)
-														: undefined
-												}
-												isExportingCodexAuthFile={
-													exportingCodexAuthId === conn.id
-												}
 												onProxy={() =>
 													setProxyTarget({
 														level: "key",
@@ -3074,28 +2943,6 @@ export default function ProviderDetailPage() {
 																	: undefined
 															}
 															isRefreshing={refreshingId === conn.id}
-															onApplyCodexAuthLocal={
-																providerId === "codex"
-																	? () =>
-																			handleApplyCodexAuthLocal(
-																				conn.id
-																			)
-																	: undefined
-															}
-															isApplyingCodexAuthLocal={
-																applyingCodexAuthId === conn.id
-															}
-															onExportCodexAuthFile={
-																providerId === "codex"
-																	? () =>
-																			handleExportCodexAuthFile(
-																				conn.id
-																			)
-																	: undefined
-															}
-															isExportingCodexAuthFile={
-																exportingCodexAuthId === conn.id
-															}
 															onProxy={() =>
 																setProxyTarget({
 																	level: "key",
@@ -5224,10 +5071,6 @@ function ConnectionRow({
 	proxyHost,
 	onRefreshToken,
 	isRefreshing,
-	onApplyCodexAuthLocal,
-	isApplyingCodexAuthLocal,
-	onExportCodexAuthFile,
-	isExportingCodexAuthFile,
 }: ConnectionRowProps) {
 	const t = useTranslations("providers");
 	const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
@@ -5238,20 +5081,7 @@ function ConnectionRow({
 				t("oauthAccount")
 			)
 		: connection.name;
-	const applyCodexAuthLabel =
-		typeof t.has === "function" && t.has("applyCodexAuthLocal")
-			? t("applyCodexAuthLocal")
-			: "Apply auth";
-	const exportCodexAuthLabel =
-		typeof t.has === "function" && t.has("exportCodexAuthFile")
-			? t("exportCodexAuthFile")
-			: "Export auth";
-
-	// Use useState + useEffect for impure Date.now() to avoid calling during render
 	const [isCooldown, setIsCooldown] = useState(false);
-	// T12: token expiry status — lazy init avoids calling Date.now() during render;
-	// updates every 30s via interval only (no sync setState in effect body).
-	// Prefer tokenExpiresAt (updated on each refresh) over expiresAt (original grant date).
 	const effectiveExpiresAt = connection.tokenExpiresAt || connection.expiresAt;
 	const getTokenMinsLeft = () => {
 		if (!isOAuth || !effectiveExpiresAt) return null;
@@ -5272,26 +5102,22 @@ function ConnectionRow({
 	}, [isOAuth, effectiveExpiresAt]);
 
 	useEffect(() => {
-		const checkCooldown = () => {
-			const cooldown =
+		const updateCooldown = () => {
+			const cooldownActive =
 				connection.rateLimitedUntil &&
 				new Date(connection.rateLimitedUntil).getTime() > Date.now();
-			setIsCooldown(cooldown);
+			setIsCooldown(cooldownActive);
 		};
 
-		checkCooldown();
-		// Update every second while in cooldown
-		const interval = connection.rateLimitedUntil ? setInterval(checkCooldown, 1000) : null;
+		updateCooldown();
+		const interval = connection.rateLimitedUntil ? setInterval(updateCooldown, 1000) : null;
 		return () => {
 			if (interval) clearInterval(interval);
 		};
 	}, [connection.rateLimitedUntil]);
 
-	// Determine effective status (override unavailable if cooldown expired)
 	const effectiveStatus =
-		connection.testStatus === "unavailable" && !isCooldown
-			? "active" // Cooldown expired → treat as active
-			: connection.testStatus;
+		connection.testStatus === "unavailable" && !isCooldown ? "active" : connection.testStatus;
 
 	const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
 	const rateLimitEnabled = !!connection.rateLimitProtection;
@@ -5513,7 +5339,6 @@ function ConnectionRow({
 				>
 					{t("retest")}
 				</Button>
-				{/* T12: Manual token refresh for OAuth accounts */}
 				{onRefreshToken && (
 					<Button
 						size="sm"
@@ -5526,34 +5351,6 @@ function ConnectionRow({
 						title="Refresh OAuth token manually"
 					>
 						Token
-					</Button>
-				)}
-				{isCodex && onApplyCodexAuthLocal && (
-					<Button
-						size="sm"
-						variant="ghost"
-						icon="download_done"
-						loading={isApplyingCodexAuthLocal}
-						disabled={isApplyingCodexAuthLocal}
-						onClick={onApplyCodexAuthLocal}
-						className="!h-7 !px-2 text-xs text-emerald-500 hover:text-emerald-400"
-						title={applyCodexAuthLabel}
-					>
-						{applyCodexAuthLabel}
-					</Button>
-				)}
-				{isCodex && onExportCodexAuthFile && (
-					<Button
-						size="sm"
-						variant="ghost"
-						icon="download"
-						loading={isExportingCodexAuthFile}
-						disabled={isExportingCodexAuthFile}
-						onClick={onExportCodexAuthFile}
-						className="!h-7 !px-2 text-xs text-sky-500 hover:text-sky-400"
-						title={exportCodexAuthLabel}
-					>
-						{exportCodexAuthLabel}
 					</Button>
 				)}
 				<Toggle

@@ -5,11 +5,7 @@ import path from "node:path";
 
 const cwd = process.cwd();
 
-/**
- * T11 Phase-A budget:
- * keep explicit `any` at zero in files already hardened.
- */
-const budget = [
+const ANY_BUDGET = [
   { file: "src/app/api/settings/proxy/route.ts", maxAny: 0 },
   { file: "src/app/api/settings/proxy/test/route.ts", maxAny: 0 },
   { file: "src/shared/components/OAuthModal.tsx", maxAny: 0 },
@@ -17,7 +13,6 @@ const budget = [
   { file: "open-sse/translator/registry.ts", maxAny: 0 },
   // Freeze legacy hot spots to avoid any-regression while strict migration continues.
   { file: "src/lib/db/apiKeys.ts", maxAny: 0 },
-  { file: "src/lib/db/cliToolState.ts", maxAny: 0 },
   { file: "src/lib/db/encryption.ts", maxAny: 0 },
   { file: "src/lib/db/prompts.ts", maxAny: 0 },
   { file: "src/lib/db/providers.ts", maxAny: 0 },
@@ -99,32 +94,33 @@ const budget = [
 ];
 
 const anyRegex = /\bany\b/g;
-let hasFailure = false;
 
-for (const item of budget) {
-  const absolutePath = path.resolve(cwd, item.file);
+function countExplicitAny(source) {
+  const withoutBlockComments = source.replace(/\/\*[\s\S]*?\*\//g, "");
+  const withoutLineComments = withoutBlockComments.replace(/\/\/.*$/gm, "");
+  return withoutLineComments.match(anyRegex)?.length ?? 0;
+}
+
+function checkBudgetEntry({ file, maxAny }) {
+  const absolutePath = path.resolve(cwd, file);
   if (!fs.existsSync(absolutePath)) {
-    console.error(`[t11:any-budget] FAIL - file not found: ${item.file}`);
-    hasFailure = true;
-    continue;
+    console.error(`[t11:any-budget] FAIL - file not found: ${file}`);
+    return false;
   }
 
   const content = fs.readFileSync(absolutePath, "utf8");
-  // Remove block and line comments to avoid false positives with the word "any" in comments
-  let cleanContent = content.replace(/\/\*[\s\S]*?\*\//g, "");
-  cleanContent = cleanContent.replace(/\/\/.*$/gm, "");
-  const matches = cleanContent.match(anyRegex);
-  const count = matches ? matches.length : 0;
-  const status = count <= item.maxAny ? "OK" : "FAIL";
-
-  if (status === "FAIL") {
-    hasFailure = true;
-  }
+  const count = countExplicitAny(content);
+  const withinBudget = count <= maxAny;
+  const status = withinBudget ? "OK" : "FAIL";
 
   console.log(
-    `[t11:any-budget] ${status} - ${item.file} (explicit any: ${count}, budget: ${item.maxAny})`
+    `[t11:any-budget] ${status} - ${file} (explicit any: ${count}, budget: ${maxAny})`
   );
+
+  return withinBudget;
 }
+
+const hasFailure = ANY_BUDGET.some((item) => !checkBudgetEntry(item));
 
 if (hasFailure) {
   process.exit(1);
