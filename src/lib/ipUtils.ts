@@ -1,4 +1,4 @@
-import { isIP } from "node:net";
+import { isIpAddress } from "@/shared/network/ipAddress";
 
 /**
  * T07: Extract the real client IP from X-Forwarded-For header.
@@ -10,20 +10,24 @@ import { isIP } from "node:net";
  * @param remoteAddress - Fallback from the raw socket (req.socket.remoteAddress)
  * @returns The first valid IP address found, or "unknown"
  */
+function getFirstValidIp(value: string | null | undefined): string | null {
+	if (!value) return null;
+
+	for (const entry of value.split(",")) {
+		const candidate = entry.trim();
+		if (candidate && isIpAddress(candidate)) {
+			return candidate;
+		}
+	}
+
+	return null;
+}
+
 export function extractClientIp(
 	xForwardedFor: string | null | undefined,
 	remoteAddress: string | undefined
 ): string {
-	if (xForwardedFor) {
-		const entries = xForwardedFor.split(",");
-		for (const entry of entries) {
-			const trimmed = entry.trim();
-			if (trimmed && isIP(trimmed) !== 0) {
-				return trimmed; // First valid IP wins
-			}
-		}
-	}
-	return remoteAddress?.trim() ?? "unknown";
+	return getFirstValidIp(xForwardedFor) ?? remoteAddress?.trim() ?? "unknown";
 }
 
 /**
@@ -45,8 +49,8 @@ export function getClientIpFromRequest(req: {
 	};
 
 	// Priority: CF-Connecting-IP (Cloudflare) > X-Forwarded-For > X-Real-IP > socket
-	const cfIp = getHeader("cf-connecting-ip");
-	if (cfIp && isIP(cfIp.trim()) !== 0) return cfIp.trim();
+	const cfIp = getFirstValidIp(getHeader("cf-connecting-ip"));
+	if (cfIp) return cfIp;
 
 	const xff = getHeader("x-forwarded-for");
 	const realIp = getHeader("x-real-ip");

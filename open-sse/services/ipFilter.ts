@@ -4,7 +4,7 @@
  * IP-based access control with blacklist, whitelist, priority modes, and temporary bans.
  */
 
-import { isIP } from "node:net";
+import { isIpAddress } from "@/shared/network/ipAddress";
 
 // In-memory IP lists
 let _config = {
@@ -179,24 +179,22 @@ function normalizeIP(ip) {
 
 function pickFirstValidIp(rawValue) {
 	if (typeof rawValue !== "string" || rawValue.trim().length === 0) return null;
-	const candidates = rawValue.split(",");
-	for (const candidate of candidates) {
+
+	for (const candidate of rawValue.split(",")) {
 		const normalized = normalizeIP(candidate);
-		if (normalized && isIP(normalized) !== 0) {
+		if (normalized && isIpAddress(normalized)) {
 			return normalized;
 		}
 	}
+
 	return null;
 }
 
 function matchesAny(ip, ipSet) {
-	// Direct match
 	if (ipSet.has(ip)) return true;
 
-	// CIDR match
 	for (const entry of ipSet) {
 		if (entry.includes("/") && matchesCIDR(ip, entry)) return true;
-		// Wildcard match (e.g., "192.168.*.*")
 		if (entry.includes("*") && matchesWildcard(ip, entry)) return true;
 	}
 	return false;

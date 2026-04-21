@@ -1,4 +1,4 @@
-import { isIP } from "node:net";
+import { getIpVersion } from "@/shared/network/ipAddress";
 
 const TRUE_ENV_VALUES = new Set(["1", "true", "yes", "on"]);
 
@@ -52,9 +52,9 @@ export function isPrivateHost(hostname: string) {
 		return true;
 	}
 
-	if (isIP(normalized) === 4) {
-		const octets = normalized.split(".").map((segment) => parseInt(segment, 10));
-		const [a, b] = octets;
+	const ipVersion = getIpVersion(normalized);
+	if (ipVersion === 4) {
+		const [a, b] = normalized.split(".").map((segment) => parseInt(segment, 10));
 
 		if (a === 0 || a === 10 || a === 127) return true;
 		if (a === 169 && b === 254) return true;
@@ -64,7 +64,7 @@ export function isPrivateHost(hostname: string) {
 		return false;
 	}
 
-	if (isIP(normalized) === 6) {
+	if (ipVersion === 6) {
 		return (
 			normalized === "::1" ||
 			normalized.startsWith("fc") ||
