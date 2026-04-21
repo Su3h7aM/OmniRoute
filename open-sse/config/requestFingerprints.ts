@@ -344,13 +344,9 @@ export function isRequestFingerprintEnabled(provider: string): boolean {
 	}
 
 	const envKey = `REQUEST_FINGERPRINT_${providerKey?.toUpperCase()}`;
-	const legacyEnvKey = `CLI_COMPAT_${providerKey?.toUpperCase()}`;
-	if (isEnabledFlag(process.env[envKey]) || isEnabledFlag(process.env[legacyEnvKey])) {
+	if (isEnabledFlag(process.env[envKey])) {
 		return true;
 	}
 
-	return (
-		isEnabledFlag(process.env.REQUEST_FINGERPRINT_ALL) ||
-		isEnabledFlag(process.env.CLI_COMPAT_ALL)
-	);
+	return isEnabledFlag(process.env.REQUEST_FINGERPRINT_ALL);
 }

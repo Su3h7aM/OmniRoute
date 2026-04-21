@@ -1,5 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { applyFingerprint, isRequestFingerprintEnabled } from "../config/cliFingerprints.ts";
+import { applyFingerprint, isRequestFingerprintEnabled } from "../config/requestFingerprints.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";

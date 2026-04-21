@@ -233,7 +233,7 @@ async function applyBackgroundDegradationSection(backgroundDegradation: JsonReco
 
 async function applyRequestFingerprintProvidersSection(requestFingerprintProviders: string[]) {
 	const { setRequestFingerprintProviders } = await import(
-		"@omniroute/open-sse/config/cliFingerprints"
+		"@omniroute/open-sse/config/requestFingerprints"
 	);
 	setRequestFingerprintProviders(requestFingerprintProviders);
 }

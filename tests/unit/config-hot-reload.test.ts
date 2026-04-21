@@ -17,7 +17,9 @@ const { applyRuntimeSettings, resetRuntimeSettingsStateForTests } = await import
 const { startRuntimeConfigHotReload, stopRuntimeConfigHotReloadForTests } = await import(
 	"../../src/lib/config/hotReload.ts"
 );
-const { getRequestFingerprintProviders } = await import("../../open-sse/config/cliFingerprints.ts");
+const { getRequestFingerprintProviders } = await import(
+	"../../open-sse/config/requestFingerprints.ts"
+);
 const { getCustomAliases, setCustomAliases } = await import(
 	"../../open-sse/services/modelDeprecation.ts"
 );
