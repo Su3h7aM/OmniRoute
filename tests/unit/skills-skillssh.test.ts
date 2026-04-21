@@ -52,8 +52,6 @@ afterAll(() => {
 	fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
-// ── Zod schema validation tests ──
-
 test("SkillsShSkillSchema parses a valid skill object", () => {
 	const result = SkillsShSkillSchema.parse({
 		id: "supabase/agent-skills/supabase-postgres",
@@ -93,8 +91,6 @@ test("SkillsShSearchResponseSchema defaults skills to empty array", () => {
 	assert.deepEqual(result.skills, []);
 });
 
-// ── searchSkillsSh tests ──
-
 test("searchSkillsSh returns parsed results on success", async () => {
 	const mockPayload = {
 		query: "test",
@@ -132,8 +128,6 @@ test("searchSkillsSh throws on non-ok response", async () => {
 	);
 });
 
-// ── fetchSkillMd tests ──
-
 test("fetchSkillMd returns SKILL.md content on success", async () => {
 	const mdContent = "# My Skill\nDoes things.";
 	globalThis.fetch = async (url) => {
@@ -147,16 +141,40 @@ test("fetchSkillMd returns SKILL.md content on success", async () => {
 	assert.equal(result, mdContent);
 });
 
-test("fetchSkillMd throws on 404", async () => {
+test("fetchSkillMd supports Pi agent skill layout", async () => {
+	const mdContent = "# Jujutsu\nPi skill content.";
+	const requestedPaths: string[] = [];
+
+	globalThis.fetch = async (url) => {
+		const u = new URL(url.toString());
+		requestedPaths.push(u.pathname);
+
+		if (u.pathname.includes("/owner/repo/main/agent/skills/jujutsu/SKILL.md")) {
+			return new Response(mdContent, { status: 200 });
+		}
+
+		return new Response("Not Found", { status: 404 });
+	};
+
+	const result = await fetchSkillMd("owner/repo", "jujutsu");
+	assert.equal(result, mdContent);
+	assert.deepEqual(requestedPaths, [
+		"/owner/repo/main/skills/jujutsu/SKILL.md",
+		"/owner/repo/main/agent/skills/jujutsu/SKILL.md",
+	]);
+});
+
+test("fetchSkillMd throws after known paths fail", async () => {
 	globalThis.fetch = async () => new Response("Not Found", { status: 404 });
 
 	await assert.rejects(
 		() => fetchSkillMd("owner/repo", "missing-skill"),
-		(err) => err.message.includes("Failed to fetch SKILL.md: 404")
+		(err) =>
+			err.message.includes("Failed to fetch SKILL.md from known paths") &&
+			err.message.includes("/owner/repo/main/skills/missing-skill/SKILL.md") &&
+			err.message.includes("/owner/repo/main/agent/skills/missing-skill/SKILL.md")
 	);
 });
-
-// ── GET /api/skills/skillssh route tests ──
 
 test("skillssh search route returns skills from the API", async () => {
 	const mockPayload = {
@@ -205,8 +223,6 @@ test("skillssh search route returns 500 when upstream fails", async () => {
 	assert.ok(body.error.includes("skills.sh API error"));
 });
 
-// ── POST /api/skills/skillssh/install route tests ──
-
 test("skillssh install route registers a skill from skills.sh", async () => {
 	const mdContent = "# Docker Best Practices\nContent here.";
 
@@ -236,7 +252,6 @@ test("skillssh install route registers a skill from skills.sh", async () => {
 	assert.equal(body.success, true);
 	assert.ok(body.id);
 
-	// Verify the skill was registered with correct metadata
 	const skills = skillRegistry.list();
 	const installed = skills.find((s) => s.name === "docker-best-practices");
 	assert.ok(installed);

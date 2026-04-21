@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// ─── skills.sh API response schemas ───
-
 export const SkillsShSkillSchema = z.object({
 	id: z.string(),
 	skillId: z.string(),
@@ -25,6 +23,33 @@ const SKILLSSH_BASE_URL = "https://skills.sh/api";
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com";
 const DEFAULT_SEARCH_LIMIT = 20;
 const REQUEST_TIMEOUT_MS = 15_000;
+
+const SKILL_MD_PATH_PATTERNS = [
+	"skills/{skillId}/SKILL.md",
+	"agent/skills/{skillId}/SKILL.md",
+	"{skillId}/SKILL.md",
+	".claude/skills/{skillId}/SKILL.md",
+	"config/claude/skills/{skillId}/SKILL.md",
+];
+
+function getSkillMdUrls(source: string, skillId: string): string[] {
+	return SKILL_MD_PATH_PATTERNS.map((pathPattern) => {
+		const skillPath = pathPattern.replace("{skillId}", skillId);
+		return `${GITHUB_RAW_BASE}/${source}/main/${skillPath}`;
+	});
+}
+
+async function fetchTextOrNull(url: string): Promise<string | null> {
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+	try {
+		const res = await fetch(url, { signal: controller.signal });
+		return res.ok ? await res.text() : null;
+	} finally {
+		clearTimeout(timeout);
+	}
+}
 
 /**
  * Search the skills.sh public directory.
@@ -58,17 +83,14 @@ export async function searchSkillsSh(
  * @param skillId - Skill name (last segment of the full id, e.g. "supabase-postgres-best-practices")
  */
 export async function fetchSkillMd(source: string, skillId: string): Promise<string> {
-	const url = `${GITHUB_RAW_BASE}/${source}/main/skills/${skillId}/SKILL.md`;
-	const controller = new AbortController();
-	const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+	const urls = getSkillMdUrls(source, skillId);
 
-	try {
-		const res = await fetch(url, { signal: controller.signal });
-		if (!res.ok) {
-			throw new Error(`Failed to fetch SKILL.md: ${res.status} (${url})`);
+	for (const url of urls) {
+		const content = await fetchTextOrNull(url);
+		if (content !== null) {
+			return content;
 		}
-		return await res.text();
-	} finally {
-		clearTimeout(timeout);
 	}
+
+	throw new Error(`Failed to fetch SKILL.md from known paths (${urls.join(", ")})`);
 }
