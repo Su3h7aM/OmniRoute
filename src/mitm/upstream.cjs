@@ -1,4 +1,10 @@
-const { Readable } = require("stream");
+function iterateHeaderEntries(headers) {
+	if (!headers) return [];
+	if (typeof headers.entries === "function") {
+		return headers.entries();
+	}
+	return Object.entries(headers);
+}
 
 function appendRequestHeader(headers, name, value) {
 	if (value === undefined) return;
@@ -14,7 +20,7 @@ function appendRequestHeader(headers, name, value) {
 function createPassthroughRequestHeaders(headers, targetHost) {
 	const requestHeaders = new Headers();
 
-	for (const [name, value] of Object.entries(headers || {})) {
+	for (const [name, value] of iterateHeaderEntries(headers)) {
 		appendRequestHeader(requestHeaders, name, value);
 	}
 
@@ -22,21 +28,10 @@ function createPassthroughRequestHeaders(headers, targetHost) {
 	return requestHeaders;
 }
 
-function writeFetchResponse(res, response) {
-	const responseHeaders = Object.fromEntries(response.headers.entries());
-	res.writeHead(response.status, responseHeaders);
-
-	if (!response.body) {
-		res.end();
-		return;
-	}
-
-	Readable.fromWeb(response.body).pipe(res);
-}
-
 async function passthroughToTarget({
-	req,
-	res,
+	requestPath,
+	method,
+	headers,
 	bodyBuffer,
 	targetHost,
 	resolveTargetIP,
@@ -45,9 +40,9 @@ async function passthroughToTarget({
 }) {
 	const targetIP = await resolveTargetIP();
 	const hasRequestBody = bodyBuffer.length > 0;
-	const response = await fetchImpl(`https://${targetIP}${req.url}`, {
-		method: req.method,
-		headers: createPassthroughRequestHeaders(req.headers, targetHost),
+	return fetchImpl(`https://${targetIP}${requestPath}`, {
+		method,
+		headers: createPassthroughRequestHeaders(headers, targetHost),
 		body: hasRequestBody ? bodyBuffer : undefined,
 		duplex: hasRequestBody ? "half" : undefined,
 		tls: {
@@ -55,12 +50,9 @@ async function passthroughToTarget({
 			rejectUnauthorized: tlsRejectUnauthorized,
 		},
 	});
-
-	writeFetchResponse(res, response);
 }
 
 module.exports = {
 	createPassthroughRequestHeaders,
-	writeFetchResponse,
 	passthroughToTarget,
 };

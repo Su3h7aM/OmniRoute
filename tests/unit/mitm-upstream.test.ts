@@ -1,9 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { Readable } from "node:stream";
 
 const {
 	createPassthroughRequestHeaders,
-	writeFetchResponse,
 	passthroughToTarget,
 } = require("../../src/mitm/upstream.cjs");
 
@@ -26,41 +24,26 @@ describe("mitm upstream helpers", () => {
 		expect(headers.get("set-cookie")).toContain("b=2");
 	});
 
-	it("writes fetch response headers and body to node response", async () => {
-		const chunks: Buffer[] = [];
-		const writable = new Readable({ read() {} }) as Readable & {
-			status?: number;
-			headers?: Record<string, string>;
-			writeHead: (status: number, headers: Record<string, string>) => void;
-			write: (chunk: Buffer | string) => boolean;
-			end: (chunk?: Buffer | string) => void;
-		};
-		writable.writeHead = (status, headers) => {
-			writable.status = status;
-			writable.headers = headers;
-		};
-		writable.write = (chunk) => {
-			chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-			return true;
-		};
-		writable.end = (chunk) => {
-			if (chunk) {
-				chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-			}
-			writable.emit("finish");
-		};
-
+	it("returns the fetch response for Bun-native handlers", async () => {
 		const response = new Response("hello world", {
 			status: 201,
 			headers: { "content-type": "text/plain" },
 		});
 
-		writeFetchResponse(writable, response);
-		await new Promise((resolve) => writable.once("finish", resolve));
+		const result = await passthroughToTarget({
+			requestPath: "/v1/test",
+			method: "GET",
+			headers: new Headers(),
+			bodyBuffer: Buffer.alloc(0),
+			targetHost: TARGET_HOST,
+			resolveTargetIP: async () => "1.2.3.4",
+			tlsRejectUnauthorized: true,
+			fetchImpl: async () => response,
+		});
 
-		expect(writable.status).toBe(201);
-		expect(writable.headers?.["content-type"]).toBe("text/plain");
-		expect(Buffer.concat(chunks).toString()).toBe("hello world");
+		expect(result).toBe(response);
+		expect(result.status).toBe(201);
+		expect(await result.text()).toBe("hello world");
 	});
 
 	type FetchCall = {
@@ -70,23 +53,15 @@ describe("mitm upstream helpers", () => {
 
 	it("uses Bun fetch with target IP, host header, tls serverName and body", async () => {
 		const calls: FetchCall[] = [];
-		const req = {
-			url: "/v1/test",
+		const bodyBuffer = Buffer.from('{"hello":"world"}');
+
+		await passthroughToTarget({
+			requestPath: "/v1/test",
 			method: "POST",
 			headers: {
 				host: "localhost",
 				"content-type": "application/json",
 			},
-		};
-		const res = {
-			writeHead() {},
-			end() {},
-		};
-		const bodyBuffer = Buffer.from('{"hello":"world"}');
-
-		await passthroughToTarget({
-			req,
-			res,
 			bodyBuffer,
 			targetHost: TARGET_HOST,
 			resolveTargetIP: async () => "1.2.3.4",

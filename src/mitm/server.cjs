@@ -1,19 +1,16 @@
-const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const dns = require("dns");
 const { promisify } = require("util");
 const os = require("os");
 const { passthroughToTarget } = require("./upstream.cjs");
+const { INTERCEPT_RESPONSE_HEADERS, interceptToRouter } = require("./intercept.cjs");
 
-// Resolve data directory — mirrors src/lib/dataPaths.ts logic.
-// This file runs as a standalone CommonJS process and cannot import the ES module.
 function getDataDir() {
 	if (process.env.DATA_DIR) return path.resolve(process.env.DATA_DIR.trim());
 	return path.join(os.homedir(), ".omniroute");
 }
 
-// Configuration
 const TARGET_HOST = "daily-cloudcode-pa.googleapis.com";
 const LOCAL_PORT = 443;
 const ROUTER_BASE_URL = (
@@ -29,31 +26,21 @@ const DATA_DIR = getDataDir();
 const DB_FILE = path.join(DATA_DIR, "db.json");
 const SQLITE_FILE = path.join(DATA_DIR, "storage.sqlite");
 
-let _sqliteDb = null;
+let sqliteDb = null;
 
-// Toggle logging (set true to enable file logging for debugging)
 const ENABLE_FILE_LOG = false;
+const CHAT_URL_PATTERNS = [":generateContent", ":streamGenerateContent"];
+const LOG_DIR = path.join(__dirname, "../../logs/mitm");
+
+if (ENABLE_FILE_LOG && !fs.existsSync(LOG_DIR)) {
+	fs.mkdirSync(LOG_DIR, { recursive: true });
+}
 
 if (!API_KEY) {
 	console.error("❌ ROUTER_API_KEY required");
 	process.exit(1);
 }
 
-// Load SSL certificates
-const certDir = path.join(DATA_DIR, "mitm");
-const sslOptions = {
-	key: fs.readFileSync(path.join(certDir, "server.key")),
-	cert: fs.readFileSync(path.join(certDir, "server.crt")),
-};
-
-// Chat endpoints that should be intercepted
-const CHAT_URL_PATTERNS = [":generateContent", ":streamGenerateContent"];
-
-// Log directory for request/response dumps
-const LOG_DIR = path.join(__dirname, "../../logs/mitm");
-if (ENABLE_FILE_LOG && !fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
-
-// Safe log filename: only alphanumeric + hyphens, anchored inside LOG_DIR
 function safeLogPath(name) {
 	const safe = name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
 	const resolved = path.resolve(LOG_DIR, safe);
@@ -66,9 +53,9 @@ function safeLogPath(name) {
 function saveRequestLog(url, bodyBuffer) {
 	if (!ENABLE_FILE_LOG) return;
 	try {
-		const ts = new Date().toISOString().replace(/[:.]/g, "-");
+		const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 		const urlSlug = url.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 60);
-		const filePath = safeLogPath(`${ts}_${urlSlug}.json`);
+		const filePath = safeLogPath(`${timestamp}_${urlSlug}.json`);
 		const body = JSON.parse(bodyBuffer.toString());
 		fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
 		console.log(`💾 Saved request: ${filePath}`);
@@ -77,7 +64,6 @@ function saveRequestLog(url, bodyBuffer) {
 	}
 }
 
-// Resolve real IP of target host (bypass /etc/hosts)
 let cachedTargetIP = null;
 async function resolveTargetIP() {
 	if (cachedTargetIP) return cachedTargetIP;
@@ -89,34 +75,21 @@ async function resolveTargetIP() {
 	return cachedTargetIP;
 }
 
-function collectBodyRaw(req) {
-	return new Promise((resolve, reject) => {
-		const chunks = [];
-		req.on("data", (chunk) => chunks.push(chunk));
-		req.on("end", () => resolve(Buffer.concat(chunks)));
-		req.on("error", reject);
-	});
-}
-
-function extractModel(body) {
+function extractModel(bodyBuffer) {
 	try {
-		return JSON.parse(body.toString()).model || null;
+		return JSON.parse(bodyBuffer.toString()).model || null;
 	} catch {
 		return null;
 	}
 }
 
-/**
- * Get a lazy SQLite connection for reading MITM aliases.
- * Falls back to null if bun:sqlite is unavailable in this process.
- */
 function getSqliteDb() {
-	if (_sqliteDb) return _sqliteDb;
+	if (sqliteDb) return sqliteDb;
 	try {
 		const { Database } = require("bun:sqlite");
 		if (fs.existsSync(SQLITE_FILE)) {
-			_sqliteDb = new Database(SQLITE_FILE, { readonly: true, strict: true });
-			return _sqliteDb;
+			sqliteDb = new Database(SQLITE_FILE, { readonly: true, strict: true });
+			return sqliteDb;
 		}
 	} catch {
 		// bun:sqlite not available in this process
@@ -127,7 +100,6 @@ function getSqliteDb() {
 function getMappedModel(model) {
 	if (!model) return null;
 
-	// Primary: read from SQLite key_value table
 	try {
 		const db = getSqliteDb();
 		if (db) {
@@ -145,7 +117,6 @@ function getMappedModel(model) {
 		// Fall through to JSON fallback
 	}
 
-	// Fallback: read from db.json (legacy installs not yet migrated)
 	try {
 		if (fs.existsSync(DB_FILE)) {
 			const db = JSON.parse(fs.readFileSync(DB_FILE, "utf-8"));
@@ -162,113 +133,97 @@ function isTlsVerificationEnabled() {
 	return process.env.MITM_DISABLE_TLS_VERIFY !== "1";
 }
 
-async function passthrough(req, res, bodyBuffer) {
+function createErrorResponse(message, status = 500) {
+	return new Response(JSON.stringify({ error: { message, type: "mitm_error" } }), {
+		status,
+		headers: { "Content-Type": "application/json" },
+	});
+}
+
+async function passthrough(request, bodyBuffer) {
 	try {
-		await passthroughToTarget({
-			req,
-			res,
+		return await passthroughToTarget({
+			requestPath: new URL(request.url).pathname + new URL(request.url).search,
+			method: request.method,
+			headers: request.headers,
 			bodyBuffer,
 			targetHost: TARGET_HOST,
 			resolveTargetIP,
 			tlsRejectUnauthorized: isTlsVerificationEnabled(),
 		});
-	} catch (err) {
-		console.error(`❌ Passthrough error: ${err.message}`);
-		if (!res.headersSent) res.writeHead(502);
-		res.end("Bad Gateway");
+	} catch (error) {
+		console.error(`❌ Passthrough error: ${error.message}`);
+		return new Response("Bad Gateway", { status: 502 });
 	}
 }
 
-async function intercept(_req, res, bodyBuffer, mappedModel) {
+async function intercept(bodyBuffer, mappedModel) {
 	try {
-		const body = JSON.parse(bodyBuffer.toString());
-		body.model = mappedModel;
-
-		const response = await fetch(ROUTER_URL, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${API_KEY}`,
-			},
-			body: JSON.stringify(body),
+		const response = await interceptToRouter({
+			bodyBuffer,
+			mappedModel,
+			routerUrl: ROUTER_URL,
+			apiKey: API_KEY,
 		});
 
-		if (!response.ok) {
-			const errText = await response.text().catch(() => "");
-			throw new Error(`OmniRoute ${response.status}: ${errText}`);
-		}
-
-		res.writeHead(200, {
-			"Content-Type": "text/event-stream",
-			"Cache-Control": "no-cache",
-			Connection: "keep-alive",
-			"X-Accel-Buffering": "no",
+		return new Response(response.body, {
+			status: 200,
+			headers: INTERCEPT_RESPONSE_HEADERS,
 		});
-
-		const reader = response.body.getReader();
-		const decoder = new TextDecoder();
-
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) {
-				res.end();
-				break;
-			}
-			res.write(decoder.decode(value, { stream: true }));
-		}
 	} catch (error) {
 		console.error(`❌ ${error.message}`);
-		if (!res.headersSent) res.writeHead(500, { "Content-Type": "application/json" });
-		res.end(JSON.stringify({ error: { message: error.message, type: "mitm_error" } }));
+		return createErrorResponse(error.message);
 	}
 }
 
-const server = https.createServer(sslOptions, async (req, res) => {
-	const bodyBuffer = await collectBodyRaw(req);
+async function handleRequest(request) {
+	const bodyBuffer = Buffer.from(await request.arrayBuffer());
+	const requestUrl = new URL(request.url);
 
-	// Save request log if enabled
-	if (bodyBuffer.length > 0) saveRequestLog(req.url, bodyBuffer);
-
-	// Anti-loop: requests from OmniRoute bypass interception
-	if (req.headers["x-omniroute-source"] === "omniroute") {
-		return passthrough(req, res, bodyBuffer);
+	if (bodyBuffer.length > 0) {
+		saveRequestLog(requestUrl.pathname + requestUrl.search, bodyBuffer);
 	}
 
-	const isChatRequest = CHAT_URL_PATTERNS.some((pattern) => req.url.includes(pattern));
+	if (request.headers.get("x-omniroute-source") === "omniroute") {
+		return passthrough(request, bodyBuffer);
+	}
 
+	const requestPath = requestUrl.pathname + requestUrl.search;
+	const isChatRequest = CHAT_URL_PATTERNS.some((pattern) => requestPath.includes(pattern));
 	if (!isChatRequest) {
-		return passthrough(req, res, bodyBuffer);
+		return passthrough(request, bodyBuffer);
 	}
 
 	const model = extractModel(bodyBuffer);
 	const mappedModel = getMappedModel(model);
-
 	if (!mappedModel) {
-		return passthrough(req, res, bodyBuffer);
+		return passthrough(request, bodyBuffer);
 	}
 
 	console.log(`🔀 ${model} → ${mappedModel}`);
-	return intercept(req, res, bodyBuffer, mappedModel);
-});
+	return intercept(bodyBuffer, mappedModel);
+}
 
-server.listen(LOCAL_PORT, () => {
-	console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
-});
-
-server.on("error", (error) => {
-	if (error.code === "EADDRINUSE") {
-		console.error(`❌ Port ${LOCAL_PORT} already in use`);
-	} else if (error.code === "EACCES") {
-		console.error(`❌ Permission denied for port ${LOCAL_PORT}`);
-	} else {
+const server = Bun.serve({
+	port: LOCAL_PORT,
+	tls: {
+		key: Bun.file(path.join(DATA_DIR, "mitm", "server.key")),
+		cert: Bun.file(path.join(DATA_DIR, "mitm", "server.crt")),
+	},
+	fetch: handleRequest,
+	error(error) {
 		console.error(`❌ ${error.message}`);
-	}
-	process.exit(1);
+		return createErrorResponse(error.message);
+	},
 });
+
+console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
 
 process.on("SIGTERM", () => {
-	server.close(() => process.exit(0));
+	server.stop(true);
+	process.exit(0);
 });
 process.on("SIGINT", () => {
-	server.close(() => process.exit(0));
+	server.stop(true);
+	process.exit(0);
 });
