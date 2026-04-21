@@ -1,11 +1,9 @@
 /**
- * CLI Fingerprint Definitions
+ * Request fingerprint definitions.
  *
- * Defines per-provider "fingerprints" that control the exact ordering of HTTP headers
- * and JSON body fields to match the native CLI tools exactly.
- *
- * When `cliCompatMode` is enabled for a provider, OmniRoute reorders outgoing requests
- * to be indistinguishable from the real CLI binary, reducing account flagging risk.
+ * Defines per-provider request fingerprints that control the exact ordering of HTTP
+ * headers and JSON body fields. When compatibility mode is enabled for a provider,
+ * OmniRoute reshapes outgoing requests to match supported client signatures.
  *
  * Header order and body field order were captured via mitmproxy traffic analysis.
  */
@@ -16,7 +14,7 @@ import {
 	getQwenOauthHeaders,
 } from "./providerHeaderProfiles.ts";
 
-export interface CliFingerprint {
+export interface RequestFingerprint {
 	/** Ordered list of header names (case-sensitive). Unlisted headers are appended. */
 	headerOrder: string[];
 	/** Ordered list of top-level JSON body fields. Unlisted fields are appended. */
@@ -28,10 +26,10 @@ export interface CliFingerprint {
 }
 
 /**
- * Fingerprint registry - keyed by provider alias (lowercase).
- * Based on mitmproxy traffic captures from native CLI tools.
+ * Request fingerprint registry keyed by provider alias (lowercase).
+ * Based on mitmproxy traffic captures from supported client implementations.
  */
-export const CLI_FINGERPRINTS: Record<string, CliFingerprint> = {
+export const REQUEST_FINGERPRINTS: Record<string, RequestFingerprint> = {
 	codex: {
 		headerOrder: [
 			"Host",
@@ -266,7 +264,7 @@ export function orderHeaders(
 }
 
 /**
- * Apply a CLI fingerprint to headers and body.
+ * Apply a request fingerprint to headers and body.
  * Returns { headers, bodyString } with the correct ordering.
  */
 export function applyFingerprint(
@@ -277,7 +275,7 @@ export function applyFingerprint(
 	const fingerprintKey = isClaudeCodeCompatible(provider)
 		? "claude-code-compatible"
 		: provider?.toLowerCase();
-	const fingerprint = CLI_FINGERPRINTS[fingerprintKey];
+	const fingerprint = REQUEST_FINGERPRINTS[fingerprintKey];
 
 	if (!fingerprint) {
 		return { headers, bodyString: JSON.stringify(body) };
@@ -309,44 +307,50 @@ export function applyFingerprint(
 }
 
 /**
- * Runtime cache for CLI compat providers set via Settings UI.
- * Updated by the settings API when users toggle providers.
+ * Runtime cache for providers with request fingerprints enabled in Settings.
  */
-let _cliCompatProviders: Set<string> = new Set();
+let requestFingerprintProvidersCache: Set<string> = new Set();
 
 /**
- * Update the runtime cache of CLI-compat-enabled providers.
- * Called from the settings API when cliCompatProviders is updated.
+ * Update the runtime cache of providers with request fingerprints enabled.
  */
-export function setCliCompatProviders(providers: string[]): void {
-	_cliCompatProviders = new Set((providers || []).map((p) => p.toLowerCase()));
+export function setRequestFingerprintProviders(providers: string[]): void {
+	requestFingerprintProvidersCache = new Set((providers || []).map((p) => p.toLowerCase()));
 }
 
 /**
- * Get the current list of CLI-compat-enabled providers.
+ * Get the current list of providers with request fingerprints enabled.
  */
-export function getCliCompatProviders(): string[] {
-	return Array.from(_cliCompatProviders);
+export function getRequestFingerprintProviders(): string[] {
+	return Array.from(requestFingerprintProvidersCache);
+}
+
+function isEnabledFlag(value: string | undefined): boolean {
+	return value === "1" || value === "true";
 }
 
 /**
- * Check if CLI compatibility mode is enabled for a provider.
- * Reads from: 1) Runtime cache (Settings UI), 2) Environment variables.
+ * Check if request fingerprint compatibility mode is enabled for a provider.
+ * Reads from: 1) runtime cache (Settings UI), 2) environment variables.
  */
-export function isCliCompatEnabled(provider: string): boolean {
+export function isRequestFingerprintEnabled(provider: string): boolean {
 	if (isClaudeCodeCompatible(provider)) return true;
 
-	const key = provider?.toLowerCase().replace(/[^a-z0-9]/g, "_");
+	const normalizedProvider = provider?.toLowerCase();
+	const providerKey = normalizedProvider?.replace(/[^a-z0-9]/g, "_");
 
-	// 1. Check runtime cache (set via Settings UI)
-	if (_cliCompatProviders.has(provider?.toLowerCase())) return true;
+	if (requestFingerprintProvidersCache.has(normalizedProvider)) {
+		return true;
+	}
 
-	// 2. Check environment variable: CLI_COMPAT_<PROVIDER>=1
-	const envKey = `CLI_COMPAT_${key?.toUpperCase()}`;
-	if (process.env[envKey] === "1" || process.env[envKey] === "true") return true;
+	const envKey = `REQUEST_FINGERPRINT_${providerKey?.toUpperCase()}`;
+	const legacyEnvKey = `CLI_COMPAT_${providerKey?.toUpperCase()}`;
+	if (isEnabledFlag(process.env[envKey]) || isEnabledFlag(process.env[legacyEnvKey])) {
+		return true;
+	}
 
-	// 3. Global enable: CLI_COMPAT_ALL=1
-	if (process.env.CLI_COMPAT_ALL === "1" || process.env.CLI_COMPAT_ALL === "true") return true;
-
-	return false;
+	return (
+		isEnabledFlag(process.env.REQUEST_FINGERPRINT_ALL) ||
+		isEnabledFlag(process.env.CLI_COMPAT_ALL)
+	);
 }

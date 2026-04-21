@@ -17,7 +17,7 @@ const { applyRuntimeSettings, resetRuntimeSettingsStateForTests } = await import
 const { startRuntimeConfigHotReload, stopRuntimeConfigHotReloadForTests } = await import(
 	"../../src/lib/config/hotReload.ts"
 );
-const { getCliCompatProviders } = await import("../../open-sse/config/cliFingerprints.ts");
+const { getRequestFingerprintProviders } = await import("../../open-sse/config/cliFingerprints.ts");
 const { getCustomAliases, setCustomAliases } = await import(
 	"../../open-sse/services/modelDeprecation.ts"
 );
@@ -72,14 +72,14 @@ afterAll(async () => {
 	await resetStorage();
 });
 
-test("updateSettings applies runtime settings incrementally without restart", async () => {
+test("updateSettings applies request fingerprint and runtime settings incrementally", async () => {
 	await applyRuntimeSettings(await settingsDb.getSettings(), {
 		force: true,
 		source: "test:startup",
 	});
 
 	await settingsDb.updateSettings({
-		cliCompatProviders: ["OpenAI", "claude"],
+		requestFingerprintProviders: ["OpenAI", "claude"],
 		modelAliases: JSON.stringify({ "team-default": "openai/gpt-4o-mini" }),
 		backgroundDegradation: {
 			enabled: true,
@@ -98,7 +98,7 @@ test("updateSettings applies runtime settings incrementally without restart", as
 		antigravitySignatureCacheMode: "bypass",
 	});
 
-	assert.deepEqual(getCliCompatProviders().sort(), ["claude", "openai"]);
+	assert.deepEqual(getRequestFingerprintProviders().sort(), ["claude", "openai"]);
 	assert.deepEqual(getCustomAliases(), { "team-default": "openai/gpt-4o-mini" });
 	assert.equal(getBackgroundDegradationConfig().enabled, true);
 	assert.equal(getBackgroundDegradationConfig().degradationMap["gpt-4o"], "gpt-4o-mini");
@@ -108,7 +108,7 @@ test("updateSettings applies runtime settings incrementally without restart", as
 	assert.equal(getGeminiThoughtSignatureMode(), "bypass");
 
 	await settingsDb.updateSettings({
-		cliCompatProviders: [],
+		requestFingerprintProviders: [],
 		modelAliases: {},
 		backgroundDegradation: null,
 		payloadRules: null,
@@ -116,7 +116,7 @@ test("updateSettings applies runtime settings incrementally without restart", as
 		antigravitySignatureCacheMode: "enabled",
 	});
 
-	assert.deepEqual(getCliCompatProviders(), []);
+	assert.deepEqual(getRequestFingerprintProviders(), []);
 	assert.deepEqual(getCustomAliases(), {});
 	assert.equal(getBackgroundDegradationConfig().enabled, false);
 	assert.equal((await getPayloadRulesConfig()).override.length, 0);
@@ -124,7 +124,7 @@ test("updateSettings applies runtime settings incrementally without restart", as
 	assert.equal(getGeminiThoughtSignatureMode(), "enabled");
 });
 
-test("hot-reload watcher picks up external sqlite changes via polling fallback", async () => {
+test("hot-reload watcher picks up request fingerprint changes via polling fallback", async () => {
 	await applyRuntimeSettings(await settingsDb.getSettings(), {
 		force: true,
 		source: "test:startup",
@@ -133,7 +133,7 @@ test("hot-reload watcher picks up external sqlite changes via polling fallback",
 
 	const db = getDbInstance();
 	db.prepare(
-		"INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'cliCompatProviders', ?)"
+		"INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'requestFingerprintProviders', ?)"
 	).run(JSON.stringify(["github", "openai"]));
 	db.prepare(
 		"INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('settings', 'antigravitySignatureCacheMode', ?)"
@@ -141,8 +141,8 @@ test("hot-reload watcher picks up external sqlite changes via polling fallback",
 
 	await waitFor(
 		() =>
-			getCliCompatProviders().includes("github") &&
-			getCliCompatProviders().includes("openai") &&
+			getRequestFingerprintProviders().includes("github") &&
+			getRequestFingerprintProviders().includes("openai") &&
 			getGeminiThoughtSignatureMode() === "bypass-strict"
 	);
 });

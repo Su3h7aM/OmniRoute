@@ -39,7 +39,6 @@ mock.module("@/lib/auth/managementPassword", () => ({
 
 const { PATCH } = await import("../route");
 
-// Helper to create a Request with JSON body
 function createPatchRequest(body: unknown) {
 	return new Request("http://localhost/api/settings", {
 		method: "PATCH",
@@ -72,12 +71,10 @@ describe("PATCH /api/settings", () => {
 		hashManagementPassword.mockImplementation(async (value: string) => `hashed:${value}`);
 		verifyManagementPassword.mockResolvedValue(true);
 
-		// Default settings before each test
 		getSettings.mockResolvedValue({
 			debugMode: false,
 			hiddenSidebarItems: [],
 		});
-		// Mock updateSettings to merge updates into the original
 		updateSettings.mockImplementation(async (updates: Record<string, unknown>) => {
 			const current = await getSettings();
 			return { ...current, ...updates };
@@ -90,9 +87,7 @@ describe("PATCH /api/settings", () => {
 		expect(res.status).toBe(200);
 		const json = await res.json();
 		expect(json.debugMode).toBe(true);
-		// Ensure password is not leaked
 		expect(json).not.toHaveProperty("password");
-		// Verify DB update called with correct payload
 		expect(updateSettings).toHaveBeenCalledTimes(1);
 		const calledWith = updateSettings.mock.calls[0][0];
 		expect(calledWith.debugMode).toBe(true);
@@ -107,5 +102,17 @@ describe("PATCH /api/settings", () => {
 		expect(updateSettings).toHaveBeenCalledTimes(1);
 		const calledWith = updateSettings.mock.calls[0][0];
 		expect(calledWith.hiddenSidebarItems).toEqual([]);
+	});
+
+	it("maps legacy cliCompatProviders to requestFingerprintProviders", async () => {
+		const req = createPatchRequest({ cliCompatProviders: ["claude"] });
+		const res = await PATCH(req as any);
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json.requestFingerprintProviders).toEqual(["claude"]);
+		expect(updateSettings).toHaveBeenCalledTimes(1);
+		const calledWith = updateSettings.mock.calls[0][0];
+		expect(calledWith.cliCompatProviders).toEqual(["claude"]);
+		expect(calledWith.requestFingerprintProviders).toEqual(["claude"]);
 	});
 });

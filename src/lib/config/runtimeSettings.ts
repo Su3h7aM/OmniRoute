@@ -6,7 +6,7 @@ export type RuntimeReloadSection =
 	| "payloadRules"
 	| "modelAliases"
 	| "backgroundDegradation"
-	| "cliCompatProviders"
+	| "requestFingerprintProviders"
 	| "cacheControl"
 	| "usageTracking"
 	| "healthCheckLogs"
@@ -22,7 +22,7 @@ interface RuntimeSettingsSnapshot {
 	payloadRules: unknown;
 	modelAliases: Record<string, string>;
 	backgroundDegradation: JsonRecord | null;
-	cliCompatProviders: string[];
+	requestFingerprintProviders: string[];
 	alwaysPreserveClientCache: string;
 	antigravitySignatureCacheMode: string;
 	usageTokenBuffer: unknown;
@@ -35,7 +35,7 @@ const DEFAULT_RUNTIME_SETTINGS_SNAPSHOT: RuntimeSettingsSnapshot = {
 	payloadRules: null,
 	modelAliases: {},
 	backgroundDegradation: null,
-	cliCompatProviders: [],
+	requestFingerprintProviders: [],
 	alwaysPreserveClientCache: "auto",
 	antigravitySignatureCacheMode: "enabled",
 	usageTokenBuffer: null,
@@ -151,6 +151,10 @@ function normalizePayloadRules(value: unknown): unknown {
 	return parseStoredJson(value, "payloadRules");
 }
 
+function getRequestFingerprintProvidersSetting(settings: Record<string, unknown>): unknown {
+	return settings.requestFingerprintProviders ?? settings.cliCompatProviders;
+}
+
 export function buildRuntimeSettingsSnapshot(
 	settings: Record<string, unknown>
 ): RuntimeSettingsSnapshot {
@@ -158,7 +162,9 @@ export function buildRuntimeSettingsSnapshot(
 		payloadRules: normalizePayloadRules(settings.payloadRules),
 		modelAliases: normalizeStringRecord(settings.modelAliases),
 		backgroundDegradation: normalizeBackgroundDegradation(settings.backgroundDegradation),
-		cliCompatProviders: normalizeStringArray(settings.cliCompatProviders),
+		requestFingerprintProviders: normalizeStringArray(
+			getRequestFingerprintProvidersSetting(settings)
+		),
 		alwaysPreserveClientCache:
 			typeof settings.alwaysPreserveClientCache === "string"
 				? settings.alwaysPreserveClientCache
@@ -225,9 +231,11 @@ async function applyBackgroundDegradationSection(backgroundDegradation: JsonReco
 	});
 }
 
-async function applyCliCompatProvidersSection(cliCompatProviders: string[]) {
-	const { setCliCompatProviders } = await import("@omniroute/open-sse/config/cliFingerprints");
-	setCliCompatProviders(cliCompatProviders);
+async function applyRequestFingerprintProvidersSection(requestFingerprintProviders: string[]) {
+	const { setRequestFingerprintProviders } = await import(
+		"@omniroute/open-sse/config/cliFingerprints"
+	);
+	setRequestFingerprintProviders(requestFingerprintProviders);
 }
 
 async function applyCacheControlSection() {
@@ -330,10 +338,13 @@ export async function applyRuntimeSettings(
 
 	if (
 		force ||
-		hasChanged(currentSnapshot.cliCompatProviders, previousSnapshot.cliCompatProviders)
+		hasChanged(
+			currentSnapshot.requestFingerprintProviders,
+			previousSnapshot.requestFingerprintProviders
+		)
 	) {
-		await applyCliCompatProvidersSection(currentSnapshot.cliCompatProviders);
-		markChanged("cliCompatProviders");
+		await applyRequestFingerprintProvidersSection(currentSnapshot.requestFingerprintProviders);
+		markChanged("requestFingerprintProviders");
 	}
 
 	if (

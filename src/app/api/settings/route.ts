@@ -55,6 +55,13 @@ export async function PATCH(request: Request) {
 			return NextResponse.json({ error: validation.error }, { status: 400 });
 		}
 		const body: typeof validation.data & { password?: string } = { ...validation.data };
+		const legacyRequestFingerprintProviders = body.cliCompatProviders;
+		if (
+			body.requestFingerprintProviders === undefined &&
+			legacyRequestFingerprintProviders !== undefined
+		) {
+			body.requestFingerprintProviders = legacyRequestFingerprintProviders;
+		}
 
 		// If updating password, hash it
 		if (body.newPassword) {

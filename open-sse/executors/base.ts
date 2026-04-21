@@ -1,5 +1,5 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
-import { applyFingerprint, isCliCompatEnabled } from "../config/cliFingerprints.ts";
+import { applyFingerprint, isRequestFingerprintEnabled } from "../config/cliFingerprints.ts";
 import { getRotatingApiKey } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import type { ProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
@@ -439,7 +439,7 @@ export class BaseExecutor {
 				let finalHeaders = headers;
 				let bodyString = JSON.stringify(transformedBody);
 
-				if (isCliCompatEnabled(this.provider)) {
+				if (isRequestFingerprintEnabled(this.provider)) {
 					const fingerprinted = applyFingerprint(this.provider, headers, transformedBody);
 					finalHeaders = fingerprinted.headers;
 					bodyString = fingerprinted.bodyString;
