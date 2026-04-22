@@ -2,52 +2,20 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import childProcess from "node:child_process";
 import fs from "node:fs/promises";
-import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
-const isBunRuntime = typeof Bun !== "undefined";
 const execFileAsync = promisify(childProcess.execFile);
 const { createOmnirouteWsBridge } = await import("../../scripts/v1-ws-bridge.ts");
 
-if (isBunRuntime) {
-	console.warn(
-		"[tests] Skipping v1-ws-bridge.test.ts on Bun: known node:http/WebSocket upgrade incompatibility in Bun runtime; re-evaluate after Bun fix or migrate bridge test to Bun.serve"
-	);
-}
+type WsClientResult = {
+	messages: Array<Record<string, unknown>>;
+	errors: string[];
+};
 
-function listen(server) {
-	return new Promise((resolve, reject) => {
-		server.once("error", reject);
-		server.listen(0, "127.0.0.1", () => {
-			const address = server.address();
-			resolve(address.port);
-		});
-	});
-}
-
-function close(server) {
-	return new Promise((resolve) => {
-		server.close(() => resolve());
-	});
-}
-
-function readRequestBody(req) {
-	return new Promise((resolve, reject) => {
-		const chunks = [];
-		req.on("data", (chunk) => chunks.push(chunk));
-		req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-		req.on("error", reject);
-	});
-}
-
-async function runNodeWsClient(port) {
-	const clientScriptPath = path.join(
-		os.tmpdir(),
-		`omniroute-v1-ws-client-${Date.now()}-${Math.random()}.mjs`
-	);
-	const clientScript = `
+function createNodeWsClientScript() {
+	return String.raw`
     import net from "node:net";
     import { randomBytes } from "node:crypto";
 
@@ -155,7 +123,7 @@ async function runNodeWsClient(port) {
     socket.on("data", (chunk) => {
       if (!handshakeDone) {
         handshakeBuffer = Buffer.concat([handshakeBuffer, chunk]);
-        const boundary = handshakeBuffer.indexOf("\\r\\n\\r\\n");
+        const boundary = handshakeBuffer.indexOf("\r\n\r\n");
         if (boundary === -1) return;
 
         const head = handshakeBuffer.subarray(0, boundary).toString("utf8");
@@ -195,12 +163,20 @@ async function runNodeWsClient(port) {
       "Sec-WebSocket-Version: 13",
       "",
       "",
-    ].join("\\r\\n"));
+    ].join("\r\n"));
 
-    await waitFor(() => messages.find((entry) => entry.type === "session.ready"), 5000, "session.ready");
+    await waitFor(
+      () => messages.find((entry) => entry.type === "session.ready"),
+      5000,
+      "session.ready"
+    );
 
     socket.write(encodeMaskedTextFrame("{bad json"));
-    await waitFor(() => messages.find((entry) => entry.type === "protocol.error"), 5000, "protocol.error");
+    await waitFor(
+      () => messages.find((entry) => entry.type === "protocol.error"),
+      5000,
+      "protocol.error"
+    );
 
     socket.write(
       encodeMaskedTextFrame(
@@ -239,8 +215,15 @@ async function runNodeWsClient(port) {
     socket.end();
     console.log(JSON.stringify({ messages, errors }));
   `;
+}
 
-	await fs.writeFile(clientScriptPath, clientScript, "utf8");
+async function runNodeWsClient(port: number) {
+	const clientScriptPath = path.join(
+		os.tmpdir(),
+		`omniroute-v1-ws-client-${Date.now()}-${Math.random()}.mjs`
+	);
+
+	await fs.writeFile(clientScriptPath, createNodeWsClientScript(), "utf8");
 
 	try {
 		const { stdout, stderr } = await execFileAsync("node", [clientScriptPath, String(port)], {
@@ -252,93 +235,96 @@ async function runNodeWsClient(port) {
 			throw new Error(stderr.trim());
 		}
 
-		return JSON.parse(stdout.trim());
+		return JSON.parse(stdout.trim()) as WsClientResult;
 	} finally {
 		await fs.rm(clientScriptPath, { force: true });
 	}
 }
 
-test.if(!isBunRuntime)(
-	"v1 ws bridge streams correlated request chunks and survives protocol errors",
-	{ timeout: 20000 },
-	async () => {
-		const server = http.createServer(async (req, res) => {
-			const url = new URL(req.url || "/", `http://${req.headers.host}`);
+function collectChunks(messages: WsClientResult["messages"], requestId: string) {
+	return messages
+		.filter((entry) => entry.type === "response.chunk" && entry.id === requestId)
+		.map((entry) => String(entry.chunk));
+}
+
+test("v1 ws bridge streams correlated request chunks and survives protocol errors on Bun.serve", {
+	timeout: 20000,
+}, async () => {
+	let server!: Bun.Server;
+	const bridge = createOmnirouteWsBridge({
+		baseUrl: () => `http://127.0.0.1:${server.port}`,
+		pingIntervalMs: 1000,
+		idleTimeoutMs: 10000,
+	});
+
+	server = Bun.serve({
+		port: 0,
+		fetch: async (req, bunServer) => {
+			const url = new URL(req.url);
 
 			if (url.pathname === "/api/v1/ws" && url.searchParams.get("handshake") === "1") {
-				res.writeHead(200, { "content-type": "application/json" });
-				res.end(
-					JSON.stringify({
-						ok: true,
-						path: "/v1/ws",
-						wsAuth: false,
-						authenticated: false,
-					})
-				);
-				return;
+				return Response.json({
+					ok: true,
+					path: "/v1/ws",
+					wsAuth: false,
+					authenticated: false,
+				});
 			}
 
 			if (url.pathname === "/v1/chat/completions" || url.pathname === "/v1/messages") {
-				const body = JSON.parse((await readRequestBody(req)) || "{}");
+				const body = (await req.json()) as {
+					model?: string;
+					messages?: Array<{ content?: string }>;
+				};
 				const firstMessage = Array.isArray(body.messages) ? body.messages[0] : null;
 				const content =
-					typeof firstMessage?.content === "string" ? firstMessage.content : body.model;
+					typeof firstMessage?.content === "string"
+						? firstMessage.content
+						: body.model || "unknown";
 
-				res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8" });
-				res.write(
-					`data: ${JSON.stringify({ choices: [{ delta: { content: `${content}:part1` } }] })}\n\n`
-				);
-				setTimeout(() => {
-					res.write(
-						`data: ${JSON.stringify({ choices: [{ delta: { content: `${content}:part2` } }] })}\n\n`
-					);
-					res.end("data: [DONE]\n\n");
-				}, 10);
-				return;
+				const stream = new ReadableStream({
+					start(controller) {
+						controller.enqueue(
+							`data: ${JSON.stringify({ choices: [{ delta: { content: `${content}:part1` } }] })}\n\n`
+						);
+						setTimeout(() => {
+							controller.enqueue(
+								`data: ${JSON.stringify({ choices: [{ delta: { content: `${content}:part2` } }] })}\n\n`
+							);
+							controller.enqueue("data: [DONE]\n\n");
+							controller.close();
+						}, 10);
+					},
+				});
+
+				return new Response(stream, {
+					headers: { "content-type": "text/event-stream; charset=utf-8" },
+				});
 			}
 
-			res.writeHead(404, { "content-type": "application/json" });
-			res.end(JSON.stringify({ error: "not_found" }));
-		});
-
-		const port = await listen(server);
-		const baseUrl = `http://127.0.0.1:${port}`;
-		const bridge = createOmnirouteWsBridge({
-			baseUrl,
-			pingIntervalMs: 1000,
-			idleTimeoutMs: 10000,
-		});
-
-		server.on("upgrade", async (req, socket, head) => {
-			try {
-				const handled = await bridge.handleUpgrade(req, socket, head);
-				if (!handled && !socket.destroyed) {
-					socket.destroy();
-				}
-			} catch {
-				if (!socket.destroyed) socket.destroy();
+			const bridgeResponse = await bridge.fetch(req, bunServer);
+			if (bridgeResponse) {
+				return bridgeResponse;
 			}
-		});
 
-		const { messages, errors } = await runNodeWsClient(port);
+			return Response.json({ error: "not_found" }, { status: 404 });
+		},
+		websocket: bridge.websocket,
+	});
 
-		const req1Chunks = messages
-			.filter((entry) => entry.type === "response.chunk" && entry.id === "req-1")
-			.map((entry) => entry.chunk);
-		const req2Chunks = messages
-			.filter((entry) => entry.type === "response.chunk" && entry.id === "req-2")
-			.map((entry) => entry.chunk);
+	const { messages, errors } = await runNodeWsClient(server.port);
+	const req1Chunks = collectChunks(messages, "req-1");
+	const req2Chunks = collectChunks(messages, "req-2");
 
-		assert.equal(errors.length, 0);
-		assert.ok(messages.find((entry) => entry.type === "session.ready"));
-		assert.ok(messages.find((entry) => entry.type === "protocol.error"));
-		assert.equal(req1Chunks.length >= 2, true);
-		assert.equal(req2Chunks.length >= 2, true);
-		assert.match(req1Chunks[0], /alpha:part1/);
-		assert.match(req1Chunks[1], /alpha:part2/);
-		assert.match(req2Chunks[0], /beta:part1/);
-		assert.match(req2Chunks[1], /beta:part2/);
+	assert.equal(errors.length, 0);
+	assert.ok(messages.find((entry) => entry.type === "session.ready"));
+	assert.ok(messages.find((entry) => entry.type === "protocol.error"));
+	assert.equal(req1Chunks.length >= 2, true);
+	assert.equal(req2Chunks.length >= 2, true);
+	assert.match(req1Chunks[0], /alpha:part1/);
+	assert.match(req1Chunks[1], /alpha:part2/);
+	assert.match(req2Chunks[0], /beta:part1/);
+	assert.match(req2Chunks[1], /beta:part2/);
 
-		await close(server);
-	}
-);
+	server.stop(true);
+});

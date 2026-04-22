@@ -35,7 +35,6 @@ export default function APIPageClient({ machineId }) {
 	const [cloudBaseUrl, setCloudBaseUrl] = useState(BUILD_TIME_CLOUD_URL); // dynamic cloud URL from API response
 	const [cloudConfigured, setCloudConfigured] = useState(Boolean(BUILD_TIME_CLOUD_URL));
 	const [viewTab, setViewTab] = useState("api");
-	const [mcpStatus, setMcpStatus] = useState<any>(null);
 	const [a2aStatus, setA2aStatus] = useState<any>(null);
 	const [searchProviders, setSearchProviders] = useState<any[]>([]);
 
@@ -82,16 +81,9 @@ export default function APIPageClient({ machineId }) {
 
 	const fetchProtocolStatus = useCallback(async () => {
 		try {
-			const [mcpRes, a2aRes] = await Promise.allSettled([
-				fetch("/api/mcp/status"),
-				fetch("/api/a2a/status"),
-			]);
-
-			if (mcpRes.status === "fulfilled" && mcpRes.value.ok) {
-				setMcpStatus(await mcpRes.value.json());
-			}
-			if (a2aRes.status === "fulfilled" && a2aRes.value.ok) {
-				setA2aStatus(await a2aRes.value.json());
+			const response = await fetch("/api/a2a/status");
+			if (response.ok) {
+				setA2aStatus(await response.json());
 			}
 		} catch {
 			// Ignore status failures; protocols panel has fallback text.
@@ -173,15 +165,12 @@ export default function APIPageClient({ machineId }) {
 	}, []);
 
 	useEffect(() => {
-		Promise.allSettled([
-			loadCloudSettings(),
-			fetchModels(),
-			fetchProtocolStatus(),
-			fetchSearchProviders(),
-		]).finally(() => {
-			setLoading(false);
-		});
-	}, [loadCloudSettings, fetchProtocolStatus, fetchSearchProviders, fetchModels]);
+		Promise.allSettled([loadCloudSettings(), fetchModels(), fetchSearchProviders()]).finally(
+			() => {
+				setLoading(false);
+			}
+		);
+	}, [loadCloudSettings, fetchSearchProviders, fetchModels]);
 
 	const handleCloudToggle = (checked) => {
 		if (checked) {
@@ -207,11 +196,13 @@ export default function APIPageClient({ machineId }) {
 	}, [cloudStatus]);
 
 	useEffect(() => {
+		if (viewTab !== "protocols") return;
+		void fetchProtocolStatus();
 		const interval = setInterval(() => {
 			void fetchProtocolStatus();
 		}, 30000);
 		return () => clearInterval(interval);
-	}, [fetchProtocolStatus]);
+	}, [fetchProtocolStatus, viewTab]);
 
 	const dispatchCloudChange = () => {
 		globalThis.dispatchEvent(new Event("cloud-status-changed"));
@@ -335,9 +326,7 @@ export default function APIPageClient({ machineId }) {
 
 	// Use new format endpoint (machineId embedded in key)
 	const currentEndpoint = cloudEnabled && cloudEndpointNew ? cloudEndpointNew : baseUrl;
-	const mcpOnline = Boolean(mcpStatus?.online);
 	const a2aOnline = a2aStatus?.status === "ok";
-	const mcpToolCount = Number(mcpStatus?.heartbeat?.toolCount || 0);
 	const a2aActiveStreams = Number(a2aStatus?.tasks?.activeStreams || 0);
 	return (
 		<div className="flex flex-col gap-8">
@@ -829,71 +818,11 @@ export default function APIPageClient({ machineId }) {
 							</h2>
 							<p className="text-sm text-text-muted mt-1">
 								{t("protocolsDescription") ||
-									"MCP and A2A are first-class endpoints with dedicated observability and controls."}
+									"A2A is a first-class endpoint with dedicated observability and controls."}
 							</p>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="rounded-xl border border-border p-4 bg-bg-subtle">
-								<div className="flex items-start justify-between gap-3">
-									<div>
-										<h3 className="font-semibold flex items-center gap-2">
-											<span className="material-symbols-outlined text-primary text-[18px]">
-												hub
-											</span>
-											{t("mcpCardTitle") || "MCP Server"}
-										</h3>
-										<p className="text-xs text-text-muted mt-1">
-											{t("mcpCardDescription") ||
-												"Model Context Protocol over stdio"}
-										</p>
-									</div>
-									<span
-										className={`text-xs px-2 py-1 rounded-full font-semibold ${
-											mcpOnline
-												? "bg-green-500/15 text-green-500"
-												: "bg-red-500/15 text-red-500"
-										}`}
-									>
-										{mcpOnline ? tc("active") : tc("inactive")}
-									</span>
-								</div>
-								<div className="mt-3 text-xs text-text-muted space-y-1">
-									<p>
-										{t("protocolToolsLabel") || "Tools"}:{" "}
-										<span className="text-text-main font-semibold">
-											{mcpToolCount || 16}
-										</span>
-									</p>
-									<p>
-										{t("protocolLastActivity") || "Last activity"}:{" "}
-										<span className="text-text-main">
-											{mcpStatus?.activity?.lastCallAt
-												? new Date(
-														mcpStatus.activity.lastCallAt
-													).toLocaleString()
-												: "—"}
-										</span>
-									</p>
-								</div>
-								<div className="mt-3 rounded-lg bg-bg p-3 border border-border/70">
-									<p className="text-xs font-semibold mb-1">
-										{t("quickStart") || "Quick Start"}
-									</p>
-									<code className="text-xs font-mono break-all">
-										omniroute --mcp
-									</code>
-								</div>
-								<div className="mt-3">
-									<Link
-										href="/dashboard/mcp"
-										className="text-sm text-primary hover:text-primary-hover transition-colors"
-									>
-										{t("openMcpDashboard") || "Open MCP management"} →
-									</Link>
-								</div>
-							</div>
-
+						<div className="grid grid-cols-1 gap-4">
 							<div className="rounded-xl border border-border p-4 bg-bg-subtle">
 								<div className="flex items-start justify-between gap-3">
 									<div>
@@ -951,26 +880,7 @@ export default function APIPageClient({ machineId }) {
 							</div>
 						</div>
 
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-							<div className="rounded-xl border border-border p-4 bg-bg-subtle">
-								<h4 className="font-semibold mb-2">
-									{t("mcpQuickStartTitle") || "MCP Quick Start"}
-								</h4>
-								<ol className="text-sm text-text-muted space-y-1 list-decimal list-inside">
-									<li>
-										{t("mcpQuickStartStep1") ||
-											"Run the MCP server via `omniroute --mcp`."}
-									</li>
-									<li>
-										{t("mcpQuickStartStep2") ||
-											"Configure your MCP client to connect over stdio transport."}
-									</li>
-									<li>
-										{t("mcpQuickStartStep3") ||
-											"Invoke tools such as `omniroute_get_health` and `omniroute_list_combos`."}
-									</li>
-								</ol>
-							</div>
+						<div className="grid grid-cols-1 gap-4">
 							<div className="rounded-xl border border-border p-4 bg-bg-subtle">
 								<h4 className="font-semibold mb-2">
 									{t("a2aQuickStartTitle") || "A2A Quick Start"}
