@@ -3,22 +3,19 @@
  * POST /api/system/version — Deprecated; in-app auto-update is disabled.
  */
 import { type NextRequest, NextResponse } from "next/server";
-import { execFile } from "child_process";
 import packageJson from "../../../../../package.json";
-import { promisify } from "util";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
-
-const execFileAsync = promisify(execFile);
 
 export const dynamic = "force-dynamic";
 
 async function getLatestRegistryVersion(): Promise<string | null> {
 	try {
-		const { stdout } = await execFileAsync(
-			"bun",
-			["pm", "view", "omniroute", "version", "--json"],
-			{ timeout: 10000 }
-		);
+		const proc = Bun.spawn(["bun", "pm", "view", "omniroute", "version", "--json"], {
+			timeout: 10_000,
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+		const stdout = await new Response(proc.stdout).text();
 		const parsed = JSON.parse(stdout.trim());
 		return typeof parsed === "string" ? parsed : null;
 	} catch {
