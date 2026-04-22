@@ -92,6 +92,7 @@ async function start() {
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
 
   server.listen(dashboardPort, hostname, () => {
+    const mode = dev ? "development" : "production";
     const bundler = dev ? "turbopack" : "production";
     console.log(
       `[Next] ${mode} server listening on http://${hostname}:${dashboardPort} (${bundler})`
