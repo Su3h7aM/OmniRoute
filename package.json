@@ -79,14 +79,14 @@
 
 		"coverage": "bun test --env-file=.env.test --coverage --parallel 1 ./tests/unit",
 		"coverage:report": "c8 report --output-dir coverage --exclude=tests/** --exclude=**/*.test.* --reporter=text --reporter=text-summary --reporter=html --reporter=json-summary --reporter=lcov",
-		"coverage:summary": "bun scripts/test-report-summary.mjs --input coverage/coverage-summary.json --output coverage/coverage-report.md --threshold 60",
+		"coverage:summary": "bun scripts/test-report-summary.ts --input coverage/coverage-summary.json --output coverage/coverage-report.md --threshold 60",
 
-		"verify:cycles": "bun scripts/check-cycles.mjs",
-		"verify:route-validation:t06": "bun scripts/check-route-validation.mjs",
-		"verify:any-budget:t11": "bun scripts/check-t11-any-budget.mjs",
-		"verify:docs-sync": "bun scripts/check-docs-sync.mjs",
+		"verify:cycles": "bun scripts/check-cycles.ts",
+		"verify:route-validation:t06": "bun scripts/check-route-validation.ts",
+		"verify:any-budget:t11": "bun scripts/check-t11-any-budget.ts",
+		"verify:docs-sync": "bun scripts/check-docs-sync.ts",
 		"verify:pack-artifact": "bun scripts/validate-pack-artifact.ts",
-		"verify:pr-test-policy": "bun scripts/check-pr-test-policy.mjs",
+		"verify:pr-test-policy": "bun scripts/check-pr-test-policy.ts",
 		"check": "bun run lint && bun run test"
 	},
 	"dependencies": {
