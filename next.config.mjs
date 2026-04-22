@@ -6,13 +6,6 @@ const distDir = process.env.NEXT_DIST_DIR || ".next";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	distDir,
-	// Turbopack config: redirect native modules to stubs at build time
-	turbopack: {
-		resolveAlias: {
-			// Point mitm/manager to a stub during build (native child_process/fs can't be bundled)
-			"@/mitm/manager": "./src/mitm/manager.stub.ts",
-		},
-	},
 	output: "standalone",
 	outputFileTracingExcludes: {
 		// Planning/task docs are not runtime assets and can break standalone copies

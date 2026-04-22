@@ -21,7 +21,7 @@ const APP_STAGING_FORBIDDEN_PATHS = [
   "package-lock.json",
 ];
 
-export const APP_STAGING_REMOVAL_PATHS: string[] = [...APP_STAGING_FORBIDDEN_PATHS];
+export const APP_STAGING_REMOVAL_PATHS: string[] = APP_STAGING_FORBIDDEN_PATHS;
 
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
@@ -38,7 +38,6 @@ export const APP_STAGING_ALLOWED_PATH_PREFIXES: string[] = [
   "node_modules/",
   "public/",
   "src/lib/db/migrations/",
-  "src/mitm/",
 ];
 
 export const PACK_ARTIFACT_ALLOWED_EXACT_PATHS: string[] = APP_STAGING_ALLOWED_EXACT_PATHS.map(

@@ -28,7 +28,6 @@ test("next config exposes standalone build settings and canonical rewrites", asy
 	assert.equal(nextConfig.output, "standalone");
 	assert.equal(nextConfig.images.unoptimized, true);
 	assert.deepEqual(nextConfig.transpilePackages, ["@omniroute/open-sse"]);
-	assert.equal(nextConfig.turbopack.resolveAlias["@/mitm/manager"], "./src/mitm/manager.stub.ts");
 	assert.deepEqual(rewrites.slice(0, 4), [
 		{
 			source: "/chat/completions",

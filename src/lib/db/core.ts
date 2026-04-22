@@ -1498,9 +1498,6 @@ function migrateFromJson(db: SqliteDatabase, jsonPath: string) {
 			for (const [alias, model] of Object.entries(data.modelAliases || {})) {
 				insertKv.run("modelAliases", alias, JSON.stringify(model));
 			}
-			for (const [toolName, mappings] of Object.entries(data.mitmAlias || {})) {
-				insertKv.run("mitmAlias", toolName, JSON.stringify(mappings));
-			}
 			for (const [key, value] of Object.entries(data.settings || {})) {
 				insertKv.run("settings", key, JSON.stringify(value));
 			}

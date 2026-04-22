@@ -219,17 +219,6 @@ export {
 export type { QuotaSnapshotRow, ProviderUtilizationPoint } from "@/shared/types/utilization";
 
 export {
-	getVersionManagerStatus,
-	getVersionManagerTool,
-	upsertVersionManagerTool,
-	updateVersionManagerTool,
-	deleteVersionManagerTool,
-	updateToolHealth,
-	updateToolVersion,
-	setToolStatus,
-} from "./db/versionManager";
-
-export {
 	listSyncTokens,
 	getSyncTokenById,
 	getSyncTokenByHash,
