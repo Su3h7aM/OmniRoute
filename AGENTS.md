@@ -6,7 +6,7 @@ Unified AI proxy/router — route any LLM through one endpoint. Multi-provider s
 with **100+ providers** (OpenAI, Anthropic, Gemini, DeepSeek, Groq, xAI, Mistral, Fireworks,
 Cohere, NVIDIA, Cerebras, Pollinations, Puter, Cloudflare AI, HuggingFace, DeepInfra,
 SambaNova, Meta Llama API, Moonshot AI, AI21 Labs, Databricks, Snowflake, and many more)
-with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop app**.
+with **A2A v0.3 Protocol** and **Electron desktop app**.
 
 ## Stack
 
@@ -17,7 +17,7 @@ with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 - **Styling**: Tailwind CSS v4
 - **i18n**: next-intl with 30 languages
 - **Desktop**: Electron (cross-platform: Windows, macOS, Linux)
-- **Schemas**: Zod v4 for all API / MCP input validation
+- **Schemas**: Zod v4 for all API input validation
 
 ---
 
@@ -38,7 +38,7 @@ with **MCP Server** (25 tools), **A2A v0.3 Protocol**, and **Electron desktop ap
 | `bun run electron:build`            | Build Electron app for current OS        |
 | `bun run test:unit`                 | Unit tests via Bun (`--parallel 1`)      |
 | `bun run test:integration`          | Integration tests via Bun (`--parallel 1`) |
-| `bun run test:mcp-services`         | MCP/services tests via Bun (`--parallel 1`) |
+| `bun run test:open-sse-services`    | open-sse services tests via Bun (`--parallel 1`) |
 
 ### Running Tests
 
@@ -49,7 +49,7 @@ bun run test:all
 # Preferred Bun suites (isolated through worker mode)
 bun run test:unit
 bun run test:integration
-bun run test:mcp-services
+bun run test:open-sse-services
 
 # Single test files
 bun test --env-file=.env.test ./tests/unit/your-file.test.ts --parallel 1
@@ -60,14 +60,11 @@ DISABLE_SQLITE_AUTO_BACKUP=true bun test ./tests/unit/security-fase01.test.ts --
 # Integration tests
 bun test --env-file=.env.test ./tests/integration --parallel 1
 
-# E2E with Playwright
-bun run test:e2e
-
-# Protocol clients E2E (MCP transports, A2A)
-bun run test:protocols:e2e
+# Protocol clients E2E (A2A)
+bun run test:e2e:protocols
 
 # Ecosystem compatibility tests
-bun run test:ecosystem
+bun run test:e2e:ecosystem
 
 # Coverage (see CONTRIBUTING.md)
 bun run test:coverage
@@ -308,32 +305,6 @@ Policy engine modules: `policyEngine.ts`, `comboResolver.ts`, `costRules.ts`,
 `degradation.ts`, `fallbackPolicy.ts`, `lockoutPolicy.ts`, `modelAvailability.ts`,
 `providerExpiration.ts`, `quotaCache.ts`, `responses.ts`, `configAudit.ts`.
 
-### MCP Server (`open-sse/mcp-server/`)
-
-25 tools, 3 transports (stdio / SSE / Streamable HTTP). Scoped auth (10 scopes), Zod schemas.
-
-**Core tools** (18): get_health, list_combos, get_combo_metrics, switch_combo, check_quota,
-route_request, cost_report, list_models_catalog, simulate_route, set_budget_guard,
-set_routing_strategy, set_resilience_profile, test_combo, get_provider_metrics,
-best_combo_for_task, explain_route, get_session_snapshot, sync_pricing.
-
-**Memory tools** (3): memory_search, memory_add, memory_clear.
-
-**Skill tools** (4): skills_list, skills_enable, skills_execute, skills_executions.
-
-#### MCP Internals
-
-- **Tool registration**: Each tool is an object with `{ name, description, inputSchema: ZodSchema,
-handler: async (args) => {...} }`. Zod validates inputs before the handler fires.
-- **`createMcpServer()`** and **`startMcpStdio()`** exported from `mcp-server/index.ts`.
-  `createMcpServer()` wires all tool sets; `startMcpStdio()` launches the stdio transport.
-- **Transports**: stdio (CLI `omniroute --mcp`), SSE (`/api/mcp/sse`), Streamable HTTP
-  (`/api/mcp/stream`). All share the same tool/scope engine.
-- **Scopes** (10): Control which tool categories an API key can access. Enforcement happens
-  before handler dispatch.
-- **Audit**: Every tool invocation is logged to SQLite (`mcp_audit` table) with tool name,
-  args, success/failure, API key attribution, and timestamp.
-
 ### A2A Server (`src/lib/a2a/`)
 
 JSON-RPC 2.0, SSE streaming, Task Manager with TTL cleanup.
@@ -413,10 +384,10 @@ Request middleware including `promptInjectionGuard.ts`.
 
 - **DB ops** go through `src/lib/db/` modules, never raw SQL in routes
 - **Provider requests** flow through `open-sse/handlers/`
-- **MCP/A2A pages** are tabs inside `/dashboard/endpoint`, not standalone routes
+- **A2A pages** are tabs inside `/dashboard/endpoint`, not standalone routes
 - **No memory leaks** in SSE streams (abort signals, cleanup)
 - **Rate limit headers** must be parsed correctly
 - All API inputs validated with **Zod schemas**
 - **Provider constants** validated at module load via Zod (`src/shared/validation/providerSchema.ts`)
 - **Pricing data** syncs from LiteLLM via `src/lib/pricingSync.ts`
-- **Memory/Skills** are cross-cutting: affect MCP tools, request pipeline, and A2A skills
+- **Memory/Skills** are cross-cutting: affect request pipeline and A2A skills

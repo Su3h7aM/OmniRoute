@@ -9,8 +9,12 @@ const originalDataDir = process.env.DATA_DIR;
 process.env.DATA_DIR = tmpDir;
 
 const core = await import("../../src/lib/db/core.ts");
-const { memoryTools } = await import("../../open-sse/mcp-server/tools/memoryTools.ts");
+const { memoryTools } = await import("../../src/lib/memory/tools.ts");
 const memoryStore = await import("../../src/lib/memory/store.ts");
+
+function getMemoryRows(result: Awaited<ReturnType<typeof memoryStore.listMemories>>) {
+	return Array.isArray(result) ? result : result.data;
+}
 
 function resetStorage() {
 	core.resetDbInstance();
@@ -37,8 +41,7 @@ test("memory add stores entries with default session and metadata", async () => 
 		content: "TypeScript is preferred.",
 	});
 
-	const rowsResult = await memoryStore.listMemories({ apiKeyId: "key-add" });
-	const rows = Array.isArray(rowsResult) ? rowsResult : rowsResult.data;
+	const rows = getMemoryRows(await memoryStore.listMemories({ apiKeyId: "key-add" }));
 
 	assert.equal(result.success, true);
 	assert.equal(result.data.message, "Memory created successfully");
@@ -126,8 +129,7 @@ test("memory clear deletes only older filtered entries and reports the deleted c
 		olderThan: cutoff.toISOString(),
 	});
 
-	const remainingResult = await memoryStore.listMemories({ apiKeyId: "key-clear" });
-	const remaining = Array.isArray(remainingResult) ? remainingResult : remainingResult.data;
+	const remaining = getMemoryRows(await memoryStore.listMemories({ apiKeyId: "key-clear" }));
 
 	assert.equal(result.success, true);
 	assert.equal(result.data.deletedCount, 1);

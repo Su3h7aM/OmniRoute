@@ -64,8 +64,8 @@ export function getActiveRequestCount(): number {
  */
 async function waitForDrain(): Promise<void> {
 	const state = getShutdownState();
-	const start = Date.now();
-	const CHECK_INTERVAL_MS = 250;
+	const startedAt = Date.now();
+	const checkIntervalMs = 250;
 
 	return new Promise((resolve) => {
 		const check = () => {
@@ -75,7 +75,8 @@ async function waitForDrain(): Promise<void> {
 				return;
 			}
 
-			if (Date.now() - start > SHUTDOWN_TIMEOUT_MS) {
+			const timedOut = Date.now() - startedAt > SHUTDOWN_TIMEOUT_MS;
+			if (timedOut) {
 				console.warn(
 					`[Shutdown] Timeout after ${SHUTDOWN_TIMEOUT_MS}ms with ${state.activeRequests} active requests. Forcing exit.`
 				);
@@ -84,7 +85,7 @@ async function waitForDrain(): Promise<void> {
 			}
 
 			console.log(`[Shutdown] Waiting for ${state.activeRequests} in-flight request(s)...`);
-			setTimeout(check, CHECK_INTERVAL_MS);
+			setTimeout(check, checkIntervalMs);
 		};
 
 		check();
@@ -96,20 +97,15 @@ async function waitForDrain(): Promise<void> {
  */
 async function cleanup(): Promise<void> {
 	try {
-		const [{ closeAuditDb }, { closeDbInstance }, { flushSpendBatchWriter }] =
-			await Promise.all([
-				import("@omniroute/open-sse/mcp-server/audit.ts"),
-				import("@/lib/db/core"),
-				import("@/lib/spend/batchWriter"),
-			]);
+		const [{ closeDbInstance }, { flushSpendBatchWriter }] = await Promise.all([
+			import("@/lib/db/core"),
+			import("@/lib/spend/batchWriter"),
+		]);
 		const flushResult = await flushSpendBatchWriter();
 		if (flushResult.flushedEntries > 0) {
 			console.log(
 				`[Shutdown] Spend batch writer flushed ${flushResult.flushedEntries} pending entry(ies).`
 			);
-		}
-		if (closeAuditDb()) {
-			console.log("[Shutdown] MCP audit database checkpointed and closed.");
 		}
 		if (closeDbInstance()) {
 			console.log("[Shutdown] SQLite database checkpointed and closed.");

@@ -1,12 +1,18 @@
+/**
+ * Memory tool handlers — thin wrappers around memory services.
+ */
+
 import { z } from "zod";
 import { retrieveMemories } from "@/lib/memory/retrieval";
 import { createMemory, deleteMemory, listMemories } from "@/lib/memory/store";
 import type { MemoryType } from "@/lib/memory/types";
 
+const memoryTypeSchema = z.enum(["factual", "episodic", "procedural", "semantic"]);
+
 export const MemorySearchSchema = z.object({
 	apiKeyId: z.string(),
 	query: z.string().optional(),
-	type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
+	type: memoryTypeSchema.optional(),
 	maxTokens: z.number().int().positive().max(8000).optional(),
 	limit: z.number().int().positive().max(100).optional(),
 });
@@ -14,7 +20,7 @@ export const MemorySearchSchema = z.object({
 export const MemoryAddSchema = z.object({
 	apiKeyId: z.string(),
 	sessionId: z.string().optional(),
-	type: z.enum(["factual", "episodic", "procedural", "semantic"]),
+	type: memoryTypeSchema,
 	key: z.string().min(1),
 	content: z.string().min(1),
 	metadata: z.record(z.string(), z.unknown()).optional(),
@@ -22,7 +28,7 @@ export const MemoryAddSchema = z.object({
 
 export const MemoryClearSchema = z.object({
 	apiKeyId: z.string(),
-	type: z.enum(["factual", "episodic", "procedural", "semantic"]).optional(),
+	type: memoryTypeSchema.optional(),
 	olderThan: z.string().optional(),
 });
 
@@ -32,7 +38,7 @@ export const memoryTools = {
 		description: "Search memories by query, type, or API key with token budget enforcement",
 		inputSchema: MemorySearchSchema,
 		handler: async (args: z.infer<typeof MemorySearchSchema>) => {
-			const config = {
+			const retrievalConfig = {
 				enabled: true,
 				maxTokens: args.maxTokens || 2000,
 				retrievalStrategy: "exact" as const,
@@ -43,19 +49,21 @@ export const memoryTools = {
 				query: args.query,
 			};
 
-			const memories = await retrieveMemories(args.apiKeyId, config);
-
-			const filtered = args.type ? memories.filter((m) => m.type === args.type) : memories;
-
-			const limited = args.limit ? filtered.slice(0, args.limit) : filtered;
+			const memories = await retrieveMemories(args.apiKeyId, retrievalConfig);
+			const filteredMemories = args.type
+				? memories.filter((memory) => memory.type === args.type)
+				: memories;
+			const limitedMemories = args.limit
+				? filteredMemories.slice(0, args.limit)
+				: filteredMemories;
 
 			return {
 				success: true,
 				data: {
-					memories: limited,
-					count: limited.length,
-					totalTokens: limited.reduce(
-						(sum, m) => sum + Math.ceil(m.content.length / 4),
+					memories: limitedMemories,
+					count: limitedMemories.length,
+					totalTokens: limitedMemories.reduce(
+						(sum, memory) => sum + Math.ceil(memory.content.length / 4),
 						0
 					),
 				},
@@ -103,14 +111,13 @@ export const memoryTools = {
 					? result.data
 					: [];
 
-			let toDelete = existingMemories;
-			if (args.olderThan) {
-				const cutoff = new Date(args.olderThan);
-				toDelete = existingMemories.filter((m) => new Date(m.createdAt) < cutoff);
-			}
+			const cutoff = args.olderThan ? new Date(args.olderThan) : null;
+			const memoriesToDelete = cutoff
+				? existingMemories.filter((memory) => new Date(memory.createdAt) < cutoff)
+				: existingMemories;
 
 			let deletedCount = 0;
-			for (const memory of toDelete) {
+			for (const memory of memoriesToDelete) {
 				await deleteMemory(memory.id);
 				deletedCount++;
 			}

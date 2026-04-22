@@ -108,7 +108,7 @@ test: add observability unit tests
 refactor(db): consolidate rate limit tables
 ```
 
-Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`, `memory`, `skills`.
+Scopes: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `a2a`, `memory`, `skills`.
 
 ---
 
@@ -121,21 +121,18 @@ bun run test:all
 # Preferred scoped Bun suites
 bun run test:unit
 bun run test:integration
-bun run test:mcp-services
+bun run test:open-sse-services
 
 # Single test file
 bun test --env-file=.env.test ./tests/unit/your-file.test.ts --parallel 1
 # or use repo wrapper (skips deprecated desktop/CLI suites)
 node scripts/run-bun-tests.mjs ./tests/unit/your-file.test.ts
 
-# E2E tests (requires Playwright)
-bun run test:e2e
-
-# Protocol clients E2E (MCP transports, A2A)
-bun run test:protocols:e2e
+# Protocol clients E2E (A2A)
+bun run test:e2e:protocols
 
 # Ecosystem compatibility tests
-bun run test:ecosystem
+bun run test:e2e:ecosystem
 
 # Coverage (60% min statements/lines/functions/branches)
 bun run test:coverage
@@ -180,7 +177,7 @@ Current test status: **122 unit test files** covering:
 - Database operations and schema (21 DB modules)
 - OAuth flows and authentication
 - API endpoint validation (Zod v4)
-- MCP server tools and scope enforcement
+- A2A protocol and skills
 - Memory and Skills systems
 
 ---
@@ -220,7 +217,7 @@ src/                        # TypeScript (.ts / .tsx)
 ├── mitm/                   # MITM proxy (cert, DNS, target routing)
 ├── shared/
 │   ├── components/         # React components (.tsx)
-│   ├── constants/          # Provider definitions (60+), MCP scopes, routing strategies
+│   ├── constants/          # Provider definitions (60+), routing strategies
 │   ├── utils/              # Circuit breaker, sanitizer, auth helpers
 │   └── validation/         # Zod v4 schemas
 └── sse/                    # SSE proxy pipeline
@@ -228,7 +225,7 @@ src/                        # TypeScript (.ts / .tsx)
 open-sse/                   # @omniroute/open-sse workspace
 ├── executors/              # 14 provider-specific request executors
 ├── handlers/               # 11 request handlers (chat, responses, embeddings, images, etc.)
-├── mcp-server/             # MCP server (25 tools, 3 transports, 10 scopes)
+├── ~~mcp-server/~~         # ~~REMOVED — deprecated MCP server~~
 ├── services/               # 36+ services (combo, autoCombo, rateLimitManager, etc.)
 ├── translator/             # Format translators (OpenAI ↔ Claude ↔ Gemini ↔ Responses ↔ Ollama)
 ├── transformer/            # Responses API transformer
@@ -248,7 +245,7 @@ docs/                       # Documentation
 ├── API_REFERENCE.md        # All endpoints
 ├── USER_GUIDE.md           # Provider setup, CLI integration
 ├── TROUBLESHOOTING.md      # Common issues
-├── MCP-SERVER.md           # MCP server (25 tools)
+├── ~~MCP-SERVER.md~~       # ~~REMOVED~~
 ├── A2A-SERVER.md           # A2A agent protocol
 ├── AUTO-COMBO.md           # Auto-combo engine
 ├── CLI-TOOLS.md            # CLI tools integration

@@ -22,9 +22,6 @@ bun run check:cycles              # Detect circular dependencies
 ```bash
 # Bun-first single-file execution
 bun test --env-file=.env.test ./tests/unit/your-file.test.ts --parallel 1
-
-# Vitest (MCP server, autoCombo, cache)
-bun run test:vitest
 ```
 
 ---
@@ -42,7 +39,6 @@ bun run test:vitest
 | Services        | `open-sse/services/`     | Combo routing, rate limits, caching, etc   |
 | Database        | `src/lib/db/`            | SQLite domain modules (22 files)           |
 | Domain/Policy   | `src/domain/`            | Policy engine, cost rules, fallback logic  |
-| MCP Server      | `open-sse/mcp-server/`   | 25 tools, 3 transports, 10 scopes          |
 | A2A Server      | `src/lib/a2a/`           | JSON-RPC 2.0 agent protocol                |
 | Skills          | `src/lib/skills/`        | Extensible skill framework                 |
 | Memory          | `src/lib/memory/`        | Persistent conversational memory           |
@@ -139,14 +135,6 @@ Client → /v1/chat/completions (Next.js route)
 5. Re-export from `src/lib/localDb.ts` (add to the re-export list only)
 6. Write tests
 
-### Adding a New MCP Tool
-
-1. Add tool definition in `open-sse/mcp-server/tools/`
-2. Define Zod input schema + async handler
-3. Register in tool set (wired by `createMcpServer()`)
-4. Assign to appropriate scope(s)
-5. Write tests (tool invocation logged to `mcp_audit` table)
-
 ### Adding a New A2A Skill
 
 1. Create skill in `src/lib/a2a/skills/`
@@ -163,10 +151,8 @@ Client → /v1/chat/completions (Next.js route)
 | All tests               | `bun run test:all`                                             |
 | Unit tests              | `bun run test:unit`                                            |
 | Single file             | `bun test --env-file=.env.test ./tests/unit/file.test.ts --parallel 1` |
-| Vitest (MCP, autoCombo) | `bun run test:vitest`                                          |
-| E2E (Playwright)        | `bun run test:e2e`                                             |
-| Protocol E2E (MCP+A2A)  | `bun run test:protocols:e2e`                                   |
-| Ecosystem               | `bun run test:ecosystem`                                       |
+| Protocol E2E (A2A)      | `bun run test:e2e:protocols`                                   |
+| Ecosystem               | `bun run test:e2e:ecosystem`                                   |
 | Coverage gate           | `bun run test:coverage` (60% min all metrics)                  |
 | Coverage report         | `bun run coverage:report`                                      |
 
@@ -197,11 +183,11 @@ jj commit -m "feat: describe your change"
 feat: add circuit breaker for provider calls
 fix: resolve JWT secret validation edge case
 docs: update AGENTS.md with pipeline internals
-test: add MCP tool unit tests
+test: add A2A skill unit tests
 refactor(db): consolidate rate limit tables
 ```
 
-**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `mcp`, `a2a`,
+**Scopes**: `db`, `sse`, `oauth`, `dashboard`, `api`, `cli`, `docker`, `ci`, `a2a`,
 `memory`, `skills`.
 
 ---

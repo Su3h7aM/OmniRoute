@@ -3,18 +3,47 @@
 import { useState, useEffect, useCallback } from "react";
 import { SegmentedControl } from "@/shared/components";
 import EndpointPageClient from "./EndpointPageClient";
-import McpDashboardPage from "./components/MCPDashboard";
 import A2ADashboardPage from "./components/A2ADashboard";
 import ApiEndpointsTab from "./ApiEndpointsTab";
 import { useTranslations } from "next-intl";
-import { copyToClipboard } from "@/shared/utils/clipboard";
 
 type ServiceStatus = {
 	online: boolean;
 	loading: boolean;
 };
 
-type McpTransport = "stdio" | "sse" | "streamable-http";
+function getStatusStyles(status: ServiceStatus) {
+	if (status.loading) {
+		return {
+			borderColor: "var(--color-border)",
+			background: "transparent",
+			color: "var(--color-text-muted)",
+			dotBackground: "var(--color-text-muted)",
+			animation: "none",
+			label: "...",
+		};
+	}
+
+	if (status.online) {
+		return {
+			borderColor: "rgba(34,197,94,0.3)",
+			background: "rgba(34,197,94,0.1)",
+			color: "rgb(34,197,94)",
+			dotBackground: "rgb(34,197,94)",
+			animation: "pulse 2s infinite",
+			label: "Online",
+		};
+	}
+
+	return {
+		borderColor: "rgba(239,68,68,0.3)",
+		background: "rgba(239,68,68,0.1)",
+		color: "rgb(239,68,68)",
+		dotBackground: "rgb(239,68,68)",
+		animation: "none",
+		label: "Offline",
+	};
+}
 
 /* ────── Toggle Switch ────── */
 function ServiceToggle({
@@ -30,40 +59,26 @@ function ServiceToggle({
 	onToggle: () => void;
 	toggling: boolean;
 }) {
+	const statusStyles = getStatusStyles(status);
+
 	return (
 		<div className="flex items-center gap-3 ml-auto">
 			<div
 				className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
 				style={{
-					borderColor: status.loading
-						? "var(--color-border)"
-						: status.online
-							? "rgba(34,197,94,0.3)"
-							: "rgba(239,68,68,0.3)",
-					background: status.loading
-						? "transparent"
-						: status.online
-							? "rgba(34,197,94,0.1)"
-							: "rgba(239,68,68,0.1)",
-					color: status.loading
-						? "var(--color-text-muted)"
-						: status.online
-							? "rgb(34,197,94)"
-							: "rgb(239,68,68)",
+					borderColor: statusStyles.borderColor,
+					background: statusStyles.background,
+					color: statusStyles.color,
 				}}
 			>
 				<span
 					className="inline-block w-2 h-2 rounded-full"
 					style={{
-						background: status.loading
-							? "var(--color-text-muted)"
-							: status.online
-								? "rgb(34,197,94)"
-								: "rgb(239,68,68)",
-						animation: status.online ? "pulse 2s infinite" : "none",
+						background: statusStyles.dotBackground,
+						animation: statusStyles.animation,
 					}}
 				/>
-				{status.loading ? "..." : status.online ? "Online" : "Offline"}
+				{statusStyles.label}
 			</div>
 
 			<button
@@ -98,166 +113,14 @@ function ServiceToggle({
 	);
 }
 
-/* ────── Transport Selector ────── */
-function TransportSelector({
-	value,
-	onChange,
-	disabled,
-	baseUrl,
-}: {
-	value: McpTransport;
-	onChange: (t: McpTransport) => void;
-	disabled: boolean;
-	baseUrl: string;
-}) {
-	const options: { value: McpTransport; label: string; desc: string }[] = [
-		{ value: "stdio", label: "stdio", desc: "Local — IDE spawns process via omniroute --mcp" },
-		{ value: "sse", label: "SSE", desc: "Remote — Server-Sent Events over HTTP" },
-		{
-			value: "streamable-http",
-			label: "Streamable HTTP",
-			desc: "Remote — Modern bidirectional HTTP",
-		},
-	];
-
-	const urlMap: Record<McpTransport, string> = {
-		stdio: "omniroute --mcp",
-		sse: `${baseUrl}/api/mcp/sse`,
-		"streamable-http": `${baseUrl}/api/mcp/stream`,
-	};
-
-	return (
-		<div
-			className="rounded-lg border p-4 mt-3"
-			style={{ borderColor: "var(--color-border)", background: "var(--color-bg-secondary)" }}
-		>
-			<div className="flex items-center gap-2 mb-3">
-				<span
-					className="material-symbols-rounded text-base"
-					style={{ color: "var(--color-primary)" }}
-				>
-					swap_horiz
-				</span>
-				<span className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
-					Transport Mode
-				</span>
-			</div>
-
-			<div className="flex gap-2 flex-wrap">
-				{options.map((opt) => (
-					<button
-						type="button"
-						key={opt.value}
-						onClick={() => onChange(opt.value)}
-						disabled={disabled}
-						className="flex flex-col items-start px-4 py-2.5 rounded-lg border transition-all duration-200 text-left"
-						style={{
-							borderColor:
-								value === opt.value
-									? "var(--color-primary)"
-									: "var(--color-border)",
-							background:
-								value === opt.value
-									? "rgba(var(--color-primary-rgb, 99,102,241), 0.1)"
-									: "transparent",
-							opacity: disabled ? 0.5 : 1,
-							cursor: disabled ? "wait" : "pointer",
-						}}
-					>
-						<span
-							className="text-sm font-semibold"
-							style={{
-								color:
-									value === opt.value
-										? "var(--color-primary)"
-										: "var(--color-text)",
-							}}
-						>
-							{opt.label}
-						</span>
-						<span
-							className="text-xs mt-0.5"
-							style={{ color: "var(--color-text-muted)" }}
-						>
-							{opt.desc}
-						</span>
-					</button>
-				))}
-			</div>
-
-			{/* Connection info */}
-			<div
-				className="mt-3 rounded-md px-3 py-2 flex items-center gap-2"
-				style={{ background: "var(--color-bg-tertiary)" }}
-			>
-				<span
-					className="material-symbols-rounded text-sm"
-					style={{ color: "var(--color-text-muted)" }}
-				>
-					{value === "stdio" ? "terminal" : "link"}
-				</span>
-				<code className="text-xs break-all" style={{ color: "var(--color-text-muted)" }}>
-					{urlMap[value]}
-				</code>
-				{value !== "stdio" && (
-					<button
-						type="button"
-						className="ml-auto text-xs px-2 py-0.5 rounded border hover:opacity-80 transition-opacity"
-						style={{
-							borderColor: "var(--color-border)",
-							color: "var(--color-text-muted)",
-						}}
-						onClick={() => void copyToClipboard(urlMap[value])}
-						title="Copy URL"
-					>
-						Copy
-					</button>
-				)}
-			</div>
-		</div>
-	);
-}
-
 /* ────── Main Page ────── */
 export default function EndpointPage() {
 	const [activeTab, setActiveTab] = useState("endpoint-proxy");
 	const t = useTranslations("endpoints");
 
-	const [mcpStatus, setMcpStatus] = useState<ServiceStatus>({ online: false, loading: true });
 	const [a2aStatus, setA2aStatus] = useState<ServiceStatus>({ online: false, loading: true });
-	const [mcpEnabled, setMcpEnabled] = useState(false);
 	const [a2aEnabled, setA2aEnabled] = useState(false);
-	const [mcpToggling, setMcpToggling] = useState(false);
 	const [a2aToggling, setA2aToggling] = useState(false);
-	const [mcpTransport, setMcpTransport] = useState<McpTransport>("stdio");
-	const [transportSaving, setTransportSaving] = useState(false);
-
-	const [baseUrl, setBaseUrl] = useState("");
-
-	// Detect base URL from browser
-	useEffect(() => {
-		if (typeof window !== "undefined") {
-			setBaseUrl(`${window.location.protocol}//${window.location.host}`);
-		}
-	}, []);
-
-	// Fetch initial settings
-	useEffect(() => {
-		const fetchSettings = async () => {
-			try {
-				const res = await fetch("/api/settings");
-				if (res.ok) {
-					const data = await res.json();
-					setMcpEnabled(!!data.mcpEnabled);
-					setA2aEnabled(!!data.a2aEnabled);
-					setMcpTransport((data.mcpTransport as McpTransport) || "stdio");
-				}
-			} catch {
-				// defaults stay
-			}
-		};
-		void fetchSettings();
-	}, []);
 
 	const patchSetting = useCallback(async (body: Record<string, unknown>) => {
 		return fetch("/api/settings", {
@@ -267,57 +130,35 @@ export default function EndpointPage() {
 		});
 	}, []);
 
-	const toggleService = useCallback(
-		async (service: "mcp" | "a2a") => {
-			const setToggling = service === "mcp" ? setMcpToggling : setA2aToggling;
-			const setEnabled = service === "mcp" ? setMcpEnabled : setA2aEnabled;
-			const currentlyEnabled = service === "mcp" ? mcpEnabled : a2aEnabled;
-			const newValue = !currentlyEnabled;
-
-			setToggling(true);
+	useEffect(() => {
+		const loadSettings = async () => {
 			try {
-				const res = await patchSetting({
-					[service === "mcp" ? "mcpEnabled" : "a2aEnabled"]: newValue,
-				});
-				if (res.ok) setEnabled(newValue);
+				const response = await fetch("/api/settings");
+				if (!response.ok) {
+					return;
+				}
+				const data = await response.json();
+				setA2aEnabled(Boolean(data.a2aEnabled));
 			} catch {
-				// keep current state
-			} finally {
-				setToggling(false);
+				// defaults stay
 			}
-		},
-		[mcpEnabled, a2aEnabled, patchSetting]
-	);
+		};
 
-	const changeTransport = useCallback(
-		async (newTransport: McpTransport) => {
-			setTransportSaving(true);
-			try {
-				const res = await patchSetting({ mcpTransport: newTransport });
-				if (res.ok) setMcpTransport(newTransport);
-			} catch {
-				// keep current
-			} finally {
-				setTransportSaving(false);
-			}
-		},
-		[patchSetting]
-	);
-
-	const refreshMcpStatus = useCallback(async () => {
-		setMcpStatus((prev) => ({ ...prev, loading: true }));
-		try {
-			const res = await fetch("/api/mcp/status");
-			if (res.ok) {
-				const data = await res.json();
-				setMcpStatus({ online: !!data.online, loading: false });
-			} else {
-				setMcpStatus({ online: false, loading: false });
-			}
-		} catch {
-			setMcpStatus({ online: false, loading: false });
-		}
+		void loadSettings();
 	}, []);
+
+	const toggleA2a = useCallback(async () => {
+		const newValue = !a2aEnabled;
+		setA2aToggling(true);
+		try {
+			const res = await patchSetting({ a2aEnabled: newValue });
+			if (res.ok) setA2aEnabled(newValue);
+		} catch {
+			// keep current state
+		} finally {
+			setA2aToggling(false);
+		}
+	}, [a2aEnabled, patchSetting]);
 
 	const refreshA2aStatus = useCallback(async () => {
 		setA2aStatus((prev) => ({ ...prev, loading: true }));
@@ -335,14 +176,10 @@ export default function EndpointPage() {
 	}, []);
 
 	useEffect(() => {
-		const load = () => {
-			void refreshMcpStatus();
-			void refreshA2aStatus();
-		};
-		load();
-		const interval = setInterval(load, 30000);
+		void refreshA2aStatus();
+		const interval = setInterval(() => void refreshA2aStatus(), 30000);
 		return () => clearInterval(interval);
-	}, [refreshMcpStatus, refreshA2aStatus]);
+	}, [refreshA2aStatus]);
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -350,7 +187,6 @@ export default function EndpointPage() {
 				<SegmentedControl
 					options={[
 						{ value: "endpoint-proxy", label: t("tabProxy"), icon: "api" },
-						{ value: "mcp", label: "MCP", icon: "hub" },
 						{ value: "a2a", label: "A2A", icon: "group_work" },
 						{ value: "api-endpoints", label: t("tabApiEndpoints"), icon: "code" },
 					]}
@@ -358,38 +194,18 @@ export default function EndpointPage() {
 					onChange={setActiveTab}
 				/>
 
-				{activeTab === "mcp" && (
-					<ServiceToggle
-						label="MCP"
-						status={mcpStatus}
-						enabled={mcpEnabled}
-						onToggle={() => void toggleService("mcp")}
-						toggling={mcpToggling}
-					/>
-				)}
 				{activeTab === "a2a" && (
 					<ServiceToggle
 						label="A2A"
 						status={a2aStatus}
 						enabled={a2aEnabled}
-						onToggle={() => void toggleService("a2a")}
+						onToggle={() => void toggleA2a()}
 						toggling={a2aToggling}
 					/>
 				)}
 			</div>
 
-			{/* Transport selector for MCP */}
-			{activeTab === "mcp" && mcpEnabled && (
-				<TransportSelector
-					value={mcpTransport}
-					onChange={(t) => void changeTransport(t)}
-					disabled={transportSaving}
-					baseUrl={baseUrl}
-				/>
-			)}
-
 			{activeTab === "endpoint-proxy" && <EndpointPageClient machineId="" />}
-			{activeTab === "mcp" && <McpDashboardPage />}
 			{activeTab === "a2a" && <A2ADashboardPage />}
 			{activeTab === "api-endpoints" && <ApiEndpointsTab />}
 		</div>

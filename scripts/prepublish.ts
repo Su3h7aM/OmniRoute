@@ -105,20 +105,11 @@ function removeEmptyDirectories(dir: string): boolean {
 
 console.log("🔨 OmniRoute — Building for Bun publish...\n");
 
-// ── Step 1: Clean previous app/ directory ──────────────────
+// ── Step 1: Remove app/ directory before build ─────────────
+// CRITICAL: postinstall may create app/node_modules/@swc/helpers/, which makes
+// Next.js treat app/ as an App Router directory and skip real src/app routes.
 if (existsSync(APP_DIR)) {
-  console.log("  🧹 Cleaning previous app/ directory...");
-  rmSync(APP_DIR, { recursive: true, force: true });
-}
-
-// ── Step 2: Remove app/ directory before build ─────────────
-// CRITICAL: The postinstall script may create app/node_modules/@swc/helpers/,
-// which causes Next.js 16 to interpret app/ as an App Router directory
-// (competing with src/app/). This makes the build silently skip all real
-// routes, producing a standalone with only _global-error and _not-found.
-// We MUST remove app/ before running `next build`.
-if (existsSync(APP_DIR)) {
-  console.log("  🧹 Removing app/ created by postinstall (App Router conflict fix)...");
+  console.log("  🧹 Removing staged app/ directory before build...");
   rmSync(APP_DIR, { recursive: true, force: true });
 }
 
@@ -304,25 +295,6 @@ if (existsSync(publicSrc)) {
   console.log("  📋 Copying public/ assets...");
   mkdirSync(publicDest, { recursive: true });
   cpSync(publicSrc, publicDest, { recursive: true });
-}
-
-// ── Step 8.5: Bundle MCP server ────────────────────────────
-const mcpSrcFile = join(ROOT, "open-sse", "mcp-server", "server.ts");
-const mcpDestDir = join(APP_DIR, "open-sse", "mcp-server");
-const mcpDestFile = join(mcpDestDir, "server.js");
-
-if (existsSync(mcpSrcFile)) {
-  console.log("  🔨 Bundling MCP Server (TypeScript → JavaScript)...");
-  mkdirSync(mcpDestDir, { recursive: true });
-  try {
-    execSync(
-      `bunx esbuild open-sse/mcp-server/server.ts --bundle --platform=neutral --packages=external --format=esm --outfile=app/open-sse/mcp-server/server.js`,
-      { cwd: ROOT, stdio: "inherit" }
-    );
-    console.log("  ✅ MCP Server bundled to app/open-sse/mcp-server/server.js");
-  } catch (err: any) {
-    console.warn("  ⚠️  MCP Server bundle error:", err.message);
-  }
 }
 
 // ── Step 9: Copy shared utilities needed at runtime ────────

@@ -22,7 +22,6 @@
 			"!_references",
 			"!_mono_repo",
 			"!docs/i18n",
-			"!open-sse/mcp-server/dist",
 			"!playwright-report",
 			"!test-results",
 			"!app",

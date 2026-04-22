@@ -60,8 +60,6 @@ export const updateSettingsSchema = z.object({
 	intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
 	intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
 	// Protocol toggles (default: disabled)
-	mcpEnabled: z.boolean().optional(),
-	mcpTransport: z.enum(["stdio", "sse", "streamable-http"]).optional(),
 	a2aEnabled: z.boolean().optional(),
 	wsAuth: z.boolean().optional(),
 	// Request fingerprint compatibility (per-provider)

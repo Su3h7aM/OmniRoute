@@ -16,7 +16,7 @@
 - [7. URLs & Cloud Sync](#7-urls--cloud-sync)
 - [8. Outbound Proxy](#8-outbound-proxy)
 - [9. CLI Tool Integration](#9-cli-tool-integration)
-- [10. Internal Agent & MCP Integrations](#10-internal-agent--mcp-integrations)
+- [10. Internal Agent & A2A Integrations](#10-internal-agent--a2a-integrations)
 - [11. OAuth Provider Credentials](#11-oauth-provider-credentials)
 - [12. Provider User-Agent Overrides](#12-provider-user-agent-overrides)
 - [13. CLI Fingerprint Compatibility](#13-cli-fingerprint-compatibility)
@@ -257,16 +257,13 @@ CLI_CLAUDE_BIN=/host-cli/bin/claude
 
 ---
 
-## 10. Internal Agent & MCP Integrations
+## 10. Internal Agent & A2A Integrations
 
-| Variable                                | Default     | Source File                                 | Description                                                                                                                   |
-| --------------------------------------- | ----------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | auto-detect | `open-sse/mcp-server/server.ts`             | Explicit URL for MCP/A2A tools to reach OmniRoute. Overrides localhost auto-detection.                                        |
-| `OMNIROUTE_API_KEY`                     | _(unset)_   | MCP/A2A modules                             | API key for internal MCP tool and A2A skill calls.                                                                            |
-| `OMNIROUTE_API_KEY_ID`                  | _(unset)_   | `open-sse/mcp-server/audit.ts`              | Key ID for MCP audit log attribution.                                                                                         |
-| `ROUTER_API_KEY`                        | _(unset)_   | Legacy                                      | Legacy alias for `OMNIROUTE_API_KEY`.                                                                                         |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false`     | `open-sse/mcp-server/server.ts`             | Enforce scope-based access control on MCP tool calls.                                                                         |
-| `OMNIROUTE_MCP_SCOPES`                  | _(all)_     | `open-sse/mcp-server/server.ts`             | Comma-separated scopes: `admin`, `combos`, `health`, `models`, `routing`, `budget`, `metrics`, `pricing`, `memory`, `skills`. |
+| Variable             | Default     | Source File    | Description                                                       |
+| -------------------- | ----------- | -------------- | ----------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL` | auto-detect | A2A modules    | Explicit URL for A2A skills to reach OmniRoute.                   |
+| `OMNIROUTE_API_KEY`  | _(unset)_   | A2A modules    | API key for internal A2A skill calls.                             |
+| `ROUTER_API_KEY`     | _(unset)_   | Legacy         | Legacy alias for `OMNIROUTE_API_KEY`.                             |
 | `MODEL_SYNC_INTERVAL_HOURS`             | `24`        | `src/shared/services/modelSyncScheduler.ts` | Model catalog sync interval in hours.                                                                                         |
 | `PROVIDER_LIMITS_SYNC_INTERVAL_MINUTES` | `70`        | `src/server-init.ts`                        | Provider rate-limit and quota polling interval.                                                                               |
 | `OMNIROUTE_DISABLE_BACKGROUND_SERVICES` | `false`     | `src/instrumentation-node.ts`               | Disable all background services (sync, pricing, model refresh). Useful for CI/test.                                           |

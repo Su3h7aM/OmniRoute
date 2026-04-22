@@ -436,7 +436,6 @@ export const updateSettingsSchema = z.object({
 	intentExtraReasoningKeywords: z.array(z.string().max(100)).optional(),
 	intentExtraSimpleKeywords: z.array(z.string().max(100)).optional(),
 	// Protocol toggles (default: disabled)
-	mcpEnabled: z.boolean().optional(),
 	a2aEnabled: z.boolean().optional(),
 	wsAuth: z.boolean().optional(),
 });
@@ -1763,11 +1762,3 @@ export const updateAutoDisableAccountsSchema = z
 		threshold: z.number().int().min(1).max(10).optional(),
 	})
 	.strict();
-
-export const versionManagerToolSchema = z.object({
-	tool: z.string().trim().min(1),
-});
-
-export const versionManagerInstallSchema = versionManagerToolSchema.extend({
-	version: z.string().trim().optional(),
-});

@@ -19,9 +19,6 @@ const ANY_BUDGET = [
   { file: "src/lib/db/settings.ts", maxAny: 0 },
   { file: "open-sse/config/providerRegistry.ts", maxAny: 0 },
   { file: "open-sse/config/providerModels.ts", maxAny: 0 },
-  { file: "open-sse/mcp-server/audit.ts", maxAny: 0 },
-  { file: "open-sse/mcp-server/server.ts", maxAny: 0 },
-  { file: "open-sse/mcp-server/tools/advancedTools.ts", maxAny: 0 },
   { file: "open-sse/services/signatureCache.ts", maxAny: 0 },
   { file: "open-sse/services/comboMetrics.ts", maxAny: 0 },
   { file: "open-sse/services/sessionManager.ts", maxAny: 0 },
@@ -66,8 +63,6 @@ const ANY_BUDGET = [
   { file: "open-sse/handlers/moderations.ts", maxAny: 0 },
   { file: "open-sse/handlers/rerank.ts", maxAny: 0 },
   { file: "open-sse/handlers/responsesHandler.ts", maxAny: 0 },
-  { file: "open-sse/mcp-server/__tests__/advancedTools.test.ts", maxAny: 0 },
-  { file: "open-sse/mcp-server/__tests__/essentialTools.test.ts", maxAny: 0 },
   { file: "open-sse/services/combo.ts", maxAny: 0 },
   { file: "open-sse/services/thinkingBudget.ts", maxAny: 0 },
   { file: "open-sse/translator/helpers/geminiHelper.ts", maxAny: 0 },
@@ -109,15 +104,14 @@ function checkBudgetEntry({ file, maxAny }) {
   }
 
   const content = fs.readFileSync(absolutePath, "utf8");
-  const count = countExplicitAny(content);
-  const withinBudget = count <= maxAny;
-  const status = withinBudget ? "OK" : "FAIL";
+  const explicitAnyCount = countExplicitAny(content);
+  const passed = explicitAnyCount <= maxAny;
 
   console.log(
-    `[t11:any-budget] ${status} - ${file} (explicit any: ${count}, budget: ${maxAny})`
+    `[t11:any-budget] ${passed ? "OK" : "FAIL"} - ${file} (explicit any: ${explicitAnyCount}, budget: ${maxAny})`
   );
 
-  return withinBudget;
+  return passed;
 }
 
 const hasFailure = ANY_BUDGET.some((item) => !checkBudgetEntry(item));

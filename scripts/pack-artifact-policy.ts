@@ -26,7 +26,6 @@ export const APP_STAGING_REMOVAL_PATHS: string[] = APP_STAGING_FORBIDDEN_PATHS;
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "docs/openapi.yaml",
-  "open-sse/mcp-server/server.js",
   "package.json",
   "scripts/sync-env.ts",
   "server.js",
@@ -52,13 +51,6 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "LICENSE",
   "README.md",
-  "open-sse/mcp-server/README.md",
-  "open-sse/mcp-server/audit.ts",
-  "open-sse/mcp-server/httpTransport.ts",
-  "open-sse/mcp-server/index.ts",
-  "open-sse/mcp-server/runtimeHeartbeat.ts",
-  "open-sse/mcp-server/scopeEnforcement.ts",
-  "open-sse/mcp-server/server.ts",
   "package.json",
   "scripts/build-next-isolated.ts",
   "scripts/postinstall.ts",
@@ -67,8 +59,6 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
-  "open-sse/mcp-server/schemas/",
-  "open-sse/mcp-server/tools/",
   "src/shared/contracts/",
 ];
 
@@ -83,7 +73,7 @@ PACK_ARTIFACT_ALLOWED_EXACT_PATHS.push(...PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS
 PACK_ARTIFACT_ALLOWED_PATH_PREFIXES.push(...PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES);
 
 export function normalizeArtifactPath(filePath: string): string {
-  return String(filePath || "")
+  return String(filePath)
     .replace(/\\/g, "/")
     .replace(/^\.\//, "")
     .replace(/^\/+/, "")
