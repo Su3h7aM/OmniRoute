@@ -1,10 +1,10 @@
+import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const distDir = process.env.NEXT_DIST_DIR || ".next";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
 	distDir,
 	output: "standalone",
 	outputFileTracingExcludes: {
@@ -32,7 +32,6 @@ const nextConfig = {
 		"keytar",
 		"wreq-js",
 		"zod",
-		"child_process",
 		"fs",
 		"path",
 		"os",

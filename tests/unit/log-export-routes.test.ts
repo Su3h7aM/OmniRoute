@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-log-export-routes-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
@@ -81,7 +80,13 @@ test("GET /api/db-backups/exportAll includes call_logs artifacts in the archive"
 	const archivePath = path.join(TEST_DATA_DIR, "backup-export.tar.gz");
 	fs.writeFileSync(archivePath, archiveBuffer);
 
-	const listing = execFileSync("tar", ["-tzf", archivePath], { encoding: "utf8" });
+	const listingProc = Bun.spawnSync(["tar", "-tzf", archivePath], {
+		stdout: "pipe",
+		stderr: "pipe",
+		env: process.env,
+	});
+	assert.equal(listingProc.exitCode, 0);
+	const listing = listingProc.stdout.toString();
 	assert.match(listing, /call_logs\//);
 	assert.match(listing, /call_logs\/.+\.json/);
 	assert.match(listing, /metadata\.json/);

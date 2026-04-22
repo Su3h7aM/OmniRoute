@@ -9,7 +9,6 @@
  * Run with: bun scripts/prepublish.ts
  */
 
-import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -115,14 +114,19 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
-execSync("bun scripts/build-next-isolated.ts", {
+const buildProc = Bun.spawnSync(["bun", "scripts/build-next-isolated.ts"], {
   cwd: ROOT,
-  stdio: "inherit",
+  stdout: "inherit",
+  stderr: "inherit",
   env: {
     ...process.env,
     NEXT_PRIVATE_BUILD_WORKER: "0",
   },
 });
+
+if (buildProc.exitCode !== 0) {
+  process.exit(buildProc.exitCode);
+}
 
 // ── Step 4: Verify standalone output ───────────────────────
 const standaloneDir = join(ROOT, ".next", "standalone");
@@ -130,14 +134,14 @@ const serverJs = join(standaloneDir, "server.js");
 
 if (!existsSync(serverJs)) {
   console.error("\n  ❌ Standalone build not found at:", standaloneDir);
-  console.error("     Make sure next.config.mjs has: output: 'standalone'");
+  console.error("     Make sure next.config.ts has: output: 'standalone'");
   process.exit(1);
 }
 
 // ── Step 5: Copy standalone output to app/ ─────────────────
 // ── Step 4.5: Check build for hashed external references ──────────────────────
 // Warn if Turbopack-style hash suffixes are found — they will be resolved at
-// runtime by the externals patch in next.config.mjs, but log for visibility.
+// runtime by the externals patch in next.config.ts, but log for visibility.
 {
   const HASH_RE = /require\(["']([\w@./-]+-[0-9a-f]{16})["']\)/;
   const scanDir = (
