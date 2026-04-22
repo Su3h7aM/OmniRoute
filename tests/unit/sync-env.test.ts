@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const { syncEnv } = await import("../../scripts/sync-env.mjs");
+const { syncEnv } = await import("../../scripts/sync-env.ts");
 
 function createTempRoot() {
 	return fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-sync-env-"));

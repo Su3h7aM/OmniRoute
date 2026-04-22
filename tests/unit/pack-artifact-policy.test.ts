@@ -21,7 +21,7 @@ test("normalizeArtifactPath normalizes slashes and leading relative markers", ()
 
 test("findUnexpectedArtifactPaths flags staged app files outside the allowlist", () => {
 	const unexpectedPaths = findUnexpectedArtifactPaths(
-		["package-lock.json", "scripts/sync-env.mjs", "server.js"],
+		["package-lock.json", "scripts/sync-env.ts", "server.js"],
 		{
 			exactPaths: APP_STAGING_ALLOWED_EXACT_PATHS,
 			prefixPaths: APP_STAGING_ALLOWED_PATH_PREFIXES,
@@ -33,12 +33,7 @@ test("findUnexpectedArtifactPaths flags staged app files outside the allowlist",
 
 test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", () => {
 	const unexpectedPaths = findUnexpectedArtifactPaths(
-		[
-			"app/server.js",
-			"app/scripts/sync-env.mjs",
-			"app/scripts/prepublish.mjs",
-			"docs/extra.md",
-		],
+		["app/server.js", "app/scripts/sync-env.ts", "app/scripts/prepublish.mjs", "docs/extra.md"],
 		{
 			exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
 			prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
@@ -50,15 +45,9 @@ test("findUnexpectedArtifactPaths flags app pack files outside the allowlist", (
 
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
 	const missingPaths = findMissingArtifactPaths(
-		[
-			"app/server.js",
-			"bin/omniroute.mjs",
-			"package.json",
-			"scripts/postinstall.mjs",
-			"scripts/postinstallSupport.mjs",
-		],
+		["app/server.js", "package.json", "scripts/postinstall.ts"],
 		PACK_ARTIFACT_REQUIRED_PATHS
 	);
 
-	assert.deepEqual(missingPaths, ["bin/mcp-server.mjs", "scripts/native-binary-compat.mjs"]);
+	assert.deepEqual(missingPaths, ["scripts/postinstallSupport.ts"]);
 });

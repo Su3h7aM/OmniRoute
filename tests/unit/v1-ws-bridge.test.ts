@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 
 const isBunRuntime = typeof Bun !== "undefined";
 const execFileAsync = promisify(childProcess.execFile);
-const { createOmnirouteWsBridge } = await import("../../scripts/v1-ws-bridge.mjs");
+const { createOmnirouteWsBridge } = await import("../../scripts/v1-ws-bridge.ts");
 
 if (isBunRuntime) {
 	console.warn(

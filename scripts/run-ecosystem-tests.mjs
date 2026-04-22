@@ -2,7 +2,7 @@
 
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
-import { sanitizeColorEnv } from "./runtime-env.mjs";
+import { sanitizeColorEnv } from "./runtime-env.ts";
 
 const port = process.env.DASHBOARD_PORT || process.env.PORT || "20128";
 const baseUrl = process.env.OMNIROUTE_BASE_URL || `http://localhost:${port}`;
@@ -37,7 +37,7 @@ async function main() {
   const testEnv = sanitizeColorEnv(process.env);
 
   if (!(await isServerReady())) {
-    serverProcess = spawn(process.execPath, ["scripts/run-next.mjs", "dev"], {
+    serverProcess = spawn(process.execPath, ["scripts/run-next.ts", "dev"], {
       stdio: "inherit",
       env: testEnv,
     });

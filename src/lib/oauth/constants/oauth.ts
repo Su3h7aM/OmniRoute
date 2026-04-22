@@ -15,7 +15,7 @@ import {
  *
  * All credentials are read exclusively from environment variables.
  * Default values match the public CLI client IDs from .env.example
- * (auto-populated by scripts/sync-env.mjs on install).
+ * (auto-populated by scripts/sync-env.ts on install).
  *
  * These are public OAuth client credentials for desktop/CLI applications
  * that rely on PKCE for security (RFC 8252), not on secret confidentiality.

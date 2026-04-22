@@ -222,17 +222,13 @@ export async function isAuthRequired(): Promise<boolean> {
 		//      The user needs unauthenticated access to /dashboard/settings to set a password.
 		// Note: this is safe because Bearer API key auth is still checked in verifyAuth().
 		// The security concern from #151 (password row lost after being set) is handled by the
-		// hasPassword flag — if a password WAS set and then somehow lost, the user can use the
-		// reset-password helper (bin/reset-password.mjs).
+		// hasPassword flag — if a password was set and then somehow lost, the operator can
+		// recover it manually via the documented reset flow.
 		if (!settings.password && !process.env.INITIAL_PASSWORD) return false;
 		return true;
-	} catch (error: any) {
-		// On error, require auth (secure by default)
-		// Log the error so failures (e.g., SQLITE_BUSY) aren't silent 401s
-		console.error(
-			"[API_AUTH_GUARD] isAuthRequired failed, defaulting to true:",
-			error?.message || error
-		);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		console.error("[API_AUTH_GUARD] isAuthRequired failed, defaulting to true:", message);
 		return true;
 	}
 }

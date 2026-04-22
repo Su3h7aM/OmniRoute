@@ -7,7 +7,7 @@
  * restarts, Docker volume remounts, and upgrades.
  *
  * Works across all deployment modes:
- *   - Bun / app runners:  called from run-standalone.mjs and run-next.mjs
+ *   - Bun / app runners:  called from run-standalone.ts and run-next.ts
  *   - Docker:     same, secrets persisted in mounted volume
  *   - Custom wrappers: secrets persisted in DATA_DIR
  *
@@ -139,7 +139,7 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   let persisted = parseEnvFile(serverEnvPath);
 
   // ── Layer 2: Load the same preferred .env that the CLI wrapper uses ───────
-  // This keeps run-next / run-standalone consistent with `bin/omniroute.mjs`.
+  // This keeps the runtime launch scripts consistent.
   const merged = { ...persisted, ...preferredEnv, ...process.env };
 
   // ── Auto-generate required secrets ────────────────────────────────────────
@@ -217,8 +217,8 @@ export function bootstrapEnv({ dataDirOverride, quiet = false } = {}) {
   return merged;
 }
 
-// ── CLI usage: node scripts/bootstrap-env.mjs ──────────────────────────────
-if (process.argv[1] && process.argv[1].endsWith("bootstrap-env.mjs")) {
+// ── CLI usage: bun scripts/bootstrap-env.ts ───────────────────────────────
+if (process.argv[1] && process.argv[1].endsWith("bootstrap-env.ts")) {
   const env = bootstrapEnv();
   process.stderr.write(`[bootstrap] Done. DATA_DIR resolved to: ${resolveDataDir()}\n`);
   process.stderr.write(`[bootstrap] JWT_SECRET length: ${env.JWT_SECRET?.length ?? 0}\n`);

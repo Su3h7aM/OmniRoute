@@ -4,13 +4,16 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import next from "next";
-import { bootstrapEnv } from "./bootstrap-env.mjs";
-import { resolveRuntimePorts, withRuntimePortEnv } from "./runtime-env.mjs";
-import { createOmnirouteWsBridge } from "./v1-ws-bridge.mjs";
+import { bootstrapEnv } from "./bootstrap-env.ts";
+import { resolveRuntimePorts, withRuntimePortEnv } from "./runtime-env.ts";
+import { createOmnirouteWsBridge } from "./v1-ws-bridge.ts";
 
-// Add check for conflicting app/ directory (Issue #1206)
-const rootAppDir = path.join(process.cwd(), "app");
-if (fs.existsSync(rootAppDir) && fs.statSync(rootAppDir).isDirectory()) {
+function ensureNoConflictingRootAppDir() {
+  const rootAppDir = path.join(process.cwd(), "app");
+  if (!fs.existsSync(rootAppDir) || !fs.statSync(rootAppDir).isDirectory()) {
+    return;
+  }
+
   console.error("\x1b[31m[FATAL ERROR]\x1b[0m Next.js App Router conflict detected!");
   console.error(`A root-level 'app/' directory was found at: ${rootAppDir}`);
   console.error("This conflicts with the 'src/app/' directory on Windows environments.");
@@ -19,8 +22,10 @@ if (fs.existsSync(rootAppDir) && fs.statSync(rootAppDir).isDirectory()) {
   process.exit(1);
 }
 
-const mode = process.argv[2] === "start" ? "start" : "dev";
-const dev = mode === "dev";
+ensureNoConflictingRootAppDir();
+
+const command = process.argv[2];
+const dev = command !== "start";
 
 const bootstrappedEnv = bootstrapEnv();
 const runtimePorts = resolveRuntimePorts(bootstrappedEnv);
@@ -53,7 +58,7 @@ async function start() {
     baseUrl: `http://127.0.0.1:${dashboardPort}`,
   });
 
-  const server = http.createServer((req, res) => requestHandler(req, res));
+  const server = http.createServer(requestHandler);
   server.on("upgrade", async (req, socket, head) => {
     try {
       const handled = await wsBridge.handleUpgrade(req, socket, head);

@@ -8,9 +8,8 @@ RUN apt-get update \
 COPY package.json ./
 COPY bunfig.toml ./
 COPY open-sse/package.json ./open-sse/package.json
-COPY scripts/postinstall.mjs ./scripts/postinstall.mjs
-COPY scripts/postinstallSupport.mjs ./scripts/postinstallSupport.mjs
-COPY scripts/native-binary-compat.mjs ./scripts/native-binary-compat.mjs
+COPY scripts/postinstall.ts ./scripts/postinstall.ts
+COPY scripts/postinstallSupport.ts ./scripts/postinstallSupport.ts
 RUN bun install --frozen-lockfile || bun install
 
 COPY . ./
@@ -44,9 +43,9 @@ COPY --chown=bun:bun --from=builder /app/node_modules/@swc/helpers ./node_module
 COPY --chown=bun:bun --from=builder /app/node_modules/pino-abstract-transport ./node_modules/pino-abstract-transport
 COPY --chown=bun:bun --from=builder /app/node_modules/pino-pretty ./node_modules/pino-pretty
 COPY --chown=bun:bun --from=builder /app/node_modules/split2 ./node_modules/split2
-COPY --chown=bun:bun --from=builder /app/scripts/run-standalone.mjs ./run-standalone.mjs
-COPY --chown=bun:bun --from=builder /app/scripts/runtime-env.mjs ./runtime-env.mjs
-COPY --chown=bun:bun --from=builder /app/scripts/bootstrap-env.mjs ./bootstrap-env.mjs
+COPY --chown=bun:bun --from=builder /app/scripts/run-standalone.ts ./run-standalone.ts
+COPY --chown=bun:bun --from=builder /app/scripts/runtime-env.ts ./runtime-env.ts
+COPY --chown=bun:bun --from=builder /app/scripts/bootstrap-env.ts ./bootstrap-env.ts
 COPY --chown=bun:bun --from=builder /app/scripts/healthcheck.mjs ./healthcheck.mjs
 
 USER bun
@@ -56,16 +55,5 @@ EXPOSE 20128
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD ["bun", "healthcheck.mjs"]
 
-CMD ["bun", "run-standalone.mjs"]
+CMD ["bun", "run-standalone.ts"]
 
-FROM runner-base AS runner-cli
-
-USER root
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends git ca-certificates podman \
-  && rm -rf /var/lib/apt/lists/* \
-  && git config --system url."https://github.com/".insteadOf "ssh://git@github.com/"
-
-RUN bun install -g @openai/codex @anthropic-ai/claude-code droid openclaw@latest
-
-USER bun

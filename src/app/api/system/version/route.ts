@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
 					send({ step: "rebuild", status: "done", message: "Dependencies installed" });
 
 					try {
-						await execFileAsync("bun", ["scripts/sync-env.mjs"], {
+						await execFileAsync("bun", ["scripts/sync-env.ts"], {
 							timeout: 15_000,
 							cwd: process.cwd(),
 						});

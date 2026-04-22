@@ -6,7 +6,7 @@
  * Builds the Next.js app in standalone mode and copies output
  * into the `app/` directory that gets published to npm.
  *
- * Run with: node scripts/prepublish.mjs
+ * Run with: bun scripts/prepublish.ts
  */
 
 import { execSync } from "node:child_process";
@@ -124,7 +124,7 @@ if (existsSync(APP_DIR)) {
 
 // ── Step 3: Build Next.js ──────────────────────────────────
 console.log("  🏗️  Building Next.js (standalone)...");
-execSync("bun scripts/build-next-isolated.mjs", {
+execSync("bun scripts/build-next-isolated.ts", {
   cwd: ROOT,
   stdio: "inherit",
   env: {
@@ -368,24 +368,6 @@ if (existsSync(mcpSrcFile)) {
   }
 }
 
-// ── Step 8.7: Bundle CLI Entrypoint ──────────────────────────
-const cliSrcFile = join(ROOT, "bin", "omniroute.ts");
-const cliDestFile = join(ROOT, "bin", "omniroute.mjs");
-
-if (existsSync(cliSrcFile)) {
-  console.log("  🔨 Bundling CLI Entrypoint (TypeScript → JavaScript)...");
-  try {
-    execSync(
-      `bunx esbuild bin/omniroute.ts --bundle --platform=neutral --packages=external --format=esm --outfile=bin/omniroute.mjs`,
-      { cwd: ROOT, stdio: "inherit" }
-    );
-    execSync(`chmod +x bin/omniroute.mjs`, { cwd: ROOT });
-    console.log("  ✅ CLI Entrypoint bundled to bin/omniroute.mjs");
-  } catch (err: any) {
-    console.warn("  ⚠️  CLI bundle error:", err.message);
-  }
-}
-
 // ── Step 9: Copy shared utilities needed at runtime ────────
 const sharedApiKey = join(ROOT, "src", "shared", "utils", "apiKey.js");
 const sharedApiKeyDest = join(APP_DIR, "src", "shared", "utils");
@@ -408,11 +390,11 @@ if (existsSync(openapiSpecSrc)) {
   cpSync(openapiSpecSrc, join(docsDest, "openapi.yaml"));
 }
 
-const syncEnvSrc = join(ROOT, "scripts", "sync-env.mjs");
+const syncEnvSrc = join(ROOT, "scripts", "sync-env.ts");
 if (existsSync(syncEnvSrc)) {
   const scriptsDest = join(APP_DIR, "scripts");
   mkdirSync(scriptsDest, { recursive: true });
-  cpSync(syncEnvSrc, join(scriptsDest, "sync-env.mjs"));
+  cpSync(syncEnvSrc, join(scriptsDest, "sync-env.ts"));
 }
 
 const migrationsSrc = join(ROOT, "src", "lib", "db", "migrations");

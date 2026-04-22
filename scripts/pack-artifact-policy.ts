@@ -6,7 +6,7 @@
  * directories out of the staged app/ tree and out of the final tarball.
  */
 
-const STAGING_FORBIDDEN_DIRECTORIES = [
+const APP_STAGING_FORBIDDEN_PATHS = [
   "app.__qa_backup",
   "coverage",
   "logs",
@@ -17,21 +17,18 @@ const STAGING_FORBIDDEN_DIRECTORIES = [
   "_mono_repo",
   "_references",
   "_tasks",
+  "audit-report.json",
+  "package-lock.json",
 ];
 
-const STAGING_FORBIDDEN_FILES = ["audit-report.json", "package-lock.json"];
-
-export const APP_STAGING_REMOVAL_PATHS: string[] = [
-  ...STAGING_FORBIDDEN_DIRECTORIES,
-  ...STAGING_FORBIDDEN_FILES,
-];
+export const APP_STAGING_REMOVAL_PATHS: string[] = [...APP_STAGING_FORBIDDEN_PATHS];
 
 export const APP_STAGING_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "docs/openapi.yaml",
   "open-sse/mcp-server/server.js",
   "package.json",
-  "scripts/sync-env.mjs",
+  "scripts/sync-env.ts",
   "server.js",
 ];
 
@@ -56,9 +53,6 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   ".env.example",
   "LICENSE",
   "README.md",
-  "bin/mcp-server.mjs",
-  "bin/omniroute.mjs",
-  "bin/reset-password.mjs",
   "open-sse/mcp-server/README.md",
   "open-sse/mcp-server/audit.ts",
   "open-sse/mcp-server/httpTransport.ts",
@@ -67,11 +61,10 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "open-sse/mcp-server/scopeEnforcement.ts",
   "open-sse/mcp-server/server.ts",
   "package.json",
-  "scripts/build-next-isolated.mjs",
-  "scripts/native-binary-compat.mjs",
-  "scripts/postinstall.mjs",
-  "scripts/postinstallSupport.mjs",
-  "scripts/sync-env.mjs",
+  "scripts/build-next-isolated.ts",
+  "scripts/postinstall.ts",
+  "scripts/postinstallSupport.ts",
+  "scripts/sync-env.ts",
 ];
 
 export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
@@ -82,12 +75,9 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_PATH_PREFIXES: string[] = [
 
 export const PACK_ARTIFACT_REQUIRED_PATHS: string[] = [
   "app/server.js",
-  "bin/mcp-server.mjs",
-  "bin/omniroute.mjs",
   "package.json",
-  "scripts/native-binary-compat.mjs",
-  "scripts/postinstall.mjs",
-  "scripts/postinstallSupport.mjs",
+  "scripts/postinstall.ts",
+  "scripts/postinstallSupport.ts",
 ];
 
 PACK_ARTIFACT_ALLOWED_EXACT_PATHS.push(...PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS);

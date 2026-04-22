@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import {
 	detectNativeBinaryTarget,
 	isNativeBinaryCompatible,
-} from "../../scripts/native-binary-compat.mjs";
+} from "../../scripts/native-binary-compat.ts";
 
 function makeElfBinary(machine) {
 	const buffer = Buffer.alloc(64);

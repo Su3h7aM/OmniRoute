@@ -93,7 +93,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
 		"socialRefreshUrl",
 		"authMethods",
 	],
-	cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint", "dbKeys"],
+	cursor: ["apiEndpoint", "api3Endpoint", "agentEndpoint", "agentNonPrivacyEndpoint"],
 	kilocode: ["apiBaseUrl", "initiateUrl", "pollUrlBase"],
 	cline: ["appBaseUrl", "apiBaseUrl", "authorizeUrl", "tokenExchangeUrl", "refreshUrl"],
 };
@@ -195,7 +195,7 @@ test("every registered OAuth provider has a valid config object, flow type and t
 		"authorization_code",
 		"authorization_code_pkce",
 		"device_code",
-		"import_token",
+		"manual_token",
 	]);
 
 	for (const [providerId, provider] of Object.entries(PROVIDERS)) {
@@ -286,7 +286,7 @@ test("browser-based providers expose buildAuthUrl and return provider-specific a
 	assert.equal(clineUrl.origin, "https://api.cline.bot");
 });
 
-test("device and import-token providers expose the flow-specific fields expected by their configs", () => {
+test("device and manual-token providers expose the flow-specific fields expected by their configs", () => {
 	const deviceProviders = ["qwen", "kimi-coding", "github", "kiro", "kilocode"];
 
 	for (const providerId of deviceProviders) {
@@ -296,9 +296,9 @@ test("device and import-token providers expose the flow-specific fields expected
 		assert.equal(typeof provider.pollToken, "function");
 	}
 
-	assert.equal(PROVIDERS.cursor.flowType, "import_token");
-	assert.equal(CURSOR_CONFIG.dbKeys.accessToken, "cursorAuth/accessToken");
-	assert.equal(CURSOR_CONFIG.dbKeys.machineId, "storage.serviceMachineId");
+	assert.equal(PROVIDERS.cursor.flowType, "manual_token");
+	assert.equal(CURSOR_CONFIG.clientVersion, "3.1.15");
+	assert.equal(CURSOR_CONFIG.clientType, "ide");
 	assert.ok(Array.isArray(KIRO_CONFIG.authMethods));
 	assert.ok(KIRO_CONFIG.authMethods.includes("builder-id"));
 });

@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 
 const { getTransientBuildPaths, movePath, pruneStandaloneArtifacts, resolveNextBuildEnv } =
-	await import("../../scripts/build-next-isolated.mjs");
+	await import("../../scripts/build-next-isolated.ts");
 
 async function withTempDir(fn) {
 	const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "omniroute-build-next-isolated-"));
