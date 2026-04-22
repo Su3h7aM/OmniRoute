@@ -193,7 +193,6 @@ export const GITHUB_CONFIG = {
 // 1. AWS Builder ID (Device Code Flow)
 // 2. AWS IAM Identity Center/IDC (Device Code Flow with custom startUrl/region)
 // 3. Google/GitHub Social Login (Authorization Code Flow - manual callback)
-// 4. Import Token (paste refresh token from Kiro IDE)
 export const KIRO_CONFIG = {
 	// AWS SSO OIDC endpoints for Builder ID/IDC (Device Code Flow)
 	ssoOidcEndpoint: "https://oidc.us-east-1.amazonaws.com",
@@ -217,9 +216,7 @@ export const KIRO_CONFIG = {
 	authMethods: ["builder-id", "idc", "google", "github", "import"],
 };
 
-// Cursor OAuth Configuration (Import Token from Cursor IDE)
-// Cursor stores credentials in SQLite database: state.vscdb
-// Keys: cursorAuth/accessToken, storage.serviceMachineId
+// Cursor API configuration.
 export const CURSOR_CONFIG = {
 	// API endpoints
 	apiEndpoint: "https://api2.cursor.sh",
@@ -232,17 +229,6 @@ export const CURSOR_CONFIG = {
 	// Client metadata
 	clientVersion: "3.1.15",
 	clientType: "ide",
-	// Token storage locations (for user reference)
-	tokenStoragePaths: {
-		linux: "~/.config/Cursor/User/globalStorage/state.vscdb",
-		macos: "/Users/<user>/Library/Application Support/Cursor/User/globalStorage/state.vscdb",
-		windows: "%APPDATA%\\Cursor\\User\\globalStorage\\state.vscdb",
-	},
-	// Database keys
-	dbKeys: {
-		accessToken: "cursorAuth/accessToken",
-		machineId: "storage.serviceMachineId",
-	},
 };
 
 // OAuth timeout (5 minutes)

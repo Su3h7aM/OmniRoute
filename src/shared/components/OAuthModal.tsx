@@ -349,7 +349,7 @@ export default function OAuthModal({
 			if (!data.authUrl) {
 				throw new Error(
 					data.error ||
-						"Browser OAuth is unavailable for this provider in the current environment. Use the supported auth method instead."
+						"This provider uses a different connection method. Use the fields shown on this provider page."
 				);
 			}
 
@@ -659,7 +659,7 @@ export default function OAuthModal({
 				{step === "input" && !isDeviceCode && (
 					<>
 						<div className="space-y-4">
-							{/* Remote/LAN server info for Google OAuth providers */}
+							{/* Manual callback info for Google OAuth providers */}
 							{!isTrueLocalhost && GOOGLE_OAUTH_PROVIDERS.has(provider) && (
 								<div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
 									<span className="material-symbols-outlined text-sm align-middle mr-1">
@@ -682,7 +682,7 @@ export default function OAuthModal({
 									</strong>
 								</div>
 							)}
-							{/* Generic remote info for other providers */}
+							{/* Manual callback info for other providers */}
 							{!isTrueLocalhost && !GOOGLE_OAUTH_PROVIDERS.has(provider) && (
 								<div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-200">
 									<span className="material-symbols-outlined text-sm align-middle mr-1">

@@ -1,22 +1,8 @@
-import { CURSOR_CONFIG } from "../constants/oauth";
 import { getCursorUserAgent } from "@omniroute/open-sse/config/providerHeaderProfiles.ts";
-
-/**
- * Cursor IDE OAuth Service
- * Supports Import Token method from Cursor IDE's local SQLite database
- *
- * Token Location:
- * - Linux: ~/.config/Cursor/User/globalStorage/state.vscdb
- * - macOS: /Users/<user>/Library/Application Support/Cursor/User/globalStorage/state.vscdb
- * - Windows: %APPDATA%\Cursor\User\globalStorage\state.vscdb
- *
- * Database Keys:
- * - cursorAuth/accessToken: The access token
- * - storage.serviceMachineId: Machine ID for checksum
- */
+import { CURSOR_CONFIG } from "../constants/oauth";
 
 export class CursorService {
-	config: any;
+	config: typeof CURSOR_CONFIG;
 
 	constructor() {
 		this.config = CURSOR_CONFIG;
@@ -91,11 +77,8 @@ export class CursorService {
 	}
 
 	/**
-	 * Validate and import token from Cursor IDE or cursor-agent CLI.
-	 * Note: We skip API validation because Cursor API uses complex protobuf format.
+	 * Validate a manually provided Cursor access token.
 	 * Token will be validated when actually used for requests.
-	 * @param {string} accessToken - Access token from state.vscdb or auth.json
-	 * @param {string} [machineId] - Machine ID from state.vscdb (optional for cursor-agent imports)
 	 */
 	async validateImportToken(accessToken: string, machineId?: string) {
 		// Basic validation
@@ -108,7 +91,7 @@ export class CursorService {
 			throw new Error("Invalid token format. Token appears too short.");
 		}
 
-		// Machine ID format validation (only if provided — cursor-agent imports don't have one)
+		// Machine ID format validation.
 		if (machineId) {
 			const uuidRegex = /^[a-f0-9-]{32,}$/i;
 			if (!uuidRegex.test(machineId.replace(/-/g, ""))) {
@@ -153,30 +136,5 @@ export class CursorService {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Get token storage path instructions for user
-	 */
-	getTokenStorageInstructions() {
-		return {
-			title: "How to get your Cursor token",
-			steps: [
-				"1. Open Cursor IDE and make sure you're logged in",
-				"2. Find the state.vscdb file:",
-				`   - Linux: ${this.config.tokenStoragePaths.linux}`,
-				`   - macOS: ${this.config.tokenStoragePaths.macos}`,
-				`   - Windows: ${this.config.tokenStoragePaths.windows}`,
-				"3. Open the database with SQLite browser or CLI:",
-				"   sqlite3 state.vscdb \"SELECT value FROM itemTable WHERE key='cursorAuth/accessToken'\"",
-				"4. Also get the machine ID:",
-				"   sqlite3 state.vscdb \"SELECT value FROM itemTable WHERE key='storage.serviceMachineId'\"",
-				"5. Paste both values in the form below",
-			],
-			alternativeMethod: [
-				"Or use this one-liner to get both values:",
-				"sqlite3 state.vscdb \"SELECT key, value FROM itemTable WHERE key IN ('cursorAuth/accessToken', 'storage.serviceMachineId')\"",
-			],
-		};
 	}
 }

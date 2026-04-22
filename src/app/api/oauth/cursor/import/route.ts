@@ -9,13 +9,13 @@ import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
  * POST /api/oauth/cursor/import
- * Import and validate access token from Cursor IDE's local SQLite database
+ * Validate a manually provided Cursor access token.
  *
  * Request body:
- * - accessToken: string - Access token from cursorAuth/accessToken
- * - machineId: string - Machine ID from storage.serviceMachineId
+ * - accessToken: string
+ * - machineId: string
  */
-export async function POST(request: any) {
+export async function POST(request: Request) {
 	let rawBody;
 	try {
 		rawBody = await request.json();
@@ -48,7 +48,7 @@ export async function POST(request: any) {
 			cursorService.validateImportToken(accessToken.trim(), machineId?.trim())
 		);
 
-		// Try to extract user info from token
+		// Try to extract user info from token.
 		const userInfo = cursorService.extractUserInfo(tokenData.accessToken);
 
 		// Save to database
@@ -61,8 +61,8 @@ export async function POST(request: any) {
 			email: userInfo?.email || null,
 			providerSpecificData: {
 				machineId: tokenData.machineId,
-				authMethod: "imported",
-				provider: "Imported",
+				authMethod: "manual",
+				provider: "Manual",
 				userId: userInfo?.userId,
 			},
 			testStatus: "active",
@@ -79,39 +79,11 @@ export async function POST(request: any) {
 				email: connection.email,
 			},
 		});
-	} catch (error: any) {
-		console.log("Cursor import token error:", error);
-		return NextResponse.json({ error: error.message }, { status: 500 });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		console.log("Cursor token validation error:", error);
+		return NextResponse.json({ error: message }, { status: 500 });
 	}
-}
-
-/**
- * GET /api/oauth/cursor/import
- * Get instructions for importing Cursor token
- */
-export async function GET() {
-	const cursorService = new CursorService();
-	const instructions = cursorService.getTokenStorageInstructions();
-
-	return NextResponse.json({
-		provider: "cursor",
-		method: "import_token",
-		instructions,
-		requiredFields: [
-			{
-				name: "accessToken",
-				label: "Access Token",
-				description: "From cursorAuth/accessToken in state.vscdb",
-				type: "textarea",
-			},
-			{
-				name: "machineId",
-				label: "Machine ID",
-				description: "From storage.serviceMachineId in state.vscdb",
-				type: "text",
-			},
-		],
-	});
 }
 
 /**
@@ -125,6 +97,6 @@ async function syncToCloudIfEnabled() {
 		const machineId = await getConsistentMachineId();
 		await syncToCloud(machineId);
 	} catch (error) {
-		console.log("Error syncing to cloud after Cursor import:", error);
+		console.log("Error syncing to cloud after Cursor token save:", error);
 	}
 }

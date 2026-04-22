@@ -116,7 +116,6 @@ export default function ProvidersPage() {
 	const [showAddCcCompatibleModal, setShowAddCcCompatibleModal] = useState(false);
 	const [testingMode, setTestingMode] = useState<string | null>(null);
 	const [testResults, setTestResults] = useState<any>(null);
-	const [importingZed, setImportingZed] = useState(false);
 	const [showConfiguredOnly, setShowConfiguredOnly] = useState(false);
 	const [configuredOnlyPreferenceReady, setConfiguredOnlyPreferenceReady] = useState(false);
 	const [oauthEnvRepairStatus, setOauthEnvRepairStatus] = useState<{
@@ -185,33 +184,6 @@ export default function ProvidersPage() {
 	useEffect(() => {
 		void fetchOauthEnvRepairStatus();
 	}, [fetchOauthEnvRepairStatus]);
-
-	const handleZedImport = async () => {
-		setImportingZed(true);
-		try {
-			const res = await fetch("/api/providers/zed/import", { method: "POST" });
-			const data = await res.json();
-			if (res.ok && data.success) {
-				if (data.count > 0) {
-					notify.success(
-						`Imported ${data.count} credentials from Zed IDE (${data.providers.join(", ")}).`
-					);
-					// Refresh connections silently
-					const connectionsRes = await fetch("/api/providers");
-					const connectionsData = await connectionsRes.json();
-					if (connectionsRes.ok) setConnections(connectionsData.connections || []);
-				} else {
-					notify.info("No supported OAuth credentials found in Zed IDE.");
-				}
-			} else {
-				notify.error(data.error || "Failed to import from Zed IDE.");
-			}
-		} catch (_error) {
-			notify.error("Network error while trying to import from Zed.");
-		} finally {
-			setImportingZed(false);
-		}
-	};
 
 	const handleRepairEnv = async () => {
 		if (!oauthEnvRepairStatus?.available || repairingEnv) return;
@@ -517,20 +489,6 @@ export default function ProvidersPage() {
 							label={t("showConfiguredOnly")}
 							className="rounded-lg border border-border bg-bg-subtle px-3 py-1.5"
 						/>
-						<button
-							type="button"
-							onClick={handleZedImport}
-							disabled={importingZed}
-							className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors bg-bg-subtle border-border text-text-muted hover:text-text-primary hover:border-primary/40`}
-							title="Import credentials from Zed IDE"
-						>
-							<span
-								className={`material-symbols-outlined text-[14px] ${importingZed ? "animate-spin" : ""}`}
-							>
-								{importingZed ? "sync" : "download"}
-							</span>
-							{importingZed ? "Importing..." : "Import from Zed"}
-						</button>
 						{oauthEnvRepairStatus?.available &&
 							oauthEnvRepairStatus.missingCount > 0 && (
 								<button

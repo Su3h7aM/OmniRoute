@@ -4,7 +4,7 @@
  * This file re-exports from the modular providers/ directory.
  * Each provider is now in its own file for maintainability.
  *
- * @see ./providers/index.js for the registry
+ * @see ./providers/index.ts for the registry
  */
 
 import { generatePKCE } from "./utils/pkce";
@@ -40,8 +40,10 @@ export function generateAuthData(providerName, redirectUri) {
 		authUrl = null;
 	} else if (provider.flowType === "authorization_code_pkce") {
 		authUrl = provider.buildAuthUrl(provider.config, redirectUri, state, codeChallenge);
-	} else {
+	} else if (provider.flowType === "authorization_code") {
 		authUrl = provider.buildAuthUrl(provider.config, redirectUri, state);
+	} else {
+		authUrl = null;
 	}
 
 	return {

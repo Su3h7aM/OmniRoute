@@ -14,10 +14,7 @@ import {
 	generateHashed64Hex,
 	generateSessionId,
 } from "../../open-sse/utils/cursorChecksum.ts";
-import {
-	getCursorVersion,
-	resetCursorVersionCache,
-} from "../../open-sse/utils/cursorVersionDetector.ts";
+import { getCursorVersion, resetCursorVersionCache } from "../../open-sse/utils/cursorVersion.ts";
 
 const LEN = 2;
 const VARINT = 0;
@@ -93,9 +90,6 @@ test("CursorExecutor.buildUrl uses the configured Cursor endpoint", () => {
 test("CursorExecutor.buildHeaders strips token prefixes and derives checksum/session headers", () => {
 	const executor = new CursorExecutor();
 	const originalDateNow = Date.now;
-	const originalDbPath = process.env.CURSOR_STATE_DB_PATH;
-	// Force fallback by pointing to a non-existent DB path
-	process.env.CURSOR_STATE_DB_PATH = "/nonexistent/cursor/state.vscdb";
 	resetCursorVersionCache();
 	Date.now = () => 1_700_000_000_000;
 
@@ -120,18 +114,11 @@ test("CursorExecutor.buildHeaders strips token prefixes and derives checksum/ses
 		assert.ok(headers["x-request-id"]);
 	} finally {
 		Date.now = originalDateNow;
-		if (originalDbPath === undefined) {
-			delete process.env.CURSOR_STATE_DB_PATH;
-		} else {
-			process.env.CURSOR_STATE_DB_PATH = originalDbPath;
-		}
 		resetCursorVersionCache();
 	}
 });
 
 test("buildCursorHeaders utility stays aligned with Cursor Composer 2 versioned headers", () => {
-	const originalDbPath = process.env.CURSOR_STATE_DB_PATH;
-	process.env.CURSOR_STATE_DB_PATH = "/nonexistent/cursor/state.vscdb";
 	resetCursorVersionCache();
 
 	try {
@@ -144,11 +131,6 @@ test("buildCursorHeaders utility stays aligned with Cursor Composer 2 versioned 
 		assert.equal(headers["User-Agent"], `Cursor/${expectedVersion}`);
 		assert.equal(headers["x-ghost-mode"], "false");
 	} finally {
-		if (originalDbPath === undefined) {
-			delete process.env.CURSOR_STATE_DB_PATH;
-		} else {
-			process.env.CURSOR_STATE_DB_PATH = originalDbPath;
-		}
 		resetCursorVersionCache();
 	}
 });

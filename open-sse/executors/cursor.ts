@@ -25,7 +25,7 @@ import { getCursorUserAgent } from "../config/providerHeaderProfiles.ts";
 import { PROVIDERS, HTTP_STATUS } from "../config/constants.ts";
 import { generateCursorBody, extractTextFromResponse } from "../utils/cursorProtobuf.ts";
 import { estimateUsage } from "../utils/usageTracking.ts";
-import { getCursorVersion } from "../utils/cursorVersionDetector.ts";
+import { getCursorVersion } from "../utils/cursorVersion.ts";
 import { FORMATS } from "../translator/formats.ts";
 import crypto from "crypto";
 import { v5 as uuidv5 } from "uuid";

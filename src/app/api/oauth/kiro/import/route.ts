@@ -9,9 +9,9 @@ import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 
 /**
  * POST /api/oauth/kiro/import
- * Import and validate refresh token from Kiro IDE
+ * Validate a manually provided Kiro refresh token.
  */
-export async function POST(request: any) {
+export async function POST(request: Request) {
 	let rawBody;
 	try {
 		rawBody = await request.json();
@@ -57,8 +57,8 @@ export async function POST(request: any) {
 			email: email || null,
 			providerSpecificData: {
 				profileArn: tokenData.profileArn,
-				authMethod: "imported",
-				provider: "Imported",
+				authMethod: "manual",
+				provider: "Manual",
 			},
 			testStatus: "active",
 		});
@@ -74,9 +74,10 @@ export async function POST(request: any) {
 				email: connection.email,
 			},
 		});
-	} catch (error: any) {
-		console.log("Kiro import token error:", error);
-		return NextResponse.json({ error: error.message }, { status: 500 });
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		console.log("Kiro token validation error:", error);
+		return NextResponse.json({ error: message }, { status: 500 });
 	}
 }
 
@@ -91,6 +92,6 @@ async function syncToCloudIfEnabled() {
 		const machineId = await getConsistentMachineId();
 		await syncToCloud(machineId);
 	} catch (error) {
-		console.log("Error syncing to cloud after Kiro import:", error);
+		console.log("Error syncing to cloud after Kiro token save:", error);
 	}
 }

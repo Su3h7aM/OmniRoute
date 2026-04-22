@@ -181,8 +181,11 @@ export class KiroService {
 	/**
 	 * Refresh token using refresh token
 	 */
-	async refreshToken(refreshToken: string, providerSpecificData: any = {}) {
-		const { authMethod, clientId, clientSecret, region } = providerSpecificData;
+	async refreshToken(
+		refreshToken: string,
+		providerSpecificData: { clientId?: string; clientSecret?: string; region?: string } = {}
+	) {
+		const { clientId, clientSecret, region } = providerSpecificData;
 
 		// AWS SSO OIDC refresh (Builder ID or IDC)
 		if (clientId && clientSecret) {
@@ -240,7 +243,7 @@ export class KiroService {
 	}
 
 	/**
-	 * Validate and import refresh token
+	 * Validate a manually provided refresh token.
 	 */
 	async validateImportToken(refreshToken: string) {
 		// Validate token format
@@ -256,10 +259,11 @@ export class KiroService {
 				refreshToken: result.refreshToken || refreshToken,
 				profileArn: result.profileArn,
 				expiresIn: result.expiresIn,
-				authMethod: "imported",
+				authMethod: "manual",
 			};
-		} catch (error: any) {
-			throw new Error(`Token validation failed: ${error.message}`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(`Token validation failed: ${message}`);
 		}
 	}
 
