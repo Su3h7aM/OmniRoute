@@ -1,15 +1,27 @@
 // @ts-nocheck
 import { AsyncLocalStorage } from "node:async_hooks";
-import { fetch as undiciFetch } from "undici";
 import {
   createProxyDispatcher,
+  createProxyDispatcherAsync,
   getDefaultDispatcher,
+  getDefaultDispatcherAsync,
   normalizeProxyUrl,
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
 import tlsClient from "./tlsClient.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+
+const isBun = typeof globalThis.Bun !== "undefined";
+let undiciFetchPromise: Promise<typeof globalThis.fetch> | null = null;
+
+async function getUndiciFetch() {
+  if (isBun) return globalThis.fetch;
+  if (!undiciFetchPromise) {
+    undiciFetchPromise = import("undici").then((mod) => mod.fetch as typeof globalThis.fetch);
+  }
+  return undiciFetchPromise;
+}
 
 function isTlsFingerprintEnabled() {
   return process.env.ENABLE_TLS_FINGERPRINT === "true";
@@ -204,6 +216,10 @@ export async function runWithProxyContext(proxyConfig, fn) {
 
 async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatcherOptions = {}) {
   if (options?.dispatcher) {
+    if (isBun) {
+      return originalFetchWithDispatcher(input, options);
+    }
+    const undiciFetch = await getUndiciFetch();
     // When a dispatcher is present, we MUST use the undici library fetch
     // to ensure version compatibility. Node 22 built-in fetch (undici v6)
     // is incompatible with undici v8 dispatchers (missing onRequestStart, etc.)
@@ -241,12 +257,16 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
         if (store) store.used = false;
       }
     }
+    if (isBun) {
+      return originalFetchWithDispatcher(input, options);
+    }
     // Direct connection (no proxy) — use undici with custom dispatcher for timeout control.
     // Falls back to original native fetch if dispatcher initialization fails (#1054).
     try {
+      const undiciFetch = await getUndiciFetch();
       return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
         ...options,
-        dispatcher: getDefaultDispatcher(),
+        dispatcher: await getDefaultDispatcherAsync(),
       });
     } catch (dispatcherError) {
       const msg =
@@ -269,7 +289,11 @@ async function patchedFetch(input: RequestInfo | URL, options: FetchWithDispatch
   }
 
   try {
-    const dispatcher = createProxyDispatcher(proxyUrl);
+    if (isBun) {
+      throw new Error("Proxy dispatcher is not supported on Bun runtime yet");
+    }
+    const dispatcher = await createProxyDispatcherAsync(proxyUrl);
+    const undiciFetch = await getUndiciFetch();
     return await (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>)(input, {
       ...options,
       dispatcher,

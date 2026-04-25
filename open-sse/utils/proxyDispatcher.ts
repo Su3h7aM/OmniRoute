@@ -1,6 +1,30 @@
-import { Agent, ProxyAgent, type Dispatcher } from "undici";
-import { socksDispatcher } from "fetch-socks";
 import { getUpstreamTimeoutConfig } from "@/shared/utils/runtimeTimeouts";
+
+const isBun = typeof globalThis.Bun !== "undefined";
+type Dispatcher = unknown;
+let undiciModulePromise: Promise<typeof import("undici")> | null = null;
+let socksDispatcherFn: typeof import("fetch-socks").socksDispatcher | null = null;
+
+async function getUndiciModule() {
+  if (isBun) {
+    throw new Error("undici dispatcher is not supported on Bun runtime yet");
+  }
+  if (!undiciModulePromise) {
+    undiciModulePromise = import("undici");
+  }
+  return undiciModulePromise;
+}
+
+async function getSocksDispatcher() {
+  if (isBun) {
+    throw new Error("SOCKS5 dispatcher is not supported on Bun runtime yet");
+  }
+  if (!socksDispatcherFn) {
+    const mod = await import("fetch-socks");
+    socksDispatcherFn = mod.socksDispatcher;
+  }
+  return socksDispatcherFn;
+}
 
 const DISPATCHER_CACHE_KEY = Symbol.for("omniroute.proxyDispatcher.cache");
 const DEFAULT_DISPATCHER_KEY = Symbol.for("omniroute.proxyDispatcher.default");
@@ -60,11 +84,26 @@ function getDispatcherOptions() {
 }
 
 export function getDefaultDispatcher(): Dispatcher {
+  if (isBun) {
+    throw new Error("Default dispatcher is not supported on Bun runtime yet");
+  }
   const globalWithCache = globalThis as GlobalWithDispatcherCache;
   if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
-    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions());
+    throw new Error("getDefaultDispatcher requires async bootstrap");
   }
   return globalWithCache[DEFAULT_DISPATCHER_KEY];
+}
+
+export async function getDefaultDispatcherAsync(): Promise<Dispatcher> {
+  if (isBun) {
+    throw new Error("Default dispatcher is not supported on Bun runtime yet");
+  }
+  const globalWithCache = globalThis as GlobalWithDispatcherCache;
+  if (!globalWithCache[DEFAULT_DISPATCHER_KEY]) {
+    const { Agent } = await getUndiciModule();
+    globalWithCache[DEFAULT_DISPATCHER_KEY] = new Agent(getDispatcherOptions()) as Dispatcher;
+  }
+  return globalWithCache[DEFAULT_DISPATCHER_KEY] as Dispatcher;
 }
 
 /**
@@ -213,6 +252,20 @@ export function proxyConfigToUrl(
 }
 
 export function createProxyDispatcher(proxyUrl: string): Dispatcher {
+  if (isBun) {
+    throw new Error("Proxy dispatcher is not supported on Bun runtime yet");
+  }
+  const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
+  const dispatcherCache = getDispatcherCache();
+  const dispatcher = dispatcherCache.get(normalizedUrl);
+  if (dispatcher) return dispatcher;
+  throw new Error("createProxyDispatcher requires async bootstrap");
+}
+
+export async function createProxyDispatcherAsync(proxyUrl: string): Promise<Dispatcher> {
+  if (isBun) {
+    throw new Error("Proxy dispatcher is not supported on Bun runtime yet");
+  }
   const normalizedUrl = normalizeProxyUrl(proxyUrl, "proxy dispatcher");
   const dispatcherCache = getDispatcherCache();
   const dispatcherOptions = getDispatcherOptions();
@@ -232,15 +285,17 @@ export function createProxyDispatcher(proxyUrl: string): Dispatcher {
     };
     if (parsed.username) socksOptions.userId = decodeURIComponent(parsed.username);
     if (parsed.password) socksOptions.password = decodeURIComponent(parsed.password);
+    const socksDispatcher = await getSocksDispatcher();
     dispatcher = socksDispatcher(
       socksOptions as Parameters<typeof socksDispatcher>[0],
       dispatcherOptions
     ) as Dispatcher;
   } else {
+    const { ProxyAgent } = await getUndiciModule();
     dispatcher = new ProxyAgent({
       uri: normalizedUrl,
       ...dispatcherOptions,
-    });
+    }) as Dispatcher;
   }
 
   dispatcherCache.set(normalizedUrl, dispatcher);

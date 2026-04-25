@@ -1,0 +1,18 @@
+# OmniRoute Bun Configuration
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use exact versions from lockfile
+exact = true
+
+# Production installs exclude devDependencies
+production = false
+
+# Save lockfile
+save = true
+
+[loader]
+# Treat CSS files as opaque files — let Next.js/webpack handle them
+# via PostCSS/Tailwind pipeline. Bun's built-in CSS parser doesn't
+# understand Tailwind v4's "@import "tailwindcss"" directive.
+".css" = "file"

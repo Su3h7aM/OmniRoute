@@ -56,6 +56,7 @@ const nextConfig = {
     "thread-stream",
     "pino-abstract-transport",
     "better-sqlite3",
+    "bun:sqlite",
     "keytar",
     "wreq-js",
     "zod",
@@ -115,6 +116,7 @@ const nextConfig = {
 
       const KNOWN_EXTERNALS = new Set([
         "better-sqlite3",
+        "bun:sqlite",
         "keytar",
         "wreq-js",
         "zod",

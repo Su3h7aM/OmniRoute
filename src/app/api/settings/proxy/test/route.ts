@@ -1,10 +1,10 @@
-import { request as undiciRequest } from "undici";
 import {
-  createProxyDispatcher,
+  createProxyDispatcherAsync,
   isSocks5ProxyEnabled,
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "@omniroute/open-sse/utils/proxyDispatcher.ts";
+import { isBunRuntime } from "@/shared/utils/nodeRuntimeSupport";
 import { testProxySchema } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { createErrorResponse, createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
@@ -135,10 +135,22 @@ export async function POST(request: Request) {
 
     const publicProxyUrl = proxyUrlForLogs(proxyUrl);
 
+    if (isBunRuntime()) {
+      return Response.json(
+        {
+          success: false,
+          error: "Proxy testing is not supported on Bun runtime yet",
+          proxyUrl: publicProxyUrl,
+        },
+        { status: 501 }
+      );
+    }
+
     const startTime = Date.now();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
-    const dispatcher = createProxyDispatcher(proxyUrl);
+    const dispatcher = await createProxyDispatcherAsync(proxyUrl);
+    const { request: undiciRequest } = await import("undici");
 
     try {
       const result = await undiciRequest("https://api64.ipify.org?format=json", {

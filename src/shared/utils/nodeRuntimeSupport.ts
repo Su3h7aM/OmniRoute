@@ -18,6 +18,18 @@ export const SUPPORTED_NODE_RANGE = ">=20.20.2 <21 || >=22.22.2 <23 || >=24.0.0 
 export const SUPPORTED_NODE_DISPLAY =
   "Node.js 20.20.2+ (20.x LTS), 22.22.2+ (22.x LTS), or 24.0.0+ (24.x LTS)";
 
+export function isBunRuntime(): boolean {
+  return (
+    typeof (globalThis as Record<string, unknown>).Bun !== "undefined" &&
+    (globalThis as Record<string, unknown>).Bun !== null
+  );
+}
+
+export function getBunVersion(): string | null {
+  if (!isBunRuntime()) return null;
+  return String((globalThis as Record<string, unknown>).Bun?.version ?? "unknown");
+}
+
 export interface NodeVersionInfo {
   major: number;
   minor: number;
@@ -71,6 +83,20 @@ export function getSecureFloorForMajor(major: number): NodeVersionInfo | null {
 }
 
 export function getNodeRuntimeSupport(version: string = process.versions.node): NodeRuntimeSupport {
+  // Bun is always considered compatible
+  if (isBunRuntime()) {
+    const bunVer = getBunVersion() || "unknown";
+    return {
+      nodeVersion: `bun-v${bunVer}`,
+      nodeCompatible: true,
+      reason: "bun-runtime",
+      supportedRange: "Bun ≥1.0.0",
+      supportedDisplay: "Bun runtime (≥1.0.0)",
+      recommendedVersion: "latest",
+      minimumSecureVersion: null,
+    };
+  }
+
   const parsed = parseNodeVersion(version);
   const secureFloor = getSecureFloorForMajor(parsed.major);
   const nodeCompatible = secureFloor ? compareNodeVersions(parsed, secureFloor) >= 0 : false;
@@ -96,6 +122,9 @@ export function getNodeRuntimeSupport(version: string = process.versions.node): 
 }
 
 export function getNodeRuntimeWarning(version: string = process.versions.node): string | null {
+  // Bun is always compatible — no warning needed
+  if (isBunRuntime()) return null;
+
   const support = getNodeRuntimeSupport(version);
   if (support.nodeCompatible) return null;
 

@@ -3514,12 +3514,12 @@ function ModelRow({
             className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
             title={
               testingModel
-                ? t("testingModel", "Testing...")
+                ? providerText(t, "testingModel", "Testing...")
                 : testStatus === "ok"
                   ? "OK"
                   : testStatus === "error"
                     ? "Error"
-                    : t("testModel", "Test Model")
+                    : providerText(t, "testModel", "Test Model")
             }
           >
             {testingModel ? (
@@ -3900,12 +3900,12 @@ function PassthroughModelRow({
             className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
             title={
               testingModel
-                ? t("testingModel", "Testing...")
+                ? providerText(t, "testingModel", "Testing...")
                 : testStatus === "ok"
                   ? "OK"
                   : testStatus === "error"
                     ? "Error"
-                    : t("testModel", "Test Model")
+                    : providerText(t, "testModel", "Test Model")
             }
           >
             {testingModel ? (

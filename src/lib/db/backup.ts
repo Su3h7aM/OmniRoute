@@ -2,7 +2,7 @@
  * db/backup.js — Database backup/restore operations.
  */
 
-import Database from "better-sqlite3";
+import Database from "@/lib/db/sqliteAdapter";
 import path from "path";
 import fs from "fs";
 import {
