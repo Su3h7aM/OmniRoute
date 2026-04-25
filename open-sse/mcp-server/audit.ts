@@ -7,6 +7,8 @@
  */
 
 import { hashInput, summarizeOutput } from "./schemas/audit.ts";
+import { getLegacyDotDataDir, isSamePath, resolveDataDir } from "@/lib/dataPaths";
+import Database from "@/lib/db/sqliteAdapter";
 
 // ============ Database Connection ============
 
@@ -159,24 +161,23 @@ async function getDb(): Promise<AuditDatabase | null> {
   if (cachedDb) return cachedDb;
 
   try {
-    // Try importing the db module from the main app
-    const { homedir } = await import("node:os");
     const { join } = await import("node:path");
     const { existsSync } = await import("node:fs");
 
-    const dbPath = process.env.DATA_DIR
-      ? join(process.env.DATA_DIR, "storage.sqlite")
-      : join(homedir(), ".omniroute", "storage.sqlite");
+    const primaryDbPath = join(resolveDataDir(), "storage.sqlite");
+    const legacyDbPath = join(getLegacyDotDataDir(), "storage.sqlite");
+    const dbPath = existsSync(primaryDbPath)
+      ? primaryDbPath
+      : !isSamePath(primaryDbPath, legacyDbPath) && existsSync(legacyDbPath)
+        ? legacyDbPath
+        : primaryDbPath;
 
     if (!existsSync(dbPath)) {
       console.error(`[MCP Audit] Database not found at ${dbPath} — audit logging disabled`);
       return null;
     }
 
-    const Database = (await import("better-sqlite3")).default as unknown as new (
-      dbPath: string
-    ) => AuditDatabase;
-    const database = new Database(dbPath);
+    const database = new (Database as unknown as new (dbPath: string) => AuditDatabase)(dbPath);
     setCachedAuditDb(database);
     return database;
   } catch (err: unknown) {
