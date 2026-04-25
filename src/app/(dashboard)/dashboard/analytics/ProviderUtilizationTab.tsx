@@ -36,6 +36,10 @@ const PROVIDER_COLORS = [
   "var(--color-text-muted)",
 ];
 
+function isShortTimeRange(range: UtilizationTimeRange) {
+  return range === "1h" || range === "24h";
+}
+
 function formatTimestamp(value: string, range: UtilizationTimeRange) {
   const date = new Date(value);
 
@@ -43,7 +47,7 @@ function formatTimestamp(value: string, range: UtilizationTimeRange) {
     return value;
   }
 
-  if (range === "1h" || range === "24h") {
+  if (isShortTimeRange(range)) {
     return new Intl.DateTimeFormat(undefined, {
       hour: "2-digit",
       minute: "2-digit",
@@ -63,12 +67,42 @@ function formatTooltipTimestamp(value: string, range: UtilizationTimeRange) {
     return value;
   }
 
+  const timeOptions = isShortTimeRange(range)
+    ? {
+        hour: "2-digit" as const,
+        minute: "2-digit" as const,
+      }
+    : {};
+
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
-    hour: range === "1h" || range === "24h" ? "2-digit" : undefined,
-    minute: range === "1h" || range === "24h" ? "2-digit" : undefined,
+    ...timeOptions,
   }).format(date);
+}
+
+function getUtilizationTone(point: ProviderUtilizationPoint) {
+  if (point.isExhausted) {
+    return {
+      label: "Exhausted",
+      badgeClassName: "bg-error/10 text-error",
+      barClassName: "bg-error",
+    };
+  }
+
+  if (point.remainingPct <= 20) {
+    return {
+      label: "Low",
+      badgeClassName: "bg-warning/10 text-warning",
+      barClassName: "bg-warning",
+    };
+  }
+
+  return {
+    label: "Healthy",
+    badgeClassName: "bg-success/10 text-success",
+    barClassName: "bg-primary",
+  };
 }
 
 function formatPercent(value: number) {
@@ -301,8 +335,8 @@ export default function ProviderUtilizationTab() {
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            <div className="h-80 w-full rounded-xl border border-black/5 bg-black/[0.02] px-3 py-4 dark:border-white/5 dark:bg-white/[0.02]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-80 w-full min-w-0 rounded-xl border border-black/5 bg-black/[0.02] px-3 py-4 dark:border-white/5 dark:bg-white/[0.02]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={320}>
                 <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
                   <CartesianGrid
                     stroke="var(--color-border)"
@@ -358,7 +392,7 @@ export default function ProviderUtilizationTab() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {latestPoints.map((point) => {
-                const isLow = point.remainingPct <= 20;
+                const tone = getUtilizationTone(point);
 
                 return (
                   <Card.Section key={point.provider} className="flex h-full flex-col gap-4">
@@ -373,15 +407,9 @@ export default function ProviderUtilizationTab() {
                         </div>
                       </div>
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                          point.isExhausted
-                            ? "bg-error/10 text-error"
-                            : isLow
-                              ? "bg-warning/10 text-warning"
-                              : "bg-success/10 text-success"
-                        }`}
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${tone.badgeClassName}`}
                       >
-                        {point.isExhausted ? "Exhausted" : isLow ? "Low" : "Healthy"}
+                        {tone.label}
                       </span>
                     </div>
 
@@ -401,9 +429,7 @@ export default function ProviderUtilizationTab() {
                     <div className="flex flex-col gap-2">
                       <div className="h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/5">
                         <div
-                          className={`h-full rounded-full transition-all ${
-                            point.isExhausted ? "bg-error" : isLow ? "bg-warning" : "bg-primary"
-                          }`}
+                          className={`h-full rounded-full transition-all ${tone.barClassName}`}
                           style={{ width: `${Math.max(point.remainingPct, 0)}%` }}
                         />
                       </div>

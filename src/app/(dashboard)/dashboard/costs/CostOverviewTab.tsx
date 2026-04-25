@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Card, EmptyState, SegmentedControl, CardSkeleton } from "@/shared/components";
 import {
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
@@ -70,6 +69,20 @@ const CHART_COLORS = [
   "#ec4899",
 ];
 
+const EMPTY_SUMMARY: UsageAnalyticsSummary = {
+  totalCost: 0,
+  totalRequests: 0,
+  uniqueModels: 0,
+  uniqueAccounts: 0,
+  uniqueApiKeys: 0,
+};
+
+const CHART_TOOLTIP_STYLE = {
+  background: "var(--surface)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: "12px",
+};
+
 function createCurrencyFormatter(locale: string) {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -77,6 +90,36 @@ function createCurrencyFormatter(locale: string) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function useMeasuredSize<T extends HTMLElement>() {
+  const ref = useRef<T | null>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const update = () => {
+      const rect = element.getBoundingClientRect();
+      setSize({
+        width: Math.max(0, Math.floor(rect.width)),
+        height: Math.max(0, Math.floor(rect.height)),
+      });
+    };
+
+    update();
+    const frame = requestAnimationFrame(update);
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
+  return [ref, size] as const;
 }
 
 export default function CostOverviewTab() {
@@ -166,13 +209,7 @@ export default function CostOverviewTab() {
   const selectedRangeLabel = t(
     RANGE_OPTIONS.find((option) => option.value === range)?.labelKey || "range30d"
   );
-  const summary = analytics?.summary || {
-    totalCost: 0,
-    totalRequests: 0,
-    uniqueModels: 0,
-    uniqueAccounts: 0,
-    uniqueApiKeys: 0,
-  };
+  const summary = analytics?.summary || EMPTY_SUMMARY;
   const providersByCost = [...(analytics?.byProvider || [])]
     .filter((provider) => provider.cost > 0)
     .sort((left, right) => right.cost - left.cost);
@@ -349,15 +386,17 @@ function ProviderSpendCard({
     fill: CHART_COLORS[index % CHART_COLORS.length],
   }));
 
+  const [chartRef, chartSize] = useMeasuredSize<HTMLDivElement>();
+
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
         {title}
       </h3>
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="w-full md:w-[180px] h-[180px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+        <div ref={chartRef} className="h-[180px] w-full min-w-[180px] md:w-[180px]">
+          {chartSize.width > 0 ? (
+            <PieChart width={chartSize.width} height={180}>
               <Pie
                 data={chartRows}
                 dataKey="value"
@@ -372,14 +411,10 @@ function ProviderSpendCard({
               </Pie>
               <Tooltip
                 formatter={(value: number) => currencyFormatter.format(value || 0)}
-                contentStyle={{
-                  background: "var(--surface)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                }}
+                contentStyle={CHART_TOOLTIP_STYLE}
               />
             </PieChart>
-          </ResponsiveContainer>
+          ) : null}
         </div>
         <div className="flex-1 space-y-2">
           {chartRows.map((row) => (
@@ -417,14 +452,21 @@ function CostTrendCard({
     cost: row.cost || 0,
   }));
 
+  const [chartRef, chartSize] = useMeasuredSize<HTMLDivElement>();
+
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wide mb-4">
         {title}
       </h3>
-      <div className="h-[220px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartRows} margin={{ top: 5, right: 12, left: 0, bottom: 0 }}>
+      <div ref={chartRef} className="h-[220px] min-w-0">
+        {chartSize.width > 0 ? (
+          <LineChart
+            width={chartSize.width}
+            height={220}
+            data={chartRows}
+            margin={{ top: 5, right: 12, left: 0, bottom: 0 }}
+          >
             <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
             <XAxis
               dataKey="date"
@@ -442,11 +484,7 @@ function CostTrendCard({
             />
             <Tooltip
               formatter={(value: number) => currencyFormatter.format(value || 0)}
-              contentStyle={{
-                background: "var(--surface)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
             />
             <Line
               type="monotone"
@@ -457,7 +495,7 @@ function CostTrendCard({
               activeDot={{ r: 4 }}
             />
           </LineChart>
-        </ResponsiveContainer>
+        ) : null}
       </div>
     </Card>
   );
@@ -487,7 +525,10 @@ function TopListCard({
         {rows.slice(0, 6).map((row) => (
           <div
             key={String(row[nameKey])}
-            className="flex items-center justify-between gap-3 rounded-lg border border-border/20 bg-surface/20 px-4 py-3"
+            className={
+              "flex items-center justify-between gap-3 rounded-lg border border-border/20 " +
+              "bg-surface/20 px-4 py-3"
+            }
           >
             <span className="text-sm text-text-main truncate">{String(row[nameKey])}</span>
             <span className="text-sm font-mono text-text-muted">

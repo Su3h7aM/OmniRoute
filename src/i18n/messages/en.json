@@ -2873,6 +2873,7 @@
     "syncNow": "Sync Now",
     "syncing": "Syncing...",
     "lastSync": "Last sync",
+    "nextSync": "Next sync",
     "never": "Never",
     "justNow": "Just now",
     "modelsDevStats": "Sync Statistics",

@@ -211,7 +211,6 @@ export function ActivityHeatmap({ activityMap }) {
     return w;
   }, [cells]);
 
-  // Auto-scroll to the right edge so the current date is visible
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
@@ -267,10 +266,7 @@ export function ActivityHeatmap({ activityMap }) {
         </span>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="overflow-x-auto"
-      >
+      <div ref={scrollRef} className="overflow-x-auto">
         <div className="w-max">
           <div className="flex gap-[3px] mb-1 ml-6" style={{ fontSize: "10px" }}>
             {monthLabels.map((m, i) => (
@@ -300,18 +296,18 @@ export function ActivityHeatmap({ activityMap }) {
             </div>
 
             {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {week.map((day, di) => (
-                <div
-                  key={di}
-                  title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
-                  className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
-                />
-              ))}
-            </div>
-          ))}
+              <div key={wi} className="flex flex-col gap-[3px]">
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
+                    className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
       </div>
 
       <div className="flex items-center gap-1 mt-2 ml-6 text-[10px] text-text-muted">
@@ -357,7 +353,7 @@ export function DailyTrendChart({ dailyTrend }) {
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
         Token &amp; Cost Trend
       </h3>
-      <ResponsiveContainer width="100%" height={140}>
+      <ResponsiveContainer width="100%" height={140} minWidth={1} minHeight={140}>
         <ComposedChart
           data={chartData}
           margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}
@@ -489,7 +485,7 @@ export function AccountDonut({ byAccount }) {
         By Account
       </h3>
       <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
+        <ResponsiveContainer width={120} height={120} minWidth={120} minHeight={120}>
           <PieChart>
             <Pie
               data={pieData}
@@ -562,7 +558,7 @@ export function ApiKeyDonut({ byApiKey }) {
         By API Key
       </h3>
       <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
+        <ResponsiveContainer width={120} height={120} minWidth={120} minHeight={120}>
           <PieChart>
             <Pie
               data={pieData}
@@ -780,7 +776,7 @@ export function WeeklyPattern({ weeklyPattern }) {
       <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
         Weekly
       </h3>
-      <ResponsiveContainer width="100%" height={48}>
+      <ResponsiveContainer width="100%" height={48} minWidth={1} minHeight={48}>
         <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="day"
@@ -1158,7 +1154,7 @@ export function ProviderCostDonut({ byProvider }) {
         Cost by Provider
       </h3>
       <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
+        <ResponsiveContainer width={120} height={120} minWidth={120} minHeight={120}>
           <PieChart>
             <Pie
               data={pieData}
@@ -1205,11 +1201,9 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
   const data = useMemo(() => dailyByModel || [], [dailyByModel]);
   const models = useMemo(() => modelNames || [], [modelNames]);
 
-  // Prepare chart data — format dates (must be before early return for rules-of-hooks)
   const chartData = useMemo(() => {
     return data.map((d) => {
       const row = { ...d };
-      // Short date label
       if (d.date) {
         const parts = d.date.split("-");
         row.dateLabel = `${parts[1]}/${parts[2]}`;
@@ -1234,7 +1228,7 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
       <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
         Model Usage Over Time
       </h3>
-      <ResponsiveContainer width="100%" height={240}>
+      <ResponsiveContainer width="100%" height={240} minWidth={1} minHeight={240}>
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="dateLabel"
