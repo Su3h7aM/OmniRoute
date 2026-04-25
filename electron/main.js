@@ -135,21 +135,29 @@ function getPreferredEnvFilePath(env = process.env) {
 function hasEncryptedCredentials(dbPath) {
   if (!fs.existsSync(dbPath)) return false;
 
+  const ENC_SQL = `SELECT 1
+    FROM provider_connections
+   WHERE access_token LIKE 'enc:v1:%'
+      OR refresh_token LIKE 'enc:v1:%'
+      OR api_key LIKE 'enc:v1:%'
+      OR id_token LIKE 'enc:v1:%'
+   LIMIT 1`;
+
   try {
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    // better-sqlite3 (Node/Electron); falls back to bun:sqlite (Bun)
+    let Database;
+    let db;
     try {
-      const row = db
-        .prepare(
-          `SELECT 1
-             FROM provider_connections
-            WHERE access_token LIKE 'enc:v1:%'
-               OR refresh_token LIKE 'enc:v1:%'
-               OR api_key LIKE 'enc:v1:%'
-               OR id_token LIKE 'enc:v1:%'
-            LIMIT 1`
-        )
-        .get();
+      Database = require("better-sqlite3");
+      db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    } catch {
+      // Bun: better-sqlite3 native bindings are not supported — use bun:sqlite
+      const bunSqlite = require("bun:sqlite");
+      Database = bunSqlite.Database;
+      db = new Database(dbPath, { readonly: true, create: false });
+    }
+    try {
+      const row = db.prepare(ENC_SQL).get();
       return !!row;
     } finally {
       db.close();

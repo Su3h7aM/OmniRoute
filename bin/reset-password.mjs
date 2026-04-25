@@ -54,9 +54,17 @@ async function main() {
   let Database;
   try {
     Database = (await import("better-sqlite3")).default;
+    // Verify native bindings work (Bun resolves the module but may fail on construction)
+    new Database(":memory:").close();
   } catch {
-    console.error("❌ better-sqlite3 not installed. Run: npm install");
-    process.exit(1);
+    // Bun fallback: better-sqlite3 native bindings not supported — use bun:sqlite
+    try {
+      Database = (await import("bun:sqlite")).Database;
+    } catch {
+      console.error("❌ No compatible SQLite driver available.");
+      console.error("   Install: npm install better-sqlite3");
+      process.exit(1);
+    }
   }
 
   const db = new Database(DB_PATH);

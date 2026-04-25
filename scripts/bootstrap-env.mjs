@@ -71,9 +71,20 @@ function hasEncryptedCredentials(dataDir) {
   const dbPath = join(dataDir, "storage.sqlite");
   if (!existsSync(dbPath)) return false;
 
+  // Detect Bun runtime (same pattern as src/lib/db/sqliteAdapter.ts)
+  const isBun = typeof globalThis.Bun !== "undefined";
+
   try {
-    const Database = require("better-sqlite3");
-    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    let db;
+    if (isBun) {
+      // Bun runtime — use native bun:sqlite via createRequire (which Bun supports for bun: protocol)
+      const { Database } = require("bun:sqlite");
+      db = new Database(dbPath, { readonly: true, create: false });
+    } else {
+      // Node.js — use better-sqlite3
+      const Database = require("better-sqlite3");
+      db = new Database(dbPath, { readonly: true, fileMustExist: true });
+    }
     try {
       const row = db
         .prepare(
