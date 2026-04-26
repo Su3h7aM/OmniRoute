@@ -25,6 +25,7 @@ const LS_EXPANDED_GROUPS = "omniroute:limits:expandedGroups";
 const MIN_FETCH_INTERVAL_MS = 30000; // Debounce per-connection fetches
 const QUOTA_BAR_GREEN_THRESHOLD = 50;
 const QUOTA_BAR_YELLOW_THRESHOLD = 20;
+const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set(["glm", "glmt", "minimax", "minimax-cn", "crof"]);
 
 // Provider display config
 const PROVIDER_CONFIG = {
@@ -239,29 +240,6 @@ export default function ProviderLimits() {
   );
 
   const refreshingAllRef = useRef(false);
-  const refreshAll = useCallback(async () => {
-    if (refreshingAllRef.current) return;
-    refreshingAllRef.current = true;
-    setRefreshingAll(true);
-    try {
-      const response = await fetch("/api/usage/provider-limits", { method: "POST" });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.error || response.statusText;
-        throw new Error(errorMsg);
-      }
-
-      const data = await response.json();
-      const connectionList = await fetchConnections();
-      applyCachedQuotaState(connectionList, data.caches || {});
-      setErrors(data.errors || {});
-    } catch (error) {
-      console.error("Error refreshing all:", error);
-    } finally {
-      refreshingAllRef.current = false;
-      setRefreshingAll(false);
-    }
-  }, [applyCachedQuotaState, fetchConnections]);
 
   useEffect(() => {
     const init = async () => {
@@ -280,13 +258,30 @@ export default function ProviderLimits() {
 
   const filteredConnections = useMemo(
     () =>
-      connections.filter(
-        (conn) =>
-          USAGE_SUPPORTED_PROVIDERS.includes(conn.provider) &&
-          (conn.authType === "oauth" || conn.authType === "apikey")
-      ),
+      connections.filter((conn) => {
+        if (!USAGE_SUPPORTED_PROVIDERS.includes(conn.provider)) return false;
+        if (conn.authType === "oauth") return true;
+        return conn.authType === "apikey" && PROVIDER_LIMITS_APIKEY_PROVIDERS.has(conn.provider);
+      }),
     [connections]
   );
+
+  const refreshAll = useCallback(async () => {
+    if (refreshingAllRef.current) return;
+    refreshingAllRef.current = true;
+    setRefreshingAll(true);
+
+    try {
+      await Promise.allSettled(
+        filteredConnections.map((conn) => fetchQuota(conn.id, conn.provider, { force: true }))
+      );
+    } catch (error) {
+      console.error("Error refreshing all:", error);
+    } finally {
+      refreshingAllRef.current = false;
+      setRefreshingAll(false);
+    }
+  }, [fetchQuota, filteredConnections]);
 
   const sortedConnections = useMemo(() => {
     const priority = {
